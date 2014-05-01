@@ -170,6 +170,7 @@ if Confirm "Do you want to install apache with php?" Y; then
 
 	# Turn off the default Apache2 sites directly
 	sudo a2dissite default
+	sudo a2dissite 000-default
 	sudo a2dissite 000-default.conf
 	sudo service apache2 reload
 
