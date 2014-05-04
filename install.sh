@@ -117,6 +117,9 @@ if Confirm "Do you want to run the basic install script?" Y; then
 		sudo bash -c "echo 'Hostname='`hostname` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
 		sudo bash -c "echo 'EnableRemoteCommands=1' >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
 		sudo service zabbix-agent restart
+		# Increase the kernel.shmmax to 128M, zabbix seems to use pretty much shared memory.
+		sudo bash -c "echo 'kernel.shmmax = 134217728' >> /etc/sysctl.conf"
+		sudo sysctl -p
 	fi
 fi
 
@@ -196,6 +199,8 @@ if Confirm "Do you want to install apache with php?" Y; then
 		sudo bash -c "echo 'net.ipv4.ip_local_port_range = 1024 65535' >> /etc/sysctl.conf"
 		# Disable this one for now, might be dangerous in production environments.
 		sudo bash -c "echo '#net.ipv4.tcp_tw_reuse = 1' >> /etc/sysctl.conf"
+		# Apply the changes
+		sudo sysctl -p
 	fi
 
 fi
