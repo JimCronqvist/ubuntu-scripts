@@ -112,7 +112,7 @@ if Confirm "Do you want to run the basic install script?" Y; then
 	if Confirm "Do you want to install zabbix agent (For monitoring)?" N; then
 		# Install zabbix agent
 		sudo apt-get install zabbix-agent -y
-		sudo bash -c "echo 'Server=zabbix.'`dnsdomainname`',127.0.0.1' >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
+		sudo bash -c "echo 'Server=zabbix.'`dnsdomainname` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
 		sudo bash -c "echo 'Hostname='`hostname --fqdn` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
 		sudo bash -c "echo 'EnableRemoteCommands=1' >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
 		sudo service zabbix-agent restart
