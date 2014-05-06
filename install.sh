@@ -51,9 +51,8 @@ if Confirm "Do you want to install all available updates in Ubuntu?" Y; then
 	# To get the latest package lists
 	apt-get update
 	# Run all updates
-	apt-get upgrade -y 
-	# Optional, user will get a choice of yes/no on this one if there is updates available.
-	sudo apt-get dist-upgrade
+	#apt-get upgrade -y 
+	sudo apt-get dist-upgrade -y
 fi
 
 # Start the basic installation.
