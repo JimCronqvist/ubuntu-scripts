@@ -118,8 +118,8 @@ if Confirm "Do you want to run the basic install script?" Y; then
 		sudo bash -c "echo 'EnableRemoteCommands=1' >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
 		sudo service zabbix-agent restart
 		# Increase the kernel.shmmax to 128M, zabbix seems to use pretty much shared memory.
-		sudo bash -c "echo 'kernel.shmmax = 134217728' >> /etc/sysctl.conf"
-		sudo sysctl -p
+		#sudo bash -c "echo 'kernel.shmmax = 134217728' >> /etc/sysctl.conf"
+		#sudo sysctl -p
 	fi
 fi
 
