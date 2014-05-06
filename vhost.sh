@@ -1,5 +1,12 @@
 #!/bin/bash
 
+###################################################
+## Automatic Apache2 virtual host install script ##
+## Jim Cronqvist <jim.cronqvist@gmail.com>       ##
+## Updated: 2014-05-06                           ##
+###################################################
+
+
 # Abort if not root.
 if [ "$(id -u)" -ne "0" ] ; then
 echo "This script needs to be ran from a user with root permissions.";
