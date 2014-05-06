@@ -113,7 +113,7 @@ if Confirm "Do you want to run the basic install script?" Y; then
 		# Install zabbix agent
 		sudo apt-get install zabbix-agent -y
 		sudo bash -c "echo 'Server=zabbix.'`dnsdomainname`',127.0.0.1' >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
-		sudo bash -c "echo 'Hostname='`hostname` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
+		sudo bash -c "echo 'Hostname='`hostname --fqdn` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
 		sudo bash -c "echo 'EnableRemoteCommands=1' >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
 		sudo service zabbix-agent restart
 		# Increase the kernel.shmmax to 128M, zabbix seems to use pretty much shared memory.
