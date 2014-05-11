@@ -10,3 +10,10 @@ install.sh
 ## Set up a virtual host in apache2
 vhost.sh
 `sudo bash vhost.sh example.com /var/www/example.com`
+
+## Zabbix template for Ubuntu Server OS
+Features:
+- Information about available normal packages updates
+- Information about available security packages updates
+- Information about if a reboot is required
+- Information about if VMware tools is running
