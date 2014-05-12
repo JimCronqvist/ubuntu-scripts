@@ -11,8 +11,11 @@ install.sh
 vhost.sh
 `sudo bash vhost.sh example.com /var/www/example.com`
 
+## Deploy a private repository from Github and set up SSH-Keys
+github.sh
+`bash github.sh`
+
 ## Zabbix template for Ubuntu Server OS
-Features:
 - Information about available normal packages updates
 - Information about available security packages updates
 - Information about if a reboot is required
