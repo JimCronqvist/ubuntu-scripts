@@ -58,6 +58,9 @@ fi
 # Start the basic installation.
 if Confirm "Do you want to run the basic install script?" Y; then
 
+	# Set backspace character to ^H
+	echo 'stty erase ^H' >> ~/.bashrc
+
 	# To get the latest package lists
 	apt-get update
 
@@ -116,9 +119,6 @@ if Confirm "Do you want to run the basic install script?" Y; then
 		sudo bash -c "echo 'Hostname='`hostname --fqdn` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
 		sudo bash -c "echo 'EnableRemoteCommands=1' >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
 		sudo service zabbix-agent restart
-		# Increase the kernel.shmmax to 128M, zabbix seems to use pretty much shared memory.
-		#sudo bash -c "echo 'kernel.shmmax = 134217728' >> /etc/sysctl.conf"
-		#sudo sysctl -p
 	fi
 fi
 
@@ -129,7 +129,7 @@ if Confirm "Do you want to install apache with php?" Y; then
 	apt-get install apache2 -y
 	apt-get install php5 -y
 	apt-get install php5-ldap -y
-	apt-get install mysql-client-5.5 -y
+	apt-get install mysql-client -y
 	apt-get install php5-mysqlnd -y
 	apt-get install php5-curl -y
 	apt-get install php5-xsl -y
@@ -271,17 +271,17 @@ if Confirm "Do you want to install VMware tools? (Make sure that the image is mo
 fi
 
 
-if Confirm "Do you want to install webmin?" N; then
+#if Confirm "Do you want to install webmin?" N; then
     # Install webmin
-    echo "" >> /etc/apt/sources.list
-    echo "deb http://download.webmin.com/download/repository sarge contrib" >> /etc/apt/sources.list
-    echo "deb http://webmin.mirror.somersettechsolutions.co.uk/repository sarge contrib " >> /etc/apt/sources.list
-    cd /root
-    wget http://www.webmin.com/jcameron-key.asc
-    apt-key add jcameron-key.asc 
-    apt-get update
-    apt-get install webmin -y
-fi
+#    echo "" >> /etc/apt/sources.list
+#    echo "deb http://download.webmin.com/download/repository sarge contrib" >> /etc/apt/sources.list
+#    echo "deb http://webmin.mirror.somersettechsolutions.co.uk/repository sarge contrib " >> /etc/apt/sources.list
+#    cd /root
+#    wget http://www.webmin.com/jcameron-key.asc
+#    apt-key add jcameron-key.asc 
+#    apt-get update
+#    apt-get install webmin -y
+#fi
 
 
 if Confirm "Is this a local development environment? (install samba+xdebug)" N; then
