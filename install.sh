@@ -50,7 +50,6 @@ done
 while :
 do
     clear
-    
     cat<<EOF
 ==================================
 install.sh by Jim Cronqvist
@@ -67,8 +66,8 @@ install.sh by Jim Cronqvist
 ----------------------------------
 EOF
 
-        read -p "Please enter your choice: " REPLY
-        case "$REPLY" in
+    read -p "Please enter your choice: " REPLY
+    case "$REPLY" in
     
         "1") #Install all available updates
         
@@ -339,5 +338,4 @@ EOF"
             echo "invalid option"     
             ;;
     esac
-    sleep 1
 done
