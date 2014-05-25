@@ -61,7 +61,7 @@ install.sh by Jim Cronqvist
 (5) Install VMware tools (DVD must be mounted first)
 (6) Install webmin
 (7) Install samba+xdebug (local development setup)
-(8) apt-get cleaning
+(8) Cleaning
 (0) Quit
 ----------------------------------
 EOF
@@ -329,13 +329,22 @@ EOF"
             apt-get autoremove -y
             apt-get clean
             apt-get autoclean
+            # Clear the temp folder.
+            sudo rm -r /tmp/*
+            # Clean the /boot partition
+            if Confirm "Do you want to uninstall all old linux kernels to clear the /boot partition?" N; then
+            	echo "Currently installed linux kernel"
+            	uname -r
+            	# Remove all kernels that is installed but not the newest that is currently used
+            	dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt-get -y purge
+            fi
             ;;
 			
         "0")
             exit
             ;;
         * )
-            echo "invalid option"     
+            echo "Invalid option, please try again."
             ;;
     esac
 done
