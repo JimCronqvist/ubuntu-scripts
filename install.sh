@@ -49,7 +49,7 @@ done
 
 while :
 do
-    clear
+    #clear
     cat<<EOF
 ==================================
 install.sh by Jim Cronqvist
