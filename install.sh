@@ -341,10 +341,10 @@ EOF"
             if Confirm "Do you want to uninstall all old linux kernels to clear the /boot partition?" N; then
             	echo "Currently installed linux kernel: "$(uname -r)
             	echo "The following kernels will be uninstalled:"
-            	dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | grep -v $(uname -r | cut -f1,2 -d"-") | egrep '[0-9]+\.[0-9]+\.[0-9]+'
+            	dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | grep -v $(uname -r | cut -f1,2 -d"-") | egrep --color '[0-9]+\.[0-9]+\.[0-9]+'
             	if Confirm "Are you sure you want to continue?" N; then
             	    # Remove all kernels that is installed but not the newest that is currently used
-            	    dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | grep -v $(uname -r | cut -f1,2 -d"-") | egrep '[0-9]+\.[0-9]+\.[0-9]+' | xargs sudo apt-get -y purge
+            	    dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | grep -v $(uname -r | cut -f1,2 -d"-") | egrep --color '[0-9]+\.[0-9]+\.[0-9]+' | xargs sudo apt-get -y purge
             	    echo ""
             	    echo "All old kernels has been removed."
             	fi
