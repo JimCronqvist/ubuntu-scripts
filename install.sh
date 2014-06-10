@@ -323,23 +323,34 @@ xdebug.idekey=ubuntu
 EOF"
             ;;
 			
-	"8") # apt-get cleaning
+	"8") # Cleaning
 			
-            # Clean after this script.
-            apt-get autoremove -y
-            apt-get clean
-            apt-get autoclean
-            # Clear the temp folder.
-            sudo rm -r /tmp/*
+            # Clean after apt-get
+            if Confirm "Do you want to clean out after apt-get?" Y; then
+                apt-get autoremove -y
+                apt-get clean
+                apt-get autoclean
+            fi
+            
+            # Empty the temp folder.
+            if Confirm "Do you want to clean out the /tmp folder?" Y; then
+                sudo rm -r /tmp/*
+            fi
+            
             # Clean the /boot partition
             if Confirm "Do you want to uninstall all old linux kernels to clear the /boot partition?" N; then
-            	echo "Currently installed linux kernel"
-            	uname -r
-            	# Remove all kernels that is installed but not the newest that is currently used
-            	dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt-get -y purge
+            	echo "Currently installed linux kernel: "$(uname -r)
+            	echo "The following kernels will be uninstalled:"
+            	dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | grep -v $(uname -r | cut -f1,2 -d"-") | egrep '[0-9]+\.[0-9]+\.[0-9]+'
+            	if Confirm "Are you sure you want to continue?" N; then
+            	    # Remove all kernels that is installed but not the newest that is currently used
+            	    dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | grep -v $(uname -r | cut -f1,2 -d"-") | egrep '[0-9]+\.[0-9]+\.[0-9]+' | xargs sudo apt-get -y purge
+            	    echo ""
+            	    echo "All old kernels has been removed."
+            	fi
             fi
             ;;
-			
+
         "0")
             exit
             ;;
