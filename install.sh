@@ -73,6 +73,9 @@ EOF
         
             # Get the latest package lists and install all available upgrades
             sudo apt-get update && sudo apt-get dist-upgrade -y
+
+            # Update the VMware tools in case it is not running but it has been installed earlier. For example in case a kernel has been updated.
+            grep -s -q 'Vendor: VMware' /proc/scsi/scsi && ! test -e /var/run/vmtoolsd.pid && sudo /usr/bin/vmware-config-tools.pl -d
             ;;
             
         "2") #Basic installation (recommended)
