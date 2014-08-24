@@ -15,6 +15,10 @@ vhost.sh
 github.sh
 `bash github.sh`
 
+## List all cronjobs
+list_cronjobs.sh
+`bash list_cronjobs.sh`
+
 ## Zabbix template for Ubuntu Server OS
 - Information about available normal packages updates
 - Information about available security packages updates
