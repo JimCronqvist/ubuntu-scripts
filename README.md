@@ -23,6 +23,10 @@ list_cronjobs.sh
 update.sh
 `bash update.sh user@server1.com user@server2.com`
 
+## Restart remote servers
+reboot.sh
+`bash reboot.sh user@server1.com user@server2.com`
+
 ## Zabbix template for Ubuntu Server OS
 - Information about available normal packages updates
 - Information about available security packages updates
