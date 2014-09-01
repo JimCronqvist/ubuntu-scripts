@@ -19,6 +19,10 @@ github.sh
 list_cronjobs.sh
 `bash list_cronjobs.sh`
 
+## Update remote servers
+update.sh
+`bash update.sh user@server1.com user@server2.com`
+
 ## Zabbix template for Ubuntu Server OS
 - Information about available normal packages updates
 - Information about available security packages updates
