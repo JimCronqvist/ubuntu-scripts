@@ -6,6 +6,12 @@
 ## Updated: 2014-05-12                     ##
 #############################################
 
+if [ $(logname) = "root" ]; then
+    HOME_FOLDER="/root"
+else
+    HOME_FOLDER="/home/$(logname)"
+fi
+
 echo "This is a helper script to deploy a private repository, this script does not need to be used when you are using public repos."
 
 read -p "Please enter the git SSH clone URL that you want to clone: " REPO
@@ -18,7 +24,7 @@ echo "Repo Name: $REPO_NAME"
 
 cd $REPO_PATH
 mkdir ~/.ssh -p
-ssh-keygen -q -f "/home/$(logname)/.ssh/github-"$REPO_NAME"_id_rsa" -N ''
+ssh-keygen -q -f $HOME_FOLDER"/.ssh/github-"$REPO_NAME"_id_rsa" -N ''
 touch ~/.ssh/config
 echo '' >> ~/.ssh/config
 echo 'Host github-'$REPO_NAME'' >> ~/.ssh/config
@@ -26,7 +32,7 @@ echo 'HostName github.com' >> ~/.ssh/config
 echo 'User git' >> ~/.ssh/config
 echo 'IdentityFile ~/.ssh/github-'$REPO_NAME'_id_rsa' >> ~/.ssh/config
 
-echo ''; echo 'Enter this key into GitHub ('$REPO').'; echo ""; cat "/home/$(logname)/.ssh/github-"$REPO_NAME"_id_rsa.pub"; echo '';
+echo ''; echo 'Enter this key into GitHub ('$REPO').'; echo ""; cat $HOME_FOLDER"/.ssh/github-"$REPO_NAME"_id_rsa.pub"; echo '';
 read -p "Please press enter to continue when the key is added into Github: "
 
 echo "git clone git@github-"$REPO_NAME":/"$REPO".git"
