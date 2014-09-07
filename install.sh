@@ -89,6 +89,8 @@ EOF
 	        if Confirm "Do you want to change the server language to english?" Y; then
 	            sudo cp /etc/default/locale /etc/default/locale.old
 	            sudo update-locale LANG=en_US.UTF-8
+	            # Activate the change without a reboot or logout/login.
+	            . /etc/default/locale
 	        fi
 	    fi
 	    
