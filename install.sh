@@ -244,7 +244,6 @@ EOF
                         echo "Error: Can't find the key for the Percona repository, please try to run this scrpt again.";
                         exit;
                 fi
-                sudo gpg -a --export CD2EFD2A | sudo apt-key add -
                 sudo echo "" >> /etc/apt/sources.list
                 sudo echo "deb http://repo.percona.com/apt `sudo lsb_release -cs` main" >> /etc/apt/sources.list
                 sudo echo "deb-src http://repo.percona.com/apt `lsb_release -cs` main" >> /etc/apt/sources.list
