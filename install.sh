@@ -83,6 +83,15 @@ EOF
             # Set backspace character to ^H
             echo 'stty erase ^H' >> ~/.bashrc
 		
+	    # Check if the language is Swedish and ask if the user want to change to english in that case.
+	    if grep -q 'LANG="sv_SE.utf8"' /etc/default/locale; then
+	        echo "We have noticed that the server default language is not English."
+	        if Confirm "Do you want to change the server language to english?" Y; then
+	            sudo cp /etc/default/locale /etc/default/locale.old
+	            sudo update-locale LANG=en_US.UTF-8
+	        fi
+	    fi
+	    
             # To get the latest package lists
             apt-get update
 		
