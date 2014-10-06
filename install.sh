@@ -99,6 +99,9 @@ EOF
 		
             # Install ssh
             apt-get install ssh -y
+            
+            # Install pkexec
+            sudo apt-get install policykit-1 -y
 		
             # Install lrzsz to use with Xshell ssh client, allows you to transfer files by dropping them in the console.
             sudo apt-get install lrzsz -y
