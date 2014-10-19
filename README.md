@@ -34,6 +34,10 @@ reboot.sh
 apache.sh
 `sudo bash apache.sh`
 
+## Empty swap usage
+swap2ram.sh
+`sudo bash swap2ram.sh`
+
 ## Zabbix template for Ubuntu Server OS
 - Information about available normal packages updates
 - Information about available security packages updates
