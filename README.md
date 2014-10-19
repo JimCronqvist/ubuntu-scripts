@@ -30,6 +30,10 @@ reboot.sh
 ## Copy a certificate (pub-key) to remote servers
 `bash distribute_certificate.sh www.server1.com www.server2.com`
 
+## Tuning apache2
+apache.sh
+`sudo bash apache.sh`
+
 ## Zabbix template for Ubuntu Server OS
 - Information about available normal packages updates
 - Information about available security packages updates
