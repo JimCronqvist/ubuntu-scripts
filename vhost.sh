@@ -43,7 +43,7 @@ if [ $SSL -eq 1 ]; then
         SSLEngine on
         SSLCertificateFile /etc/apache2/ssl/ssl_certificate.crt
         SSLCertificateKeyFile /etc/apache2/ssl/$1.key
-	    SSLCertificateChainFile /etc/apache2/ssl/IntermediateCA.crt
+	SSLCertificateChainFile /etc/apache2/ssl/IntermediateCA.crt
         <FilesMatch \"\.(cgi|shtml|phtml|php)$\">
             SSLOptions +StdEnvVars
         </FilesMatch>
