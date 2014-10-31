@@ -28,22 +28,57 @@ if echo $* | grep -e " --ssl" -q ; then
     SSL=1
 fi
 
-virtual_host="<VirtualHost *:80>
-    ServerName $1
-    #ServerAlias $1
-    DocumentRoot $2
-    <Directory $2>
-        Options -Indexes +FollowSymLinks
-        AllowOverride All
-        Order allow,deny
-        Allow from all
-    </Directory>
-</VirtualHost>"
+if [ $SSL -eq 1 ]; then
+    virtual_host="<VirtualHost *:443>
+        ServerName $1
+        #ServerAlias $1
+        DocumentRoot $2
+        <Directory $2>
+            Options -Indexes +FollowSymLinks
+            AllowOverride All
+            Order allow,deny
+            Allow from all
+        </Directory>
+        
+        SSLEngine on
+        SSLCertificateFile /etc/apache2/ssl/ssl_certificate.crt
+        SSLCertificateKeyFile /etc/apache2/ssl/$1.key
+	    SSLCertificateChainFile /etc/apache2/ssl/IntermediateCA.crt
+        <FilesMatch "\.(cgi|shtml|phtml|php)$">
+            SSLOptions +StdEnvVars
+        </FilesMatch>
+        <Directory /usr/lib/cgi-bin>
+            SSLOptions +StdEnvVars
+        </Directory>
+        BrowserMatch "MSIE [2-6]" \
+            nokeepalive ssl-unclean-shutdown \
+            downgrade-1.0 force-response-1.0
+        BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
+    </VirtualHost>"
+else
+    virtual_host="<VirtualHost *:80>
+        ServerName $1
+        #ServerAlias $1
+        DocumentRoot $2
+        <Directory $2>
+            Options -Indexes +FollowSymLinks
+            AllowOverride All
+            Order allow,deny
+            Allow from all
+        </Directory>
+    </VirtualHost>"
+fi
 
-sudo bash -c "echo '$virtual_host' > /etc/apache2/sites-available/$1.conf"
+if [ $SSL -eq 1 ]; then
+    sudo bash -c "echo '$virtual_host' > /etc/apache2/sites-available/$1.ssl.conf"
+    echo "The site $1.ssl.conf has been created."
+    cat /etc/apache2/sites-available/$1.ssl.conf
+    a2ensite $1.ssl.conf
+else
+    sudo bash -c "echo '$virtual_host' > /etc/apache2/sites-available/$1.conf"
+    echo "The site $1.conf has been created."
+    cat /etc/apache2/sites-available/$1.conf
+    a2ensite $1.conf
+fi
 
-echo "The site $1.conf has been created."
-cat /etc/apache2/sites-available/$1.conf
-
-a2ensite $1.conf
 service apache2 reload
