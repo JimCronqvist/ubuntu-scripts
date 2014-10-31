@@ -44,16 +44,16 @@ if [ $SSL -eq 1 ]; then
         SSLCertificateFile /etc/apache2/ssl/ssl_certificate.crt
         SSLCertificateKeyFile /etc/apache2/ssl/$1.key
 	    SSLCertificateChainFile /etc/apache2/ssl/IntermediateCA.crt
-        <FilesMatch "\.(cgi|shtml|phtml|php)$">
+        <FilesMatch \"\.(cgi|shtml|phtml|php)$\">
             SSLOptions +StdEnvVars
         </FilesMatch>
         <Directory /usr/lib/cgi-bin>
             SSLOptions +StdEnvVars
         </Directory>
-        BrowserMatch "MSIE [2-6]" \
+        BrowserMatch \"MSIE [2-6]\" \
             nokeepalive ssl-unclean-shutdown \
             downgrade-1.0 force-response-1.0
-        BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
+        BrowserMatch \"MSIE [17-9]\" ssl-unclean-shutdown
     </VirtualHost>"
 else
     virtual_host="<VirtualHost *:80>
