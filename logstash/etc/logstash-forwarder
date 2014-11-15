@@ -18,6 +18,10 @@
         "fields": { "type": "syslog" }
     },
     {
+        "paths": [ "-" ],
+        "fields": { "type": "stdin" }
+    },
+    {
         "paths": [
             "/var/log/apache2/*access*.log"
         ],
