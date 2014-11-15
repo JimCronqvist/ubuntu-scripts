@@ -19,12 +19,12 @@
         ],
         "fields": { "type": "syslog" }
     },
-    #{
-    #    "paths": [
-    #        "/var/log/apache2/access.log"
-    #    ],
-    #    "fields": { "type": "apache-access" }
-    #},
+    {
+        "paths": [
+            "/var/log/apache2/*access*.log"
+        ],
+        "fields": { "type": "apache-access" }
+    },
     {
         "paths": [
             "/var/log/apache2/*error*.log"
