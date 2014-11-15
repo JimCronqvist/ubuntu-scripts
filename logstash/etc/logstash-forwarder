@@ -1,0 +1,42 @@
+{
+    "network": {
+        "servers": [ "logstash.domain.com:5000" ],
+        "timeout": 15,
+        "ssl ca": "/etc/ssl/logstash.crt"
+    },
+    "files": [
+    {
+        "paths": [
+            "/var/log/apport.log",
+            "/var/log/auth.log",
+            "/var/log/boot.log",
+            "/var/log/bootstrap.log",
+            "/var/log/dmesg",
+            "/var/log/faillog",
+            "/var/log/kern.log",
+            "/var/log/syslog",
+            "/var/log/messages"
+        ],
+        "fields": { "type": "syslog" }
+    },
+    #{
+    #    "paths": [
+    #        "/var/log/apache2/access.log"
+    #    ],
+    #    "fields": { "type": "apache-access" }
+    #},
+    {
+        "paths": [
+            "/var/log/apache2/*error*.log"
+        ],
+        "fields": { "type": "apache-error" }
+    },
+    {
+        "paths": [
+            "/var/log/mysql/mysql-error.log",
+            "/var/log/mysql/error.log"
+        ],
+        "fields": { "type": "mysql-error" }
+    }
+   ]
+}
