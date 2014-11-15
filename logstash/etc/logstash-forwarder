@@ -7,7 +7,10 @@
     "files": [
     {
         "paths": [
+            "/var/log/apport.log",
             "/var/log/auth.log",
+            "/var/log/boot.log",
+            "/var/log/faillog",
             "/var/log/kern.log",
             "/var/log/syslog",
             "/var/log/messages"
