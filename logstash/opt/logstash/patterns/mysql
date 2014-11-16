@@ -1,1 +1,8 @@
+# Matches Percona XtraDB Cluster log file on an EU server.
 MYSQLERRLINE %{TIMESTAMP_ISO8601:mysqldate} %{INT:pid} \[%{WORD:mysql_error_log_level}\] %{GREEDYDATA:mysqlerr}
+
+# Matches an english installation of Percona Server / MySQL Server
+MYSQL_ERROR_TIMESTAMP %{NUMBER:date}[\s]{1,2}%{TIME}
+MYSQL_ERORR_LOG_CONTENT_P1 \[%{WORD:mysql_error_log_level}\] %{GREEDYDATA:mysql_error_log_content}
+MYSQL_ERORR_LOG_CONTENT_P2 %{GREEDYDATA:mysql_error_log_content}
+MYSQL_ERROR_LOG %{MYSQL_ERROR_TIMESTAMP} (%{MYSQL_ERORR_LOG_CONTENT_P1}|%{MYSQL_ERORR_LOG_CONTENT_P2})
