@@ -38,6 +38,10 @@ apache.sh
 swap2ram.sh
 `sudo bash swap2ram.sh`
 
+## Execute a script on a remote server
+remote.sh
+`bash remote.sh script.sh user@server1.com user@server2.com`
+
 ## Zabbix template for Ubuntu Server OS
 - Information about available normal packages updates
 - Information about available security packages updates
