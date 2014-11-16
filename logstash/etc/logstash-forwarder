@@ -39,6 +39,12 @@
             "/var/log/mysql/error.log"
         ],
         "fields": { "type": "mysql-error" }
+    },
+    {
+        "paths": [
+            "/var/log/mysql/mysql-slow.log"
+        ],
+        "fields": { "type": "mysql-slow" }
     }
    ]
 }
