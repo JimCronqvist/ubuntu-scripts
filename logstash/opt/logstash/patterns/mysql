@@ -9,3 +9,11 @@ MYSQL_ERROR_LOG %{MYSQL_ERROR_TIMESTAMP} (%{MYSQL_ERORR_LOG_CONTENT_P1}|%{MYSQL_
 
 # Matches all
 MYSQLERR (%{MYSQLERRLINE}|%{MYSQL_ERROR_LOG})
+
+
+# Slow Query log
+MYSQL_SLOW_FROM ^# User@Host: %{USER:user}\[[^\]]+\] @  \[%{IP:ip_addr}?]
+MYSQL_SLOW_STAT ^# Query_time: %{NUMBER:duration:float} \s*Lock_time: %{NUMBER:lock_wait:float} \s*Rows_sent: %{NUMBER:results:int} \s*Rows_examined: %{NUMBER:scanned:int}
+MYSQL_SLOW_TIMESTAMP ^SET timestamp=%{NUMBER:timestamp};
+MYSQL_SLOW_DB ^use %{WORD:db_name};
+MYSQL_SLOW_QUERY ^(?!use\s)(?!SET timestamp=)%{WORD:action}%{SPACE}%{GREEDYDATA};
