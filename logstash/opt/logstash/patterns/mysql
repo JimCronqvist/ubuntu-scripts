@@ -1,0 +1,1 @@
+MYSQLERRLINE %{TIMESTAMP_ISO8601:mysqldate} %{INT:pid} \[%{WORD:mysql_error_log_level}\] %{GREEDYDATA:mysqlerr}
