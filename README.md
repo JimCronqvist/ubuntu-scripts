@@ -10,6 +10,7 @@ install.sh
 ## Set up a virtual host in apache2
 vhost.sh
 `sudo bash vhost.sh example.com /var/www/example.com`
+`sudo bash vhost.sh example.com /var/www/example.com --ssl`
 
 ## Deploy a private repository from Github and set up SSH-Keys
 github.sh
