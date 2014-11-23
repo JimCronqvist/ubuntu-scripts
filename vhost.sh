@@ -26,6 +26,13 @@ fi
 SSL=0
 if echo $* | grep -e " --ssl" -q ; then
     SSL=1
+    
+    if [ $(apache2ctl -M | grep ssl_module | wc -l) -eq 0 ]; then
+        echo "SSL is not enabled and the reload of the configuration file in the end of this script will fail if you continue."
+        echo "Issue the following command to enable ssl: sudo a2enmod ssl"
+        echo ""
+        read -p "Please press enter to continue anyway."
+    fi
 fi
 
 if [ $SSL -eq 1 ]; then
@@ -43,7 +50,7 @@ if [ $SSL -eq 1 ]; then
         SSLEngine on
         SSLCertificateFile /etc/apache2/ssl/ssl_certificate.crt
         SSLCertificateKeyFile /etc/apache2/ssl/$1.key
-	SSLCertificateChainFile /etc/apache2/ssl/IntermediateCA.crt
+        SSLCertificateChainFile /etc/apache2/ssl/IntermediateCA.crt
         <FilesMatch \"\.(cgi|shtml|phtml|php)$\">
             SSLOptions +StdEnvVars
         </FilesMatch>
@@ -73,12 +80,20 @@ if [ $SSL -eq 1 ]; then
     sudo bash -c "echo '$virtual_host' > /etc/apache2/sites-available/$1.ssl.conf"
     echo "The site $1.ssl.conf has been created."
     cat /etc/apache2/sites-available/$1.ssl.conf
-    a2ensite $1.ssl.conf
+    
+    if [ -f  "/etc/apache2/ssl/$1.key" ]; then
+    	a2ensite $1.ssl.conf
+    	service apache2 reload
+    else
+    	echo ""
+        echo "The SSL certificate was not found, please make sure that the files exist before you enable this site. Ones that is done, enable it with the command:"
+        echo "sudo a2ensite $1.ssl.conf && sudo service apache2 reload"
+        echo ""
+    fi
 else
     sudo bash -c "echo '$virtual_host' > /etc/apache2/sites-available/$1.conf"
     echo "The site $1.conf has been created."
     cat /etc/apache2/sites-available/$1.conf
     a2ensite $1.conf
+    service apache2 reload
 fi
-
-service apache2 reload
