@@ -3,7 +3,7 @@
 #############################################
 ##        Automatic install script         ##
 ## Jim Cronqvist <jim.cronqvist@gmail.com> ##
-##          Updated: 2014-05-25            ##
+##          Updated: 2014-11-25            ##
 #############################################
 
 #############################################
@@ -217,11 +217,17 @@ EOF
             # Download composer
             curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
 		
+			# Install SSL for Apache2
+			if Confirm "Do you want to enable SSL (https) for apache2?" N; then
+				sudo a2enmod ssl
+				sudo sed -i 's/SSLProtocol all/SSLProtocol All -SSLv2 -SSLv3/g' /etc/apache2/mods-available/ssl.conf
+			fi
+			
             # Install phpdocumentor
-            sudo apt-get install php-pear -y
-            apt-get install graphviz -y
-            pear channel-discover pear.phpdoc.org
-            pear install phpdoc/phpDocumentor
+            #sudo apt-get install php-pear -y
+            #apt-get install graphviz -y
+            #pear channel-discover pear.phpdoc.org
+            #pear install phpdoc/phpDocumentor
 		
             # Change default limits in Ubuntu.	
             if Confirm "Do you want to change the open files limit to 8192 instead of 1024? (Needed for powerful web servers)" Y; then
