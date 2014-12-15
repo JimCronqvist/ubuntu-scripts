@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2014-05-11T08:01:16Z</date>
+    <date>2014-12-15T16:49:06Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -63,6 +63,7 @@
                         </application>
                     </applications>
                     <valuemap/>
+                    <logtimefmt/>
                 </item>
                 <item>
                     <name>Available security updates</name>
@@ -105,6 +106,50 @@
                         </application>
                     </applications>
                     <valuemap/>
+                    <logtimefmt/>
+                </item>
+                <item>
+                    <name>Processor load (1 min average per core)</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;]</key>
+                    <delay>60</delay>
+                    <history>30</history>
+                    <trends>365</trends>
+                    <status>0</status>
+                    <value_type>0</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>The processor load is calculated as system CPU load divided by number of CPU cores.</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ubuntu</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
                 </item>
                 <item>
                     <name>System restart required</name>
@@ -147,6 +192,7 @@
                         </application>
                     </applications>
                     <valuemap/>
+                    <logtimefmt/>
                 </item>
                 <item>
                     <name>VMware tools is not running</name>
@@ -189,6 +235,7 @@
                         </application>
                     </applications>
                     <valuemap/>
+                    <logtimefmt/>
                 </item>
             </items>
             <discovery_rules/>
@@ -219,6 +266,26 @@
             <dependencies/>
         </trigger>
         <trigger>
+            <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7</expression>
+            <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+            <url/>
+            <status>0</status>
+            <priority>2</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+            <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+            <url/>
+            <status>0</status>
+            <priority>3</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
             <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;test -e /var/run/reboot-required &amp;&amp; echo 1 || echo 0&quot;].last(0)}&gt;0</expression>
             <name>System reboot required on {HOSTNAME}</name>
             <url/>
@@ -240,6 +307,38 @@
         </trigger>
     </triggers>
     <graphs>
+        <graph>
+            <name>Ubuntu load average</name>
+            <width>900</width>
+            <height>200</height>
+            <yaxismin>0.0000</yaxismin>
+            <yaxismax>1.2500</yaxismax>
+            <show_work_period>1</show_work_period>
+            <show_triggers>1</show_triggers>
+            <type>0</type>
+            <show_legend>1</show_legend>
+            <show_3d>0</show_3d>
+            <percent_left>0.0000</percent_left>
+            <percent_right>0.0000</percent_right>
+            <ymin_type_1>1</ymin_type_1>
+            <ymax_type_1>1</ymax_type_1>
+            <ymin_item_1>0</ymin_item_1>
+            <ymax_item_1>0</ymax_item_1>
+            <graph_items>
+                <graph_item>
+                    <sortorder>0</sortorder>
+                    <drawtype>2</drawtype>
+                    <color>C80000</color>
+                    <yaxisside>0</yaxisside>
+                    <calc_fnc>2</calc_fnc>
+                    <type>0</type>
+                    <item>
+                        <host>Template Ubuntu OS - Jim Cronqvist</host>
+                        <key>system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
         <graph>
             <name>Ubuntu Updates Available</name>
             <width>900</width>
