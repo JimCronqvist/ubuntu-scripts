@@ -10,6 +10,7 @@ if [ "$VPN_GATEWAY" == "" ]; then
     echo "VPN is not connected" && exit 0
 fi
 
+echo ""
 echo "If you get prompted for your password now, please enter your Mac OS X user account password."
 sudo echo "" > /dev/null
 
