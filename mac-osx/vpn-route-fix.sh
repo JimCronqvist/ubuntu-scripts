@@ -10,7 +10,7 @@ if [ "$VPN_GATEWAY" == "" ]; then
     echo "VPN is not connected" && exit 0
 fi
 
-ROUTER=$(netstat -rn | awk '/^default/ {print $2}' | grep -v "$VPN_GATEWAY" | head -n 1)
+ROUTER=$(netstat -rn | grep -v ppp0 | awk '/^default/ {print $2}' | grep -v "$VPN_GATEWAY" | head -n 1)
 NETWORK=$(echo $ROUTER | cut -d'.' -f1-3)
 VPN_LOCAL_IP=$(netstat -rn -f inet | grep lo0 | grep "$NETWORK" | awk '{ print $1 }')
 
