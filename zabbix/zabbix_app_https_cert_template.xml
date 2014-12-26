@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>2.0</version>
+    <date>2014-12-26T16:03:30Z</date>
+    <groups>
+        <group>
+            <name>Templates</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template App HTTPS Cert - Jim Cronqvist</template>
+            <name>Template App HTTPS Cert - Jim Cronqvist</name>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>HTTPS Certificate</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>Cert expires in number of days</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[&quot;openssl s_client -host localhost -port 443 -showcerts &lt; /dev/null 2&gt;/dev/null | openssl x509 -enddate -noout | sed -n 's/notAfter=//p' | xargs -I {} date +%s -d {} | xargs echo $(date +%s) | awk '{print ($2-$1)/3600/24}'&quot;]</key>
+                    <delay>14400</delay>
+                    <history>7</history>
+                    <trends>365</trends>
+                    <status>0</status>
+                    <value_type>0</value_type>
+                    <allowed_hosts/>
+                    <units>days</units>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>Shows the number of days until the HTTPS certificate will expire.</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>HTTPS Certificate</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                </item>
+            </items>
+            <discovery_rules/>
+            <macros/>
+            <templates/>
+            <screens/>
+        </template>
+    </templates>
+    <triggers>
+        <trigger>
+            <expression>{Template App HTTPS Cert - Jim Cronqvist:system.run[&quot;openssl s_client -host localhost -port 443 -showcerts &lt; /dev/null 2&gt;/dev/null | openssl x509 -enddate -noout | sed -n 's/notAfter=//p' | xargs -I {} date +%s -d {} | xargs echo $(date +%s) | awk '{print ($2-$1)/3600/24}'&quot;].last(0)}&lt;14</expression>
+            <name>HTTPS Certificate for {HOST.NAME} expires within 14 days</name>
+            <url/>
+            <status>0</status>
+            <priority>3</priority>
+            <description>HTTPS Certificate expires within 14 days</description>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{Template App HTTPS Cert - Jim Cronqvist:system.run[&quot;openssl s_client -host localhost -port 443 -showcerts &lt; /dev/null 2&gt;/dev/null | openssl x509 -enddate -noout | sed -n 's/notAfter=//p' | xargs -I {} date +%s -d {} | xargs echo $(date +%s) | awk '{print ($2-$1)/3600/24}'&quot;].last(0)}&lt;30</expression>
+            <name>HTTPS Certificate for {HOST.NAME} expires within 30 days</name>
+            <url/>
+            <status>0</status>
+            <priority>2</priority>
+            <description>HTTPS Certificate expires within 30 days</description>
+            <type>0</type>
+            <dependencies>
+                <dependency>
+                    <name>HTTPS Certificate for {HOST.NAME} expires within 14 days</name>
+                    <expression>{Template App HTTPS Cert - Jim Cronqvist:system.run[&quot;openssl s_client -host localhost -port 443 -showcerts &lt; /dev/null 2&gt;/dev/null | openssl x509 -enddate -noout | sed -n 's/notAfter=//p' | xargs -I {} date +%s -d {} | xargs echo $(date +%s) | awk '{print ($2-$1)/3600/24}'&quot;].last(0)}&lt;14</expression>
+                </dependency>
+            </dependencies>
+        </trigger>
+        <trigger>
+            <expression>{Template App HTTPS Cert - Jim Cronqvist:system.run[&quot;openssl s_client -host localhost -port 443 -showcerts &lt; /dev/null 2&gt;/dev/null | openssl x509 -enddate -noout | sed -n 's/notAfter=//p' | xargs -I {} date +%s -d {} | xargs echo $(date +%s) | awk '{print ($2-$1)/3600/24}'&quot;].last(0)}&lt;60</expression>
+            <name>HTTPS Certificate for {HOST.NAME} expires within 60 days</name>
+            <url/>
+            <status>0</status>
+            <priority>1</priority>
+            <description>HTTPS Certificate expires within 60 days</description>
+            <type>0</type>
+            <dependencies>
+                <dependency>
+                    <name>HTTPS Certificate for {HOST.NAME} expires within 30 days</name>
+                    <expression>{Template App HTTPS Cert - Jim Cronqvist:system.run[&quot;openssl s_client -host localhost -port 443 -showcerts &lt; /dev/null 2&gt;/dev/null | openssl x509 -enddate -noout | sed -n 's/notAfter=//p' | xargs -I {} date +%s -d {} | xargs echo $(date +%s) | awk '{print ($2-$1)/3600/24}'&quot;].last(0)}&lt;30</expression>
+                </dependency>
+            </dependencies>
+        </trigger>
+    </triggers>
+</zabbix_export>
