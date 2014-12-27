@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2014-12-26T17:52:17Z</date>
+    <date>2014-12-27T11:10:50Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -316,7 +316,12 @@
             <priority>2</priority>
             <description/>
             <type>0</type>
-            <dependencies/>
+            <dependencies>
+                <dependency>
+                    <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+                    <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+                </dependency>
+            </dependencies>
         </trigger>
         <trigger>
             <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
