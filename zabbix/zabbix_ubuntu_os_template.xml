@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2014-12-28T11:14:18Z</date>
+    <date>2014-12-28T11:38:09Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -158,7 +158,7 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>system.run[&quot;grep -q 'New release' /var/run/motd &amp;&amp; grep 'New release' /var/run/motd | cut -d\&quot;'\&quot; -f2 || echo 'No new release available.'&quot;]</key>
-                    <delay>60</delay>
+                    <delay>86400</delay>
                     <history>7</history>
                     <trends>365</trends>
                     <status>0</status>
