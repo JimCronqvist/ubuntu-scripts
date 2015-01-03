@@ -58,7 +58,7 @@ install.sh by Jim Cronqvist
 (2) Basic installation (recommended)
 (3) Install a web server (Apache2 & PHP)
 (4) Install a database (MySQL/Percona Server/Percona XtraDB Cluster)
-(5) Install VMware tools (DVD must be mounted first)
+(5) Install VMware tools
 (6) Install webmin
 (7) Install samba+xdebug (local development setup)
 (8) Cleaning
@@ -298,14 +298,20 @@ EOF
             fi
             ;;
         	
-	"5") # Install VMware tools (DVD must be mounted first)
+	"5") # Install VMware tools
 		
-            # Install VMware tools.
-            sudo apt-get install gcc make linux-headers-`uname -r` -y
-            sudo mount /dev/cdrom /mnt
-            sudo tar xvfz /mnt/VMwareTools-*.tar.gz -C /tmp/
-            sudo perl /tmp/vmware-tools-distrib/vmware-install.pl -d
-            sudo umount -f /mnt
+			if [ $(lsb_release -r | awk '{print $2}' | xargs printf "%.0f") -ge 14 ]; then
+				echo "14.04 or higher, use open-vm-tools"
+				sudo apt-get update && sudo apt-get install open-vm-tools -y
+			else
+				if Confirm "Is the vmware tools installer mounted?" Y; then
+            		sudo apt-get install gcc make linux-headers-`uname -r` -y
+            		sudo mount /dev/cdrom /mnt
+            		sudo tar xvfz /mnt/VMwareTools-*.tar.gz -C /tmp/
+            		sudo perl /tmp/vmware-tools-distrib/vmware-install.pl -d
+            		sudo umount -f /mnt
+        		fi
+            fi
             ;;
     		
     	"6") # Install Webmin
