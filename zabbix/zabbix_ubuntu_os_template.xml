@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2015-01-04T08:44:29Z</date>
+    <date>2015-01-08T17:36:16Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -9,8 +9,8 @@
     </groups>
     <templates>
         <template>
-            <template>Template Ubuntu OS - Jim Cronqvist</template>
-            <name>Template Ubuntu OS - Jim Cronqvist</name>
+            <template>Template OS Ubuntu - Jim Cronqvist</template>
+            <name>Template OS Ubuntu - Jim Cronqvist</name>
             <description/>
             <groups>
                 <group>
@@ -419,7 +419,7 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template Ubuntu OS - Jim Cronqvist:net.dns[,www.google.com,A].last(0)}=0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:net.dns[,www.google.com,A].last(0)}=0</expression>
             <name>DNS resolution failed on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -429,7 +429,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;test -e /etc/sudoers.d/zabbix &amp;&amp; sudo -n lsof / | grep deleted | awk '{s+=$7/1024/1024/1024} END {print s}'&quot;].last(0)}&gt;1</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;test -e /etc/sudoers.d/zabbix &amp;&amp; sudo -n lsof / | grep deleted | awk '{s+=$7/1024/1024/1024} END {print s}'&quot;].last(0)}&gt;1</expression>
             <name>More than 1 GB open deleted file descriptors on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -439,7 +439,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;/usr/lib/update-notifier/apt-check 2&gt;&amp;1 | cut -d';' -f2&quot;].last(0)}&gt;0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;/usr/lib/update-notifier/apt-check 2&gt;&amp;1 | cut -d';' -f2&quot;].last(0)}&gt;0</expression>
             <name>New security updates available on {HOSTNAME} ({ITEM.LASTVALUE})</name>
             <url/>
             <status>0</status>
@@ -449,7 +449,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;grep -q 'New release' /var/run/motd* &amp;&amp; grep 'New release' /var/run/motd* | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;].str(No new)}=0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;grep -q 'New release' /var/run/motd* &amp;&amp; grep 'New release' /var/run/motd* | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;].str(No new)}=0</expression>
             <name>New Ubuntu OS ({ITEM.LASTVALUE}) available on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -459,7 +459,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;/usr/lib/update-notifier/apt-check 2&gt;&amp;1 | cut -d';' -f1&quot;].last(0)}&gt;0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;/usr/lib/update-notifier/apt-check 2&gt;&amp;1 | cut -d';' -f1&quot;].last(0)}&gt;0</expression>
             <name>New updates available on {HOSTNAME} ({ITEM.LASTVALUE})</name>
             <url/>
             <status>0</status>
@@ -469,17 +469,17 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;1.5</expression>
             <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
             <url/>
             <status>0</status>
-            <priority>3</priority>
+            <priority>4</priority>
             <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7</expression>
             <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
             <url/>
             <status>0</status>
@@ -489,12 +489,27 @@
             <dependencies>
                 <dependency>
                     <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
-                    <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
                 </dependency>
             </dependencies>
         </trigger>
         <trigger>
-            <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;test -e /var/run/reboot-required &amp;&amp; echo 1 || echo 0&quot;].last(0)}&gt;0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+            <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+            <url/>
+            <status>0</status>
+            <priority>3</priority>
+            <description/>
+            <type>0</type>
+            <dependencies>
+                <dependency>
+                    <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;1.5</expression>
+                </dependency>
+            </dependencies>
+        </trigger>
+        <trigger>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;test -e /var/run/reboot-required &amp;&amp; echo 1 || echo 0&quot;].last(0)}&gt;0</expression>
             <name>System reboot required on {HOSTNAME}</name>
             <url/>
             <status>0</status>
@@ -504,17 +519,17 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;df -Tah | wc -l&quot;].last(0)}&lt;{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;df -Tah | wc -l&quot;].max(1d)}</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;df -Tah | wc -l&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;df -Tah | wc -l&quot;].max(1d)}</expression>
             <name>The number of file systems has decreased on {HOST.NAME}</name>
             <url/>
             <status>0</status>
-            <priority>3</priority>
+            <priority>4</priority>
             <description>Check for decreasing number of file systems, such as missing nfs or cifs mounted file systems.</description>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template Ubuntu OS - Jim Cronqvist:system.run[&quot;grep -s -q 'Vendor: VMware' /proc/scsi/scsi &amp;&amp; ! test -e /var/run/vmtoolsd.pid &amp;&amp; echo 1 || echo 0&quot;].last(0)}&gt;0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;grep -s -q 'Vendor: VMware' /proc/scsi/scsi &amp;&amp; ! test -e /var/run/vmtoolsd.pid &amp;&amp; echo 1 || echo 0&quot;].last(0)}&gt;0</expression>
             <name>VMware tools is not running on {HOSTNAME}</name>
             <url/>
             <status>0</status>
@@ -551,7 +566,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>Template Ubuntu OS - Jim Cronqvist</host>
+                        <host>Template OS Ubuntu - Jim Cronqvist</host>
                         <key>system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;]</key>
                     </item>
                 </graph_item>
@@ -583,7 +598,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>Template Ubuntu OS - Jim Cronqvist</host>
+                        <host>Template OS Ubuntu - Jim Cronqvist</host>
                         <key>system.run[&quot;/usr/lib/update-notifier/apt-check 2&gt;&amp;1 | cut -d';' -f2&quot;]</key>
                     </item>
                 </graph_item>
@@ -595,7 +610,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>Template Ubuntu OS - Jim Cronqvist</host>
+                        <host>Template OS Ubuntu - Jim Cronqvist</host>
                         <key>system.run[&quot;/usr/lib/update-notifier/apt-check 2&gt;&amp;1 | cut -d';' -f1&quot;]</key>
                     </item>
                 </graph_item>
