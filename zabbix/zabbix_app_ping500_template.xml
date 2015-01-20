@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2014-12-30T10:05:34Z</date>
+    <date>2015-01-20T05:21:07Z</date>
     <groups>
         <group>
             <name>Linux servers</name>
@@ -17,6 +17,7 @@
         <template>
             <template>Template ICMP Ping 500ms - Jim Cronqvist</template>
             <name>Template ICMP Ping 500ms - Jim Cronqvist</name>
+            <description/>
             <groups>
                 <group>
                     <name>Linux servers</name>
@@ -184,7 +185,7 @@
             <dependencies>
                 <dependency>
                     <name>{HOST.NAME} is unavailable by ICMP</name>
-                    <expression>{Template ICMP Ping 500ms - Jim Cronqvist:icmpping.max(#3)}=0</expression>
+                    <expression>{Template ICMP Ping 500ms - Jim Cronqvist:icmpping.max(#4)}=0</expression>
                 </dependency>
             </dependencies>
         </trigger>
@@ -199,12 +200,12 @@
             <dependencies>
                 <dependency>
                     <name>{HOST.NAME} is unavailable by ICMP</name>
-                    <expression>{Template ICMP Ping 500ms - Jim Cronqvist:icmpping.max(#3)}=0</expression>
+                    <expression>{Template ICMP Ping 500ms - Jim Cronqvist:icmpping.max(#4)}=0</expression>
                 </dependency>
             </dependencies>
         </trigger>
         <trigger>
-            <expression>{Template ICMP Ping 500ms - Jim Cronqvist:icmpping.max(#3)}=0</expression>
+            <expression>{Template ICMP Ping 500ms - Jim Cronqvist:icmpping.max(#4)}=0</expression>
             <name>{HOST.NAME} is unavailable by ICMP</name>
             <url/>
             <status>0</status>
