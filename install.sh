@@ -244,6 +244,8 @@ EOF
 			
             if Confirm "Do you want to change the default TCP settings for a high-performance web-server?" Y; then
                 sudo bash -c "echo 'net.ipv4.ip_local_port_range = 1024 65535' >> /etc/sysctl.conf"
+                # Decrease TIME_WAIT seconds to 30 seconds instead of the default of 60 seconds.
+                sudo bash -c "echo 'net.ipv4.tcp_fin_timeout = 30' >> /etc/sysctl.conf"
                 # Disable this one for now, might be dangerous in production environments.
                 sudo bash -c "echo '#net.ipv4.tcp_tw_reuse = 1' >> /etc/sysctl.conf"
                 # Apply the changes
