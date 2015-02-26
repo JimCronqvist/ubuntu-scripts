@@ -37,6 +37,9 @@ APACHE_NUM_PROC=$(ps -u $APACHE_USER -o pid= | wc -l)
 
 # Get the amount of memory that MySQL is using in MB
 MYSQL_MEMORY=$(ps -aylC mysqld | grep "mysqld" | awk '{print $8}' | sort -n | tail -n 1)
+if [ -z $MYSQL_MEMORY ] ; then
+    MYSQL_MEMORY=0
+fi
 MYSQL_MEMORY=$(expr $MYSQL_MEMORY / 1024)
 
 # Stop Apache to be able to get the amount of free memory available for Apache.
