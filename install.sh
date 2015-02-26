@@ -158,8 +158,10 @@ EOF
             fi
             
             if Confirm "Do you want to change the dirty_ratio in order to avoid long io waits and force the OS to flush the IO changes to the disk array more often? Normally good for VMs with much RAM." N; then
-                vm.dirty_background_ratio = 5
-                vm.dirty_ratio = 10
+                sudo bash -c "echo 'vm.dirty_background_ratio = 5' >> /etc/sysctl.conf"
+                sudo bash -c "echo 'vm.dirty_ratio = 10' >> /etc/sysctl.conf"
+                # Apply the changes
+                sudo sysctl -p
             fi
             ;;
         	
