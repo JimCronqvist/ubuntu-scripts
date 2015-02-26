@@ -156,6 +156,11 @@ EOF
                 sudo bash -c "echo 'EnableRemoteCommands=1' >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
                 sudo service zabbix-agent restart
             fi
+            
+            if Confirm "Do you want to change the dirty_ratio in order to avoid long io waits and force the OS to flush the IO changes to the disk array more often? Normally good for VMs with much RAM." N; then
+                vm.dirty_background_ratio = 5
+                vm.dirty_ratio = 10
+            fi
             ;;
         	
         "3") # Install a web server (Apache2 & PHP)
@@ -163,7 +168,7 @@ EOF
             # Install apache2 & php
             sudo apt-get install apache2 -y
             sudo apt-get install php5 -y
-            sudo apt-get install php5-ldap -y
+            #sudo apt-get install php5-ldap -y
             sudo apt-get install mysql-client -y
             sudo apt-get install php5-mysqlnd -y
             sudo apt-get install php5-curl -y
