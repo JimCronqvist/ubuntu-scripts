@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2015-01-20T05:17:43Z</date>
+    <date>2015-03-01T15:16:57Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -2133,8 +2133,8 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <type>0</type>
                         </trigger_prototype>
                         <trigger_prototype>
-                            <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:snmp.agent[RFC1213-MIB::ifOutDiscards.{#SNMPINDEX}].max(1h)}&gt;1000</expression>
-                            <name>Outbound packet on interface {#SNMPVALUE} was chosen to be discarded</name>
+                            <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:snmp.agent[RFC1213-MIB::ifOutDiscards.{#SNMPINDEX}].max(1h)}&gt;1500</expression>
+                            <name>Outbound packet on interface {#SNMPVALUE} was chosen to be discarded ({ITEM.LASTVALUE} pkts)</name>
                             <url/>
                             <status>0</status>
                             <priority>1</priority>
