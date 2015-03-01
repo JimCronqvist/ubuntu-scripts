@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2015-01-13T14:18:56Z</date>
+    <date>2015-03-01T15:14:37Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -331,4 +331,16 @@
             <screens/>
         </template>
     </templates>
+    <triggers>
+        <trigger>
+            <expression>{Template OS Linux processes - Jim Cronqvist:system.run[&quot;ps axo state= | grep -c D&quot;].last(0)}&gt;4</expression>
+            <name>High number of uninterruptible sleep processes ({ITEM.LASTVALUE} proc) on {HOST.NAME}</name>
+            <url/>
+            <status>0</status>
+            <priority>3</priority>
+            <description>A process is put in an uninterruptible sleep (STAT D) when it needs to wait on something (typically I/O) and during that time it can't be killed. Too many processes in this state will result in high load average. Normally the only way to solve it is to reboot the server.</description>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+    </triggers>
 </zabbix_export>
