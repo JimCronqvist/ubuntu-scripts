@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2015-01-08T17:36:16Z</date>
+    <date>2015-03-01T15:23:59Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -429,6 +429,46 @@
             <dependencies/>
         </trigger>
         <trigger>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;1.5</expression>
+            <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+            <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+            <url/>
+            <status>0</status>
+            <priority>3</priority>
+            <description/>
+            <type>0</type>
+            <dependencies>
+                <dependency>
+                    <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;1.5</expression>
+                </dependency>
+            </dependencies>
+        </trigger>
+        <trigger>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7</expression>
+            <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+            <url/>
+            <status>0</status>
+            <priority>2</priority>
+            <description/>
+            <type>0</type>
+            <dependencies>
+                <dependency>
+                    <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+                </dependency>
+            </dependencies>
+        </trigger>
+        <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;test -e /etc/sudoers.d/zabbix &amp;&amp; sudo -n lsof / | grep deleted | awk '{s+=$7/1024/1024/1024} END {print s}'&quot;].last(0)}&gt;1</expression>
             <name>More than 1 GB open deleted file descriptors on {HOST.NAME}</name>
             <url/>
@@ -467,46 +507,6 @@
             <description/>
             <type>0</type>
             <dependencies/>
-        </trigger>
-        <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;1.5</expression>
-            <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
-            <url/>
-            <status>0</status>
-            <priority>4</priority>
-            <description/>
-            <type>0</type>
-            <dependencies/>
-        </trigger>
-        <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7</expression>
-            <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
-            <url/>
-            <status>0</status>
-            <priority>2</priority>
-            <description/>
-            <type>0</type>
-            <dependencies>
-                <dependency>
-                    <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
-                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
-                </dependency>
-            </dependencies>
-        </trigger>
-        <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
-            <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
-            <url/>
-            <status>0</status>
-            <priority>3</priority>
-            <description/>
-            <type>0</type>
-            <dependencies>
-                <dependency>
-                    <name>Processor load is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
-                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;1.5</expression>
-                </dependency>
-            </dependencies>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;test -e /var/run/reboot-required &amp;&amp; echo 1 || echo 0&quot;].last(0)}&gt;0</expression>
