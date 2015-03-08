@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2015-03-01T15:16:57Z</date>
+    <date>2015-03-08T11:24:28Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -38,6 +38,9 @@
                 </application>
                 <application>
                     <name>Interface configuration :: Type</name>
+                </application>
+                <application>
+                    <name>Interface security :: Status</name>
                 </application>
                 <application>
                     <name>Interface statistics :: Bandwidth</name>
@@ -1664,6 +1667,54 @@ must define the bit and byte ordering and the format of the value of this object
                             <logtimefmt/>
                         </item_prototype>
                         <item_prototype>
+                            <name>{#SNMPVALUE} port-security state</name>
+                            <type>4</type>
+                            <snmp_community>{$SNMP_COMMUNITY}</snmp_community>
+                            <multiplier>0</multiplier>
+                            <snmp_oid>1.3.6.1.4.1.9.9.315.1.2.1.1.2.{#SNMPINDEX}</snmp_oid>
+                            <key>snmp.agent[1.3.6.1.4.1.9.9.315.1.2.1.1.2.{#SNMPINDEX}]</key>
+                            <delay>300</delay>
+                            <history>30</history>
+                            <trends>0</trends>
+                            <status>0</status>
+                            <value_type>3</value_type>
+                            <allowed_hosts/>
+                            <units/>
+                            <delta>0</delta>
+                            <snmpv3_contextname/>
+                            <snmpv3_securityname/>
+                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                            <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                            <snmpv3_authpassphrase/>
+                            <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                            <snmpv3_privpassphrase/>
+                            <formula>1</formula>
+                            <delay_flex/>
+                            <params/>
+                            <ipmi_sensor/>
+                            <data_type>0</data_type>
+                            <authtype>0</authtype>
+                            <username/>
+                            <password/>
+                            <publickey/>
+                            <privatekey/>
+                            <port/>
+                            <description>cpsIfPortSecurityStatus&#13;
+&#13;
+The operational status of the port security feature on an interface.&#13;
+secureup(1) - This indicates port security is operational.&#13;
+securedown(2) - This indicates port security is not operational. This happens when port security is configured to be enabled but could not be enabled due to certain reasons such as conflict with other features.&#13;
+shutdown(3) - This indicates that the port is shutdown due to port security violation when the object cpsIfViolationAction is of type 'shutdown'.&quot;</description>
+                            <inventory_link>0</inventory_link>
+                            <applications>
+                                <application>
+                                    <name>Interface security :: Status</name>
+                                </application>
+                            </applications>
+                            <valuemap/>
+                            <logtimefmt/>
+                        </item_prototype>
+                        <item_prototype>
                             <name>{#SNMPVALUE} promiscuous mode</name>
                             <type>4</type>
                             <snmp_community>{$SNMP_COMMUNITY}</snmp_community>
@@ -2112,6 +2163,19 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <status>0</status>
                             <priority>1</priority>
                             <description/>
+                            <type>0</type>
+                        </trigger_prototype>
+                        <trigger_prototype>
+                            <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:snmp.agent[1.3.6.1.4.1.9.9.315.1.2.1.1.2.{#SNMPINDEX}].last(0)}=3</expression>
+                            <name>Interface {#SNMPVALUE} has been err-disabled due to a port-security violation</name>
+                            <url/>
+                            <status>0</status>
+                            <priority>3</priority>
+                            <description>The interface is in err-disabled state.&#13;
+&#13;
+Use the below command to see the reason for the err-disabled state of the interface.&#13;
+&#13;
+#sh int status err-disabled</description>
                             <type>0</type>
                         </trigger_prototype>
                         <trigger_prototype>
