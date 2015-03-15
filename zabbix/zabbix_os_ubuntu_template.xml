@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2015-03-01T15:23:59Z</date>
+    <date>2015-03-15T11:37:50Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -201,7 +201,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;df -Tah | wc -l&quot;]</key>
+                    <key>system.run[&quot;timeout 0.5 df -Tah | wc -l || echo 0&quot;]</key>
                     <delay>300</delay>
                     <history>7</history>
                     <trends>365</trends>
@@ -429,14 +429,19 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;1.5</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7</expression>
             <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
             <url/>
             <status>0</status>
-            <priority>4</priority>
+            <priority>2</priority>
             <description/>
             <type>0</type>
-            <dependencies/>
+            <dependencies>
+                <dependency>
+                    <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+                </dependency>
+            </dependencies>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
@@ -454,19 +459,14 @@
             </dependencies>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;1.5</expression>
             <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
             <url/>
             <status>0</status>
-            <priority>2</priority>
+            <priority>4</priority>
             <description/>
             <type>0</type>
-            <dependencies>
-                <dependency>
-                    <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
-                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
-                </dependency>
-            </dependencies>
+            <dependencies/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;test -e /etc/sudoers.d/zabbix &amp;&amp; sudo -n lsof / | grep deleted | awk '{s+=$7/1024/1024/1024} END {print s}'&quot;].last(0)}&gt;1</expression>
@@ -519,12 +519,27 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;df -Tah | wc -l&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;df -Tah | wc -l&quot;].max(1d)}</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 0.5 df -Tah | wc -l || echo 0&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 0.5 df -Tah | wc -l || echo 0&quot;].max(1d)}</expression>
             <name>The number of file systems has decreased on {HOST.NAME}</name>
             <url/>
             <status>0</status>
             <priority>4</priority>
             <description>Check for decreasing number of file systems, such as missing nfs or cifs mounted file systems.</description>
+            <type>0</type>
+            <dependencies>
+                <dependency>
+                    <name>Unresponsive file systems on {HOST.NAME}</name>
+                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 0.5 df -Tah | wc -l || echo 0&quot;].last(0)}=0</expression>
+                </dependency>
+            </dependencies>
+        </trigger>
+        <trigger>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 0.5 df -Tah | wc -l || echo 0&quot;].last(0)}=0</expression>
+            <name>Unresponsive file systems on {HOST.NAME}</name>
+            <url/>
+            <status>0</status>
+            <priority>5</priority>
+            <description>Check if the file systems are responding, so that unresponsive nfs or cifs mounted file systems can be noticed in time.</description>
             <type>0</type>
             <dependencies/>
         </trigger>
