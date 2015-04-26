@@ -144,7 +144,7 @@ EOF
                 sudo bash -c "echo 'rocommunity public' >> /etc/snmp/snmpd.conf"
                 sudo bash -c "echo 'sysLocation \"Unknown\"' >> /etc/snmp/snmpd.conf"
                 sudo bash -c "echo 'sysContact JimCronqvist' >> /etc/snmp/snmpd.conf"
-                sudo bash -c "echo 'SNMPDOPTS=\"-Lsd -Lf /dev/null -u snmp -I -smux -p /var/run/snmpd.pid -c /etc/snmp/snmpd.conf\"' >> /etc/default/snmpd"
+                sudo bash -c "echo 'SNMPDOPTS=\"-LS 0-4 d -Lf /dev/null -u snmp -I -smux -p /var/run/snmpd.pid -c /etc/snmp/snmpd.conf\"' >> /etc/default/snmpd"
                 sudo service snmpd restart
             fi
 
