@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2015-03-08T11:24:28Z</date>
+    <date>2015-04-27T17:44:16Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -793,8 +793,8 @@
                             <snmp_oid>IF-MIB::ifInBroadcastPkts.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[IF-MIB::ifInBroadcastPkts.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -818,12 +818,12 @@
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were addressed to a broadcast address at this sub-layer.
-
-
-
-Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of
-
+                            <description>The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were addressed to a broadcast address at this sub-layer.&#13;
+&#13;
+&#13;
+&#13;
+Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of&#13;
+&#13;
 ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -842,8 +842,8 @@ ifCounterDiscontinuityTime.</description>
                             <snmp_oid>IF-MIB::ifOutBroadcastPkts.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[IF-MIB::ifOutBroadcastPkts.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -867,10 +867,10 @@ ifCounterDiscontinuityTime.</description>
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>The total number of packets that higher-level protocols requested be transmitted, and which were addressed to a broadcast address at this sub-layer, including those that were discarded or not sent.
-
-
-
+                            <description>The total number of packets that higher-level protocols requested be transmitted, and which were addressed to a broadcast address at this sub-layer, including those that were discarded or not sent.&#13;
+&#13;
+&#13;
+&#13;
 Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -889,8 +889,8 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>RFC1213-MIB::ifInOctets.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifInOctets.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -914,10 +914,10 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>The total number of octets received on the interface, including framing characters.
-
-
-
+                            <description>The total number of octets received on the interface, including framing characters.&#13;
+&#13;
+&#13;
+&#13;
 Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -936,8 +936,8 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>RFC1213-MIB::ifOutOctets.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifOutOctets.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -961,10 +961,10 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>The total number of octets transmitted out of the interface, including framing characters.
-
-
-
+                            <description>The total number of octets transmitted out of the interface, including framing characters.&#13;
+&#13;
+&#13;
+&#13;
 Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -983,7 +983,7 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>IF-MIB::ifConnectorPresent.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[IF-MIB::ifConnectorPresent.{#SNMPINDEX}]</key>
                             <delay>300</delay>
-                            <history>90</history>
+                            <history>14</history>
                             <trends>0</trends>
                             <status>0</status>
                             <value_type>3</value_type>
@@ -1026,7 +1026,7 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>RFC1213-MIB::ifAdminStatus.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifAdminStatus.{#SNMPINDEX}]</key>
                             <delay>1800</delay>
-                            <history>90</history>
+                            <history>14</history>
                             <trends>0</trends>
                             <status>0</status>
                             <value_type>3</value_type>
@@ -1071,8 +1071,8 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>RFC1213-MIB::ifInDiscards.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifInDiscards.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -1096,10 +1096,10 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>The number of inbound packets which were chosen to be discarded even though no errors had been detected to prevent their being deliverable to a higher-layer protocol. One possible reason for discarding such a packet could be to free up buffer space.
-
-
-
+                            <description>The number of inbound packets which were chosen to be discarded even though no errors had been detected to prevent their being deliverable to a higher-layer protocol. One possible reason for discarding such a packet could be to free up buffer space.&#13;
+&#13;
+&#13;
+&#13;
 Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -1118,8 +1118,8 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>RFC1213-MIB::ifInUnknownProtos.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifInUnknownProtos.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -1143,10 +1143,10 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>For packet-oriented interfaces, the number of packets received via the interface which were discarded because of an unknown or unsupported protocol. For character-oriented or fixed-length interfaces that support protocol multiplexing the number of transmission units received via the interface which were discarded because of an unknown or unsupported protocol. For any interface that does not support protocol multiplexing, this counter will always be 0.
-
-
-
+                            <description>For packet-oriented interfaces, the number of packets received via the interface which were discarded because of an unknown or unsupported protocol. For character-oriented or fixed-length interfaces that support protocol multiplexing the number of transmission units received via the interface which were discarded because of an unknown or unsupported protocol. For any interface that does not support protocol multiplexing, this counter will always be 0.&#13;
+&#13;
+&#13;
+&#13;
 Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -1165,8 +1165,8 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>RFC1213-MIB::ifOutDiscards.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifOutDiscards.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -1190,10 +1190,10 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>The number of outbound packets which were chosen to be discarded even though no errors had been detected to prevent their being transmitted. One possible reason for discarding such a packet could be to free up buffer space.
-
-
-
+                            <description>The number of outbound packets which were chosen to be discarded even though no errors had been detected to prevent their being transmitted. One possible reason for discarding such a packet could be to free up buffer space.&#13;
+&#13;
+&#13;
+&#13;
 Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -1212,7 +1212,7 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>EtherLike-MIB::dot3StatsDuplexStatus.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[EtherLike-MIB::dot3StatsDuplexStatus.{#SNMPINDEX}]</key>
                             <delay>3600</delay>
-                            <history>90</history>
+                            <history>14</history>
                             <trends>0</trends>
                             <status>0</status>
                             <value_type>3</value_type>
@@ -1265,8 +1265,8 @@ SNMP interface (dot3StatsDuplexStatus)&#13;
                             <snmp_oid>RFC1213-MIB::ifInErrors.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifInErrors.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -1290,10 +1290,10 @@ SNMP interface (dot3StatsDuplexStatus)&#13;
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
-
-
-
+                            <description>For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.&#13;
+&#13;
+&#13;
+&#13;
 Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -1312,8 +1312,8 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>RFC1213-MIB::ifOutErrors.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifOutErrors.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -1337,10 +1337,10 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
-
-
-
+                            <description>For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.&#13;
+&#13;
+&#13;
+&#13;
 Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -1359,7 +1359,7 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>IF-MIB::ifHighSpeed.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[IF-MIB::ifHighSpeed.{#SNMPINDEX}]</key>
                             <delay>3600</delay>
-                            <history>90</history>
+                            <history>14</history>
                             <trends>0</trends>
                             <status>0</status>
                             <value_type>3</value_type>
@@ -1402,7 +1402,7 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>RFC1213-MIB::ifMtu.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifMtu.{#SNMPINDEX}]</key>
                             <delay>3600</delay>
-                            <history>90</history>
+                            <history>14</history>
                             <trends>0</trends>
                             <status>0</status>
                             <value_type>3</value_type>
@@ -1445,8 +1445,8 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>IF-MIB::ifInMulticastPkts.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[IF-MIB::ifInMulticastPkts.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -1470,10 +1470,10 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were addressed to a multicast address at this sub-layer. For a MAC layer protocol, this includes both Group and Functional addresses.
-
-
-
+                            <description>The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were addressed to a multicast address at this sub-layer. For a MAC layer protocol, this includes both Group and Functional addresses.&#13;
+&#13;
+&#13;
+&#13;
 Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -1492,8 +1492,8 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>IF-MIB::ifOutMulticastPkts.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[IF-MIB::ifOutMulticastPkts.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -1517,12 +1517,12 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>The total number of packets that higher-level protocols requested be transmitted, and which were addressed to a multicast address at this sub-layer, including those that
-
-were discarded or not sent. For a MAC layer protocol, this includes both Group and Functional addresses.
-
-
-
+                            <description>The total number of packets that higher-level protocols requested be transmitted, and which were addressed to a multicast address at this sub-layer, including those that&#13;
+&#13;
+were discarded or not sent. For a MAC layer protocol, this includes both Group and Functional addresses.&#13;
+&#13;
+&#13;
+&#13;
 Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -1541,7 +1541,7 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>RFC1213-MIB::ifOperStatus.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifOperStatus.{#SNMPINDEX}]</key>
                             <delay>300</delay>
-                            <history>90</history>
+                            <history>14</history>
                             <trends>0</trends>
                             <status>0</status>
                             <value_type>3</value_type>
@@ -1586,7 +1586,7 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>RFC1213-MIB::ifLastChange.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifLastChange.{#SNMPINDEX}]</key>
                             <delay>300</delay>
-                            <history>90</history>
+                            <history>14</history>
                             <trends>0</trends>
                             <status>0</status>
                             <value_type>3</value_type>
@@ -1629,7 +1629,7 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>RFC1213-MIB::ifPhysAddress.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifPhysAddress.{#SNMPINDEX}]</key>
                             <delay>3600</delay>
-                            <history>90</history>
+                            <history>14</history>
                             <trends>365</trends>
                             <status>0</status>
                             <value_type>1</value_type>
@@ -1654,8 +1654,8 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>The interface's address at its protocol sub-layer. For example, for an 802.x interface, this object normally contains a MAC address. The interface's media-specific MIB
-
+                            <description>The interface's address at its protocol sub-layer. For example, for an 802.x interface, this object normally contains a MAC address. The interface's media-specific MIB&#13;
+&#13;
 must define the bit and byte ordering and the format of the value of this object. For interfaces which do not have such an address (e.g., a serial line), this object should contain an octet string of zero length.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -1722,7 +1722,7 @@ shutdown(3) - This indicates that the port is shutdown due to port security viol
                             <snmp_oid>IF-MIB::ifPromiscuousMode.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[IF-MIB::ifPromiscuousMode.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
+                            <history>14</history>
                             <trends>0</trends>
                             <status>0</status>
                             <value_type>3</value_type>
@@ -1747,10 +1747,10 @@ shutdown(3) - This indicates that the port is shutdown due to port security viol
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>This object has a value of false(2) if this interface only accepts packets/frames that are addressed to this station. This object has a value of true(1) when the station accepts all packets/frames transmitted on the media. The value true(1) is only legal on certain types of media. If legal, setting this object to a value of true(1) may require the interface to be reset before ecoming effective.
-
-
-
+                            <description>This object has a value of false(2) if this interface only accepts packets/frames that are addressed to this station. This object has a value of true(1) when the station accepts all packets/frames transmitted on the media. The value true(1) is only legal on certain types of media. If legal, setting this object to a value of true(1) may require the interface to be reset before ecoming effective.&#13;
+&#13;
+&#13;
+&#13;
 The value of ifPromiscuousMode does not affect the reception of broadcast and multicast packets/frames by the interface.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -1769,7 +1769,7 @@ The value of ifPromiscuousMode does not affect the reception of broadcast and mu
                             <snmp_oid>RFC1213-MIB::ifType.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifType.{#SNMPINDEX}]</key>
                             <delay>3600</delay>
-                            <history>90</history>
+                            <history>14</history>
                             <trends>0</trends>
                             <status>0</status>
                             <value_type>3</value_type>
@@ -2050,8 +2050,8 @@ SNMP interface (ifType)&#13;
                             <snmp_oid>RFC1213-MIB::ifInUcastPkts.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifInUcastPkts.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -2075,10 +2075,10 @@ SNMP interface (ifType)&#13;
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.
-
-
-
+                            <description>The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.&#13;
+&#13;
+&#13;
+&#13;
 Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
@@ -2097,8 +2097,8 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <snmp_oid>RFC1213-MIB::ifOutUcastPkts.{#SNMPINDEX}</snmp_oid>
                             <key>snmp.agent[RFC1213-MIB::ifOutUcastPkts.{#SNMPINDEX}]</key>
                             <delay>900</delay>
-                            <history>90</history>
-                            <trends>365</trends>
+                            <history>14</history>
+                            <trends>90</trends>
                             <status>0</status>
                             <value_type>3</value_type>
                             <allowed_hosts/>
@@ -2122,10 +2122,10 @@ Discontinuities in the value of this counter can occur at re-initialization of t
                             <publickey/>
                             <privatekey/>
                             <port/>
-                            <description>The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent.
-
-
-
+                            <description>The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent.&#13;
+&#13;
+&#13;
+&#13;
 Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
                             <inventory_link>0</inventory_link>
                             <applications>
