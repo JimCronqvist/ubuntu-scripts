@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2015-03-21T16:14:30Z</date>
+    <date>2015-04-27T17:45:30Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -282,6 +282,49 @@
                     <logtimefmt/>
                 </item>
                 <item>
+                    <name>Real memory usage</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;]</key>
+                    <delay>60</delay>
+                    <history>30</history>
+                    <trends>365</trends>
+                    <status>0</status>
+                    <value_type>0</value_type>
+                    <allowed_hosts/>
+                    <units>%</units>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ubuntu</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                </item>
+                <item>
                     <name>System restart required</name>
                     <type>0</type>
                     <snmp_community/>
@@ -429,8 +472,10 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7</expression>
-            <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+            <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;90)&#13;
+or&#13;
+({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;86)</expression>
+            <name>High memory usage ({ITEM.LASTVALUE}) on {HOST.NAME}</name>
             <url/>
             <status>0</status>
             <priority>2</priority>
@@ -438,10 +483,24 @@
             <type>0</type>
             <dependencies>
                 <dependency>
-                    <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
-                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+                    <name>High memory usage ({ITEM.LASTVALUE}) on {HOST.NAME}</name>
+                    <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;95)&#13;
+or&#13;
+({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;91)</expression>
                 </dependency>
             </dependencies>
+        </trigger>
+        <trigger>
+            <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;95)&#13;
+or&#13;
+({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;91)</expression>
+            <name>High memory usage ({ITEM.LASTVALUE}) on {HOST.NAME}</name>
+            <url/>
+            <status>0</status>
+            <priority>3</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
@@ -467,6 +526,21 @@
             <description/>
             <type>0</type>
             <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7</expression>
+            <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+            <url/>
+            <status>0</status>
+            <priority>2</priority>
+            <description/>
+            <type>0</type>
+            <dependencies>
+                <dependency>
+                    <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+                </dependency>
+            </dependencies>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;test -e /etc/sudoers.d/zabbix &amp;&amp; sudo -n lsof / | grep deleted | awk '{s+=$7/1024/1024/1024} END {print s}'&quot;].last(0)}&gt;1</expression>
