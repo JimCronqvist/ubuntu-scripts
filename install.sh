@@ -135,6 +135,11 @@ EOF
 		
             # Install iostat
             sudo apt-get install sysstat -y
+            
+            # Install a MTA
+            if Confirm "Do you want to install a MTA?" Y; then
+                sudo apt-get install sendmail mailutils -y
+            fi
 		
             # Install SNMP
             if Confirm "Do you want to install snmpd (will be open for everyone as default)?" N; then
