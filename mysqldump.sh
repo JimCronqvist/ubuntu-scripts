@@ -6,4 +6,4 @@ DB_HOST="localhost"
 DB_USER="backup"
 DB_PASS="password"
 
-mysqldump --single-transaction --master-data --complete-insert -h $DB_HOST -u $DB_USER -p$DB_PASS --all-databases > $DB_HOST"_"`date +%Y-%m-%d_%H.%M.%S.sql`
+mysqldump --single-transaction --master-data --complete-insert --events -h $DB_HOST -u $DB_USER -p$DB_PASS --all-databases > $DB_HOST"_"`date +%Y-%m-%d_%H.%M.%S.sql`
