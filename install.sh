@@ -136,6 +136,13 @@ EOF
             # Install iostat
             sudo apt-get install sysstat -y
             
+            # Install acct
+            sudo apt-get install acct -y
+            
+            # Install rkhunter to find any potential root kits
+            sudo apt-get install rkhunter chkrootkit -y
+            #rkhunter --check
+            
             # Install a MTA
             if Confirm "Do you want to install a MTA?" Y; then
                 sudo apt-get install sendmail mailutils -y
