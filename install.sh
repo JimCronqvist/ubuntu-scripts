@@ -236,7 +236,12 @@ EOF
 		
             # Download composer
             curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
-		
+            
+            # Install uglifyjs
+            sudo apt-get install nodejs -y
+            sudo apt-get install npm -y
+            sudo npm install -g uglify-js
+            
 			# Install SSL for Apache2
 			if Confirm "Do you want to enable SSL (https) for apache2?" N; then
 				sudo a2enmod ssl
