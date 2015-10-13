@@ -136,6 +136,9 @@ EOF
             # Install iostat
             sudo apt-get install sysstat -y
             
+            # Install tree
+            sudo apt-get install tree -y
+            
             # Install acct
             sudo apt-get install acct -y
             
