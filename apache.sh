@@ -80,7 +80,8 @@ echo "<IfModule mpm_prefork_module>"
 echo "	StartServers	$MIN_SPARE_SERVERS"
 echo "	MinSpareServers	$MIN_SPARE_SERVERS"
 echo "	MaxSpareServers	$MAX_SPARE_SERVERS"
-echo "	MaxClients	$MAX_CLIENTS"
+# As of Apache 2.4, MaxClients were renamed to MaxRequestWorkers.
+echo "	MaxRequestWorkers	$MAX_CLIENTS"
 echo "	ServerLimit	$MAX_CLIENTS"
 if [ $MAX_CLIENTS -lt 50 ]; then
 	echo "	MaxRequestPerChiLd	1000"
@@ -89,6 +90,6 @@ elif [ $MAX_CLIENTS -lt 100 ]; then
 elif [ $MAX_CLIENTS -lt 500 ]; then
 	echo "  MaxRequestsPerChild     7500"
 else
-	echo "  MaxRequestsPerChild     20000"
+	echo "  MaxRequestsPerChild     15000"
 fi
 echo "</IfModule>"
