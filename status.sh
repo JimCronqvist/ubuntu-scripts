@@ -11,6 +11,11 @@ rm "$temp"
 HOSTNAME=$(hostname --fqdn)
 echo "Hostname:" $HOSTNAME >> "$temp"
 echo "" >> "$temp"
+UPTIME=$(uptime | awk 'NF{NF-=7};1' | sed 's/,$//')
+echo "Uptime:" $UPTIME >> "$temp"
+LAST=$(last | head -n 1)
+echo "Last login:" $LAST >> "$temp"
+echo "" >> "$temp"
 echo "Available security updates:" $(/usr/lib/update-notifier/apt-check 2>&1 | cut -d';' -f2) >> "$temp"
 echo "Available normal updates:" $(/usr/lib/update-notifier/apt-check 2>&1 | cut -d';' -f1) >> "$temp"
 RESTART_REQUIRED=$(test -e /var/run/reboot-required && echo Yes || echo No)
