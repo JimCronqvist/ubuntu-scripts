@@ -59,7 +59,7 @@ install.sh by Jim Cronqvist
 (3) Install a web server (Apache2 & PHP)
 (4) Install a database (MySQL/Percona Server/Percona XtraDB Cluster)
 (5) Install VMware tools
-(6) Install webmin
+(6) Install Virtualbox guest additions
 (7) Install samba+xdebug (local development setup)
 (8) Cleaning
 (0) Quit
@@ -344,16 +344,22 @@ EOF
             fi
             ;;
     		
-    	"6") # Install Webmin
+    	"6") # Install Virtualbox guest additions
     	
-            echo "" >> /etc/apt/sources.list
-            echo "deb http://download.webmin.com/download/repository sarge contrib" >> /etc/apt/sources.list
-            echo "deb http://webmin.mirror.somersettechsolutions.co.uk/repository sarge contrib " >> /etc/apt/sources.list
-            cd /root
-            wget http://www.webmin.com/jcameron-key.asc
-            apt-key add jcameron-key.asc 
-            apt-get update
-            apt-get install webmin -y
+            if [ $(grep -s -q 'Vendor: VBOX' /proc/scsi/scsi) ]; then
+                sudo apt-get update
+                sudo apt-get install virtualbox-guest-dkms -y
+                
+                sudo bash -c "echo '' >> /etc/network/interfaces"
+                sudo bash -c "echo '# Virtualbox Host-only adapter' >> /etc/network/interfaces"
+                sudo bash -c "echo 'auto eth1' >> /etc/network/interfaces"
+                sudo bash -c "echo 'iface eth1 inet dhcp' >> /etc/network/interfaces"
+                sudo /etc/init.d/networking restart
+                sudo ifconfig eth1 up
+                sudo dhclient eth1
+            else
+                echo "Ubuntu is not ran on a virtualbox host."
+            fi
             ;;
 		
 	"7") # Install samba+xdebug (local development setup)
