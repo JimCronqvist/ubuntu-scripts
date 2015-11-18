@@ -346,7 +346,7 @@ EOF
     		
     	"6") # Install Virtualbox guest additions
     	
-            if [ $(grep -s -q 'Vendor: VBOX' /proc/scsi/scsi) ]; then
+            if grep -s -q 'Vendor: VBOX' /proc/scsi/scsi ; then
                 sudo apt-get update
                 sudo apt-get install virtualbox-guest-dkms -y
                 
