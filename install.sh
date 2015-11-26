@@ -357,6 +357,13 @@ EOF
                 sudo /etc/init.d/networking restart
                 sudo ifconfig eth1 up
                 sudo dhclient eth1
+                
+                sudo adduser www-data vboxsf
+                sudo adduser ubuntu vboxsf
+                
+                if Confirm "Do you want to add a symlink for the www folder?" Y; then
+                    sudo ln -s /media/sf_www /var/www
+                fi
             else
                 echo "Ubuntu is not ran on a virtualbox host."
             fi
