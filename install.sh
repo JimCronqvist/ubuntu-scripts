@@ -350,7 +350,7 @@ EOF
                 sudo apt-get update
                 sudo apt-get install virtualbox-guest-dkms -y
                 
-                if Confirm "Do you want to add a second NIC?" N; then
+                if Confirm "Do you want to add a second NIC?" Y; then
                     sudo bash -c "echo '' >> /etc/network/interfaces"
                     sudo bash -c "echo '# Virtualbox Host-only adapter' >> /etc/network/interfaces"
                     sudo bash -c "echo 'auto eth1' >> /etc/network/interfaces"
