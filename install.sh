@@ -350,13 +350,15 @@ EOF
                 sudo apt-get update
                 sudo apt-get install virtualbox-guest-dkms -y
                 
-                sudo bash -c "echo '' >> /etc/network/interfaces"
-                sudo bash -c "echo '# Virtualbox Host-only adapter' >> /etc/network/interfaces"
-                sudo bash -c "echo 'auto eth1' >> /etc/network/interfaces"
-                sudo bash -c "echo 'iface eth1 inet dhcp' >> /etc/network/interfaces"
-                sudo /etc/init.d/networking restart
-                sudo ifconfig eth1 up
-                sudo dhclient eth1
+                if Confirm "Do you want to add a second NIC?" N; then
+                    sudo bash -c "echo '' >> /etc/network/interfaces"
+                    sudo bash -c "echo '# Virtualbox Host-only adapter' >> /etc/network/interfaces"
+                    sudo bash -c "echo 'auto eth1' >> /etc/network/interfaces"
+                    sudo bash -c "echo 'iface eth1 inet dhcp' >> /etc/network/interfaces"
+                    sudo /etc/init.d/networking restart
+                    sudo ifconfig eth1 up
+                    sudo dhclient eth1
+                fi
                 
                 sudo adduser www-data vboxsf
                 sudo adduser ubuntu vboxsf
