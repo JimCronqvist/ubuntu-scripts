@@ -3,7 +3,7 @@
 #############################################
 ##        Automatic install script         ##
 ## Jim Cronqvist <jim.cronqvist@gmail.com> ##
-##          Updated: 2014-11-25            ##
+##          Updated: 2015-12-11            ##
 #############################################
 
 #############################################
@@ -19,30 +19,30 @@ fi
 
 # Confirm function that will be used later for yes and no questions.
 Confirm () {
-  while true; do
-    if [ "${2:-}" = "Y" ]; then
-        prompt="Y/n"
-        default=Y
-    elif [ "${2:-}" = "N" ]; then
-        prompt="y/N"
-        default=N
-    else
-        prompt="y/n"
-        default=
-    fi
-
-    read -p "${1:-Are you sure?} [$prompt]: " reply
-
-    #Default?
-    if [ -z "$reply" ]; then
-        reply=$default
-    fi
-
-    case ${reply:-$2} in
-        [Yy]* ) return 0;;
-        [Nn]* ) return 1;;
-    esac
-done
+    while true; do
+        if [ "${2:-}" = "Y" ]; then
+            prompt="Y/n"
+            default=Y
+        elif [ "${2:-}" = "N" ]; then
+            prompt="y/N"
+            default=N
+        else
+            prompt="y/n"
+            default=
+        fi
+        
+        read -p "${1:-Are you sure?} [$prompt]: " reply
+        
+        #Default?
+        if [ -z "$reply" ]; then
+            reply=$default
+        fi
+        
+        case ${reply:-$2} in
+            [Yy]* ) return 0;;
+            [Nn]* ) return 1;;
+        esac
+    done
 }
 
 
@@ -70,10 +70,10 @@ EOF
     case "$REPLY" in
     
         "1") #Install all available updates
-        
+            
             # Get the latest package lists and install all available upgrades
             sudo apt-get update && sudo apt-get dist-upgrade -y
-
+            
             # Update the VMware tools in case it is not running but it has been installed earlier. For example in case a kernel has been updated.
             grep -s -q 'Vendor: VMware' /proc/scsi/scsi && ! test -e /var/run/vmtoolsd.pid && sudo /usr/bin/vmware-config-tools.pl -d
             ;;
@@ -82,57 +82,57 @@ EOF
         
             # Set backspace character to ^H
             echo 'stty erase ^H' >> ~/.bashrc
-		
-	    # Check if the language is Swedish and ask if the user want to change to english in that case.
-	    if grep -q 'LANG="sv_SE.utf8"' /etc/default/locale; then
-	        echo "We have noticed that the server default language is not English."
-	        if Confirm "Do you want to change the server language to english?" Y; then
-	            sudo cp /etc/default/locale /etc/default/locale.old
-	            sudo update-locale LANG=en_US.UTF-8
-	            # Activate the change without a reboot or logout/login.
-	            . /etc/default/locale
-	        fi
-	    fi
-	    
+            
+            # Check if the language is Swedish and ask if the user want to change to english in that case.
+            if grep -q 'LANG="sv_SE.utf8"' /etc/default/locale; then
+                echo "We have noticed that the server default language is not English."
+                if Confirm "Do you want to change the server language to english?" Y; then
+                    sudo cp /etc/default/locale /etc/default/locale.old
+                    sudo update-locale LANG=en_US.UTF-8
+                    # Activate the change without a reboot or logout/login.
+                    . /etc/default/locale
+                fi
+            fi
+            
             # To get the latest package lists
             apt-get update
-		
+            
             # Install ssh
             apt-get install ssh -y
             
             # Install pkexec
             sudo apt-get install policykit-1 -y
-		
+            
             # Install lrzsz to use with Xshell ssh client, allows you to transfer files by dropping them in the console.
             sudo apt-get install lrzsz -y
-		
+            
             # Set vim as the default text-editor.
             export EDITOR="vi"
-		
+            
             # Install vim
             apt-get install vim -y
-		
+            
             # Install dialog
             sudo apt-get install dialog -y
-		
+            
             # Install htop
             apt-get install htop -y
 			
             # Install iftop
             apt-get install iftop -y
-		
+            
             # Traceroute
             apt-get install traceroute -y
 			
             # Install tools for mounting a samba/cifs storage.
             sudo apt-get install cifs-utils samba samba-common -y
-		
+            
             # Install NTP server
             sudo apt-get install ntp -y
-		
+            
             # Install curl
             sudo apt-get install curl -y
-		
+            
             # Install iostat
             sudo apt-get install sysstat -y
             
@@ -150,7 +150,7 @@ EOF
             if Confirm "Do you want to install a MTA?" Y; then
                 sudo apt-get install sendmail mailutils -y
             fi
-		
+            
             # Install SNMP
             if Confirm "Do you want to install snmpd (will be open for everyone as default)?" N; then
                 sudo apt-get install snmpd -y
@@ -162,7 +162,7 @@ EOF
                 sudo bash -c "echo 'SNMPDOPTS=\"-LS 0-4 d -Lf /dev/null -u snmp -I -smux -p /var/run/snmpd.pid -c /etc/snmp/snmpd.conf\"' >> /etc/default/snmpd"
                 sudo service snmpd restart
             fi
-
+            
             if Confirm "Do you want to install zabbix agent (For monitoring)?" N; then
                 # Install zabbix agent
                 sudo apt-get install zabbix-agent -y
@@ -197,7 +197,7 @@ EOF
             sudo apt-get install php5-json -y
             sudo apt-get install php5-intl -y
             sudo apt-get install memcached php5-memcached -y
-		
+            
             # Install php5 mcrypt
             sudo apt-get install php5-mcrypt -y
             sudo ln -s /etc/php5/conf.d/mcrypt.ini /etc/php5/mods-available/mcrypt.ini
@@ -206,7 +206,7 @@ EOF
             # Enable mod_rewrite
             sudo a2enmod rewrite
             #sudo service apache2 restart
-
+            
             # Enable mod_headers
             sudo a2enmod headers
             #sudo service apache2 restart
@@ -218,25 +218,25 @@ EOF
             # Install Git
             apt-get install git -y
             #apt-get install gitk -y
-		
+            
             # Disable PHP ubuntu garbage collector.
             rm /etc/cron.d/php5
-		
+            
             # Cleaning (Ubuntu 13.10 and less)
             rm /var/www/index.html
             # Cleaning (Ubuntu 14.04)
             rm /var/www/html/index.html
             rmdir /var/www/html
-		
+            
             # Set 777 permissions on thw www folder.
             chmod 0777 /var/www
-		
+            
             # Turn off the default Apache2 sites directly
             sudo a2dissite default
             sudo a2dissite 000-default
             sudo a2dissite 000-default.conf
             sudo service apache2 reload
-		
+            
             # Download composer
             curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
             
@@ -245,7 +245,7 @@ EOF
             sudo apt-get install npm -y
             sudo npm install -g uglify-js
             
-			# Install SSL for Apache2
+            # Install SSL for Apache2
 			if Confirm "Do you want to enable SSL (https) for apache2?" N; then
 				sudo a2enmod ssl
 				sudo sed -i 's/SSLProtocol all/SSLProtocol All -SSLv2 -SSLv3/g' /etc/apache2/mods-available/ssl.conf
@@ -256,7 +256,7 @@ EOF
             #apt-get install graphviz -y
             #pear channel-discover pear.phpdoc.org
             #pear install phpdoc/phpDocumentor
-		
+            
             # Change default limits in Ubuntu.	
             if Confirm "Do you want to change the open files limit to 8192 instead of 1024? (Needed for powerful web servers)" Y; then
                 sudo bash -c "echo '* soft nofile 8192' >> /etc/security/limits.conf"
@@ -273,9 +273,9 @@ EOF
                 sudo sysctl -p
             fi
             ;;
-        	
+            
         "4") #Install a database (MySQL/Percona Server/Percona XtraDB Cluster)
-        
+            
             if ! grep "repo.percona.com" /etc/apt/sources.list > /dev/null; then
                 # Adding repositories from Percona.
                 sudo apt-get install lsb-release -y
@@ -293,14 +293,14 @@ EOF
                 sudo apt-get update
                 sudo apt-get install percona-xtrabackup -y
             fi
-		
+            
             if Confirm "Do you want to install Oracle MySQL Server?" N; then
                 # Optional installation of Mysql Server. Will trigger a question.
                 sudo apt-get install mysql-server -y
                 # To be able to connect to mysql remotely, add a "#" in /etc/mysql/my.cnf before "bind-address = 127.0.0.1".
                 # Make sure that the user that you connect with has the setting: host = %.
             fi
-		
+            
             if Confirm "Do you want to install Percona MySQL server 5.6? (not cluster version)" N; then
                 sudo apt-get install dialog -y
                 sudo apt-get install percona-server-common-5.6 -y
@@ -309,19 +309,19 @@ EOF
                 sudo apt-get install percona-server-server-5.6 -y
                 sudo apt-get install percona-toolkit -y
             fi
-		
+            
             if Confirm "Do you want to install Percona XtraDB server 5.5? (cluster version)" N; then
                 sudo apt-get install percona-xtradb-cluster-server-5.5 percona-xtradb-cluster-client-5.5 percona-xtradb-cluster-galera-2.x -y
                 sudo apt-get install percona-toolkit -y
                 sudo apt-get install pv -y
             fi
-		
+            
             if Confirm "Do you want to install Galera arbitrator to be used with Percona XtraDB Cluster?" N; then
                 sudo apt-get install percona-xtradb-cluster-garbd-3.x -y
                 sudo mv /etc/default/percona-xtradb-cluster-garbd-3.x /etc/default/garb
                 # Run the following command to configure garbd later: sudo vi /etc/default/garb
                 # After that run the following command to start the service: sudo service percona-xtradb-cluster-garbd-3.x restart
-		
+                
                 # Setting: socket.checksum needs to be set when garbd is running 3.x and the cluster 2.x.
                 # To test run: sudo garbd -a gcomm://1.2.3.4:4567,1.2.3.5:4567 -g "MySQL_PXC_Cluster" -o "socket.checksum = 1;" -l "/var/log/garbd.log" -d
                 # To run as a deamon: sudo garbd -a gcomm://1.2.3.4:4567,1.2.3.5:4567 -g "MySQL_PXC_Cluster" -o "socket.checksum = 1;" -l "/var/log/garbd.log" -d
@@ -329,22 +329,26 @@ EOF
             ;;
         	
 	"5") # Install VMware tools
-		
-			if [ $(lsb_release -r | awk '{print $2}' | xargs printf "%.0f") -ge 14 ]; then
-				echo "14.04 or higher, use open-vm-tools"
-				sudo apt-get update && sudo apt-get install open-vm-tools -y
-			else
-				if Confirm "Is the vmware tools installer mounted?" Y; then
-            		sudo apt-get install gcc make linux-headers-`uname -r` -y
-            		sudo mount /dev/cdrom /mnt
-            		sudo tar xvfz /mnt/VMwareTools-*.tar.gz -C /tmp/
-            		sudo perl /tmp/vmware-tools-distrib/vmware-install.pl -d
-            		sudo umount -f /mnt
-        		fi
+            
+            if [ $(lsb_release -r | awk '{print $2}' | xargs printf "%.0f") -ge 14 ]; then
+                echo "14.04 or higher, use open-vm-tools"
+                sudo apt-get update && sudo apt-get install open-vm-tools -y
+            else
+                if Confirm "Is the vmware tools installer mounted?" Y; then
+                    sudo apt-get install gcc make linux-headers-`uname -r` -y
+                    sudo mount /dev/cdrom /mnt
+                    sudo tar xvfz /mnt/VMwareTools-*.tar.gz -C /tmp/
+                    sudo perl /tmp/vmware-tools-distrib/vmware-install.pl -d
+                    sudo umount -f /mnt
+                fi
+            fi
+            if Confirm "Do you want to add a symlink for the www folder?" Y; then
+                sudo mv /var/www /var/www_old 2>/dev/null
+                sudo ln -s /mnt/hgfs/www /var/www
             fi
             ;;
-    		
-    	"6") # Install Virtualbox guest additions
+            
+        "6") # Install Virtualbox guest additions
     	
             if grep -s -q 'Vendor: VBOX' /proc/scsi/scsi ; then
                 sudo apt-get update
@@ -384,7 +388,7 @@ EOF
             sudo bash -c "echo '    writable = yes' >> /etc/samba/smb.conf"
             sudo smbpasswd -a ubuntu
             sudo service smbd restart
-		
+            
             # Install xdebug.
             sudo apt-get install php5-xdebug -y
             sudo bash -c "cat <<EOF >> /etc/php5/apache2/php.ini
@@ -412,15 +416,15 @@ EOF"
             
             # Clean the /boot partition
             if Confirm "Do you want to uninstall all old linux kernels to clear the /boot partition?" N; then
-            	echo "Currently installed linux kernel: "$(uname -r)
-            	echo "The following kernels will be uninstalled:"
-            	dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | grep -v $(uname -r | cut -f1,2 -d"-") | egrep --color '[0-9]+\.[0-9]+\.[0-9]+'
-            	if Confirm "Are you sure you want to continue?" N; then
-            	    # Remove all kernels that is installed but not the newest that is currently used
-            	    dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | grep -v $(uname -r | cut -f1,2 -d"-") | egrep --color '[0-9]+\.[0-9]+\.[0-9]+' | xargs sudo apt-get -y purge
-            	    echo ""
-            	    echo "All old kernels has been removed."
-            	fi
+                echo "Currently installed linux kernel: "$(uname -r)
+                echo "The following kernels will be uninstalled:"
+                dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | grep -v $(uname -r | cut -f1,2 -d"-") | egrep --color '[0-9]+\.[0-9]+\.[0-9]+'
+                if Confirm "Are you sure you want to continue?" N; then
+                    # Remove all kernels that is installed but not the newest that is currently used
+                    dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | grep -v $(uname -r | cut -f1,2 -d"-") | egrep --color '[0-9]+\.[0-9]+\.[0-9]+' | xargs sudo apt-get -y purge
+                    echo ""
+                    echo "All old kernels has been removed."
+                fi
             fi
             ;;
 
