@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2016-01-03T12:08:19Z</date>
+    <date>2016-02-21T17:11:13Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -72,7 +72,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;curl -s -k -L http://$(hostname --fqdn)/ | head -n 3 | grep -m 1 '[Parse|Fatal] error' | wc -l&quot;]</key>
+                    <key>system.run[&quot;curl -s -k -L http://$(hostname --fqdn)/ | head -n 6 | grep -m 1 '[Parse|Fatal] error' | wc -l&quot;]</key>
                     <delay>30</delay>
                     <history>90</history>
                     <trends>365</trends>
@@ -160,7 +160,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;curl -s -k -o /dev/null -I -L -w '%{http_code}' http://$(hostname --fqdn)/&quot;]</key>
+                    <key>system.run[&quot;timeout 2 curl -s -k -o /dev/null -I -L -w '%{http_code}' http://$(hostname --fqdn)/ || echo 0&quot;]</key>
                     <delay>30</delay>
                     <history>90</history>
                     <trends>365</trends>
@@ -292,7 +292,7 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template App HTTP Service - Jim Cronqvist:system.run[&quot;curl -s -k -L http://$(hostname --fqdn)/ | head -n 3 | grep -m 1 '[Parse|Fatal] error' | wc -l&quot;].last()}=1</expression>
+            <expression>{Template App HTTP Service - Jim Cronqvist:system.run[&quot;curl -s -k -L http://$(hostname --fqdn)/ | head -n 6 | grep -m 1 '[Parse|Fatal] error' | wc -l&quot;].last()}=1</expression>
             <name>HTTP Error found on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -302,12 +302,12 @@
             <dependencies>
                 <dependency>
                     <name>HTTP returns status code {ITEM.LASTVALUE} on {HOST.NAME}</name>
-                    <expression>{Template App HTTP Service - Jim Cronqvist:system.run[&quot;curl -s -k -o /dev/null -I -L -w '%{http_code}' http://$(hostname --fqdn)/&quot;].last()}&lt;&gt;200</expression>
+                    <expression>{Template App HTTP Service - Jim Cronqvist:system.run[&quot;timeout 2 curl -s -k -o /dev/null -I -L -w '%{http_code}' http://$(hostname --fqdn)/ || echo 0&quot;].last()}&lt;&gt;200</expression>
                 </dependency>
             </dependencies>
         </trigger>
         <trigger>
-            <expression>{Template App HTTP Service - Jim Cronqvist:system.run[&quot;curl -s -k -o /dev/null -I -L -w '%{http_code}' http://$(hostname --fqdn)/&quot;].last()}&lt;&gt;200</expression>
+            <expression>{Template App HTTP Service - Jim Cronqvist:system.run[&quot;timeout 2 curl -s -k -o /dev/null -I -L -w '%{http_code}' http://$(hostname --fqdn)/ || echo 0&quot;].last()}&lt;&gt;200</expression>
             <name>HTTP returns status code {ITEM.LASTVALUE} on {HOST.NAME}</name>
             <url/>
             <status>0</status>
