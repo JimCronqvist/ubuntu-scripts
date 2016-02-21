@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2015-04-27T17:45:30Z</date>
+    <date>2016-02-21T17:12:12Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -201,7 +201,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;timeout 0.7 df -Tah | wc -l || echo 0&quot;]</key>
+                    <key>system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;]</key>
                     <delay>150</delay>
                     <history>7</history>
                     <trends>365</trends>
@@ -593,7 +593,7 @@ or&#13;
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 0.7 df -Tah | wc -l || echo 0&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 0.7 df -Tah | wc -l || echo 0&quot;].max(1d)}</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].max(1d)}</expression>
             <name>The number of file systems has decreased on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -603,12 +603,12 @@ or&#13;
             <dependencies>
                 <dependency>
                     <name>Unresponsive file systems on {HOST.NAME}</name>
-                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 0.7 df -Tah | wc -l || echo 0&quot;].last(0)}=0</expression>
+                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].last(0)}=0</expression>
                 </dependency>
             </dependencies>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 0.7 df -Tah | wc -l || echo 0&quot;].last(0)}=0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].last(0)}=0</expression>
             <name>Unresponsive file systems on {HOST.NAME}</name>
             <url/>
             <status>0</status>
