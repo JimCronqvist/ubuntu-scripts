@@ -51,6 +51,12 @@ AptGetUpdate () {
     fi
 }
 
+DownloadNewConfigFile () {
+    read -e -i "$2" -p "Please enter the path where you want to make the clone: " CONFIG_FILE
+	wget -O /root/config.download $CONFIG_FILE
+	mv /root/config.download $1
+}
+
 
 while :
 do
@@ -437,6 +443,15 @@ EOF"
         "11") # Install keepalived
             
             sudo apt-get install keepalived
+            
+            # Add a check if the setting is already like this?
+			sudo bash -c "echo 'net.ipv4.ip_nonlocal_bind = 1' >> /etc/sysctl.conf"
+			sudo sysctl -p
+			
+			if Confirm "Do you want to download a new configuration file?" Y; then
+				sudo cp /etc/keepalived/keepalived.conf{,.backup}
+				DownloadNewConfigFile "/etc/keepalived/keepalived.conf" "https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/configurations/sample_keepalived.conf"
+			fi
             ;;
             
         "12") # Install ha-proxy
@@ -445,6 +460,14 @@ EOF"
             APT_UPDATED=0
             AptGetUpdate
             apt-get install haproxy
+			apt-get install vim-haproxy
+			
+			# Download a finished configuration file.
+			if Confirm "Do you want to download a new configuration file?" Y; then
+				sudo cp /etc/haproxy/haproxy.cfg{,.backup}
+				DownloadNewConfigFile "/etc/haproxy/haproxy.cfg" "https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/configurations/sample_haproxy.cfg"
+			fi
+			
             ;;
             
         "13") # Install Varnish cache
