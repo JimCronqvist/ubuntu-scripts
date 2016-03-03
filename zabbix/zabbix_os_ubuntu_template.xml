@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2016-02-21T17:12:12Z</date>
+    <date>2016-03-03T15:41:20Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -603,12 +603,12 @@ or&#13;
             <dependencies>
                 <dependency>
                     <name>Unresponsive file systems on {HOST.NAME}</name>
-                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].last(0)}=0</expression>
+                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].count(#2,0)}&gt;1</expression>
                 </dependency>
             </dependencies>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].last(0)}=0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].count(#2,0)}&gt;1</expression>
             <name>Unresponsive file systems on {HOST.NAME}</name>
             <url/>
             <status>0</status>
