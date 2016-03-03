@@ -54,8 +54,8 @@ AptGetUpdate () {
 DownloadNewConfigFile () {
     sudo cp $1{,.backup.`date +%Y-%m-%d_%H.%M.%S`}
     read -e -i "$2" -p "Please enter the path where you want to make the clone: " CONFIG_FILE
-	wget -O $1 $CONFIG_FILE
-	sed -i 's/example.com/'$(hostname --fqdn)'/g' $1
+    wget -O $1 $CONFIG_FILE
+    sed -i 's/example.com/'$(hostname --fqdn)'/g' $1
 }
 
 
@@ -453,7 +453,7 @@ EOF"
             
         "11") # Install keepalived
             
-            sudo apt-get install keepalived
+            sudo apt-get install keepalived -y
             
             # Add a check if the setting is already like this?
             sudo bash -c "echo 'net.ipv4.ip_nonlocal_bind = 1' >> /etc/sysctl.conf"
@@ -470,12 +470,11 @@ EOF"
             add-apt-repository ppa:vbernat/haproxy-1.6
             APT_UPDATED=0
             AptGetUpdate
-            apt-get install haproxy
-            apt-get install vim-haproxy
+            apt-get install haproxy -y
+            apt-get install vim-haproxy -y
 			
             # Download a finished configuration file.
             if Confirm "Do you want to download a new configuration file?" Y; then
-                sudo cp /etc/haproxy/haproxy.cfg{,.backup}
                 DownloadNewConfigFile "/etc/haproxy/haproxy.cfg" "https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/configurations/sample_haproxy.cfg"
                 sudo service haproxy restart
             fi
@@ -483,8 +482,17 @@ EOF"
             
         "13") # Install Varnish cache
             
+            apt-get install apt-transport-https
+            curl https://repo.varnish-cache.org/GPG-key.txt | apt-key add -
+            echo "deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.1" >> /etc/apt/sources.list.d/varnish-cache.list
+            APT_UPDATED=0
+            AptGetUpdate
+            apt-get install varnish -y
             
-            
+            if Confirm "Do you want to download a new configuration file?" Y; then
+                DownloadNewConfigFile "/etc/varnish/production.vcl" "https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/configurations/sample_production.vcl"
+                sudo service varnish restart
+            fi
             ;;
             
         "0")
