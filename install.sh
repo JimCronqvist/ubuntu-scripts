@@ -52,9 +52,10 @@ AptGetUpdate () {
 }
 
 DownloadNewConfigFile () {
+    sudo cp $1{,.backup.`date +%Y-%m-%d_%H.%M.%S`}
     read -e -i "$2" -p "Please enter the path where you want to make the clone: " CONFIG_FILE
-	wget -O /root/config.download $CONFIG_FILE
-	mv /root/config.download $1
+	wget -O $1 $CONFIG_FILE
+	sed -i 's/example.com/'$(hostname --fqdn)'/g' $1
 }
 
 
@@ -204,6 +205,16 @@ EOF
             
         "4") # Configure settings
             
+            # Change the port apache2 is listening on.
+            if Confirm "Do you want to change the port that apache2 is listening on?" N; then
+                read -e -i "80" -p "Please enter the old port: " OLD_PORT
+                read -e -i "8080" -p "Please enter the old port: " NEW_PORT
+                
+                sed -i 's/:'$OLD_PORT'>/:'$NEW_PORT'>/g' /etc/apache2/sites-enabled/*
+                sed -i 's/Listen '$OLD_PORT'$/Listen '$NEW_PORT'/g' /etc/apache2/ports.conf
+                sudo service apache2 restart
+            fi
+			
             # Change default limits in Ubuntu.	
             if Confirm "Do you want to change the open files limit to 8192 instead of 1024? (Needed for powerful web servers)" Y; then
                 sudo bash -c "echo '* soft nofile 8192' >> /etc/security/limits.conf"
@@ -449,8 +460,8 @@ EOF"
             sudo sysctl -p
 			
             if Confirm "Do you want to download a new configuration file?" Y; then
-                sudo cp /etc/keepalived/keepalived.conf{,.backup}
                 DownloadNewConfigFile "/etc/keepalived/keepalived.conf" "https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/configurations/sample_keepalived.conf"
+                sudo service keepalived restart
             fi
             ;;
             
@@ -466,8 +477,8 @@ EOF"
             if Confirm "Do you want to download a new configuration file?" Y; then
                 sudo cp /etc/haproxy/haproxy.cfg{,.backup}
                 DownloadNewConfigFile "/etc/haproxy/haproxy.cfg" "https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/configurations/sample_haproxy.cfg"
+                sudo service haproxy restart
             fi
-			
             ;;
             
         "13") # Install Varnish cache
