@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2016-03-03T15:41:20Z</date>
+    <date>2016-03-06T12:18:26Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -593,19 +593,14 @@ or&#13;
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].max(1d)}</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].max(1d)} and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].last(0)}&gt;0</expression>
             <name>The number of file systems has decreased on {HOST.NAME}</name>
             <url/>
             <status>0</status>
             <priority>4</priority>
             <description>Check for decreasing number of file systems, such as missing nfs or cifs mounted file systems.</description>
             <type>0</type>
-            <dependencies>
-                <dependency>
-                    <name>Unresponsive file systems on {HOST.NAME}</name>
-                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].count(#2,0)}&gt;1</expression>
-                </dependency>
-            </dependencies>
+            <dependencies/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].count(#2,0)}&gt;1</expression>
