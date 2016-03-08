@@ -490,7 +490,7 @@ EOF"
             apt-get install varnish -y
             
             if Confirm "Do you want to download a new configuration file?" Y; then
-                DownloadNewConfigFile "/etc/varnish/production.vcl" "https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/configurations/sample_production.vcl"
+                DownloadNewConfigFile "/etc/varnish/production.vcl" "https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/configurations/sample_varnish_production.vcl"
                 sed -i 's/\/etc\/varnish\/default.vcl/\/etc\/varnish\/production.vcl/g' /etc/default/varnish
                 sudo service varnish restart
             fi
