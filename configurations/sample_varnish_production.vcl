@@ -309,5 +309,5 @@ sub vcl_purge {
         # restart request
         set req.http.X-Purge = "Yes";
         return(restart);
-	}
+    }
 }
