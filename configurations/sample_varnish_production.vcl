@@ -41,7 +41,7 @@ sub vcl_recv {
     
     
     # Normalize the header, remove the port (in case you're testing this on various TCP ports)
-    set req.http.Host = regsub(req.http.Host, ":[0-9]+", "");
+    #set req.http.Host = regsub(req.http.Host, ":[0-9]+", "");
 
     # Normalize the query arguments
     set req.url = std.querysort(req.url);
