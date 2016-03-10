@@ -143,6 +143,21 @@ sub vcl_recv {
             unset req.http.cookie;
         }
     }
+    
+    # Normalize the Accept-Encoding header
+    if (req.http.Accept-Encoding) {
+        if (req.url ~ "\.(jpg|png|gif|gz|tgz|bz2|tbz|mp3|ogg)$") {
+            # No point in compressing these
+            remove req.http.Accept-Encoding;
+        } elsif (req.http.Accept-Encoding ~ "gzip") {
+            set req.http.Accept-Encoding = "gzip";
+        } elsif (req.http.Accept-Encoding ~ "deflate" && req.http.user-agent !~ "MSIE") {
+            set req.http.Accept-Encoding = "deflate";
+        } else {
+            # unkown algorithm
+            remove req.http.Accept-Encoding;
+        }
+    }
 	
     # Send Surrogate-Capability headers to announce ESI support to backend
     set req.http.Surrogate-Capability = "key=ESI/1.0";
