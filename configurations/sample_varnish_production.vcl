@@ -97,38 +97,52 @@ sub vcl_recv {
     if (req.url ~ "\?$") {
         set req.url = regsub(req.url, "\?$", "");
     }
-
-    # Some generic cookie manipulation, useful for all templates that follow
-    # Remove the "has_js" cookie
-    set req.http.Cookie = regsuball(req.http.Cookie, "has_js=[^;]+(; )?", "");
-
-    # Remove any Google Analytics based cookies
-    set req.http.Cookie = regsuball(req.http.Cookie, "__utm.=[^;]+(; )?", "");
-    set req.http.Cookie = regsuball(req.http.Cookie, "_ga=[^;]+(; )?", "");
-    set req.http.Cookie = regsuball(req.http.Cookie, "_gat=[^;]+(; )?", "");
-    set req.http.Cookie = regsuball(req.http.Cookie, "utmctr=[^;]+(; )?", "");
-    set req.http.Cookie = regsuball(req.http.Cookie, "utmcmd.=[^;]+(; )?", "");
-    set req.http.Cookie = regsuball(req.http.Cookie, "utmccn.=[^;]+(; )?", "");
-
-    # Remove DoubleClick offensive cookies
-    set req.http.Cookie = regsuball(req.http.Cookie, "__gads=[^;]+(; )?", "");
-
-    # Remove the Quant Capital cookies (added by some plugin, all __qca)
-    set req.http.Cookie = regsuball(req.http.Cookie, "__qc.=[^;]+(; )?", "");
-
-    # Remove the AddThis cookies
-    set req.http.Cookie = regsuball(req.http.Cookie, "__atuv.=[^;]+(; )?", "");
-
-    # Remove a ";" prefix in the cookie if present
-    set req.http.Cookie = regsuball(req.http.Cookie, "^;\s*", "");
-
-    # Are there cookies left with only spaces or that are empty?
-    if (req.http.cookie ~ "^\s*$") {
-        unset req.http.cookie;
-    }
-	
+    
     # Unset the entire cookie
     #unset req.http.cookie;
+    
+    # For all domains called cdn.*, assets.* and files.*, remove all cookies.
+    if (req.http.cookie && req.http.host ~ "^(cdn|assets|files)\.") {
+        unset req.http.cookie;
+    }
+
+    # Cookie manipulation/sanitiation
+    if (req.http.cookie) {
+    
+        # Remove the "has_js" cookie
+        set req.http.Cookie = regsuball(req.http.Cookie, "has_js=[^;]+(; )?", "");
+
+        # Remove any Google Analytics based cookies
+        set req.http.Cookie = regsuball(req.http.Cookie, "__utm.=[^;]+(; )?", "");
+        set req.http.Cookie = regsuball(req.http.Cookie, "_ga=[^;]+(; )?", "");
+        set req.http.Cookie = regsuball(req.http.Cookie, "_gat=[^;]+(; )?", "");
+        set req.http.Cookie = regsuball(req.http.Cookie, "utmctr=[^;]+(; )?", "");
+        set req.http.Cookie = regsuball(req.http.Cookie, "utmcmd.=[^;]+(; )?", "");
+        set req.http.Cookie = regsuball(req.http.Cookie, "utmccn.=[^;]+(; )?", "");
+
+        # Remove DoubleClick offensive cookies
+        set req.http.Cookie = regsuball(req.http.Cookie, "__gads=[^;]+(; )?", "");
+
+        # Remove the Quant Capital cookies (added by some plugin, all __qca)
+        set req.http.Cookie = regsuball(req.http.Cookie, "__qc.=[^;]+(; )?", "");
+
+        # Remove the AddThis cookies
+        set req.http.Cookie = regsuball(req.http.Cookie, "__atuv.=[^;]+(; )?", "");
+    
+        # Remove the Hotjar cookies
+        set req.http.Cookie = regsuball(req.http.Cookie, "mp_mixpanel__c=[^;]+(; )?", "");
+
+        # Remove the Zopim cookies
+        set req.http.Cookie = regsuball(req.http.Cookie, "__zlcmid=[^;]+(; )?", "");
+
+        # Remove a ";" prefix in the cookie if present
+        set req.http.Cookie = regsuball(req.http.Cookie, "^;\s*", "");
+
+        # Are there cookies left with only spaces or that are empty?
+        if (req.http.cookie ~ "^\s*$") {
+            unset req.http.cookie;
+        }
+	}
 	
     # Send Surrogate-Capability headers to announce ESI support to backend
     set req.http.Surrogate-Capability = "key=ESI/1.0";
@@ -285,6 +299,9 @@ sub vcl_deliver {
     } else {
         set resp.http.X-Cache = "MISS";
     }
+    
+    # Add debug header to see the remaining cookies after filtering.
+    set resp.http.X-Cookie-Debug = req.http.Cookie;
 
     # Please note that obj.hits behaviour changed in 4.0, now it counts per objecthead, not per object
     # and obj.hits may not be reset in some cases where bans are in use. See bug 1492 for details.
