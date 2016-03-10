@@ -142,7 +142,7 @@ sub vcl_recv {
         if (req.http.cookie ~ "^\s*$") {
             unset req.http.cookie;
         }
-	}
+    }
 	
     # Send Surrogate-Capability headers to announce ESI support to backend
     set req.http.Surrogate-Capability = "key=ESI/1.0";
@@ -274,6 +274,18 @@ sub vcl_backend_response {
     if (beresp.http.Surrogate-Control ~ "ESI/1.0") {
         unset beresp.http.Surrogate-Control;
         set beresp.do_esi = true;
+    }
+    
+    # Don't cache requests with "Set-Cookie" headers
+    if (beresp.http.Set-Cookie) {
+        set beresp.uncacheable = true;
+        return (deliver);
+    }
+
+    # Don't cache requests with cache-control header that explicitly states that we should not cache.
+    if (beresp.http.Cache-Control ~ "(private|no-cache|no-store)") {
+        set beresp.uncacheable = true;
+        return (deliver);
     }
 
     # Allow stale content, in case the backend goes down.
