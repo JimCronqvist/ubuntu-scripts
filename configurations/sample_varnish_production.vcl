@@ -105,6 +105,11 @@ sub vcl_recv {
     if (req.http.cookie && req.http.host ~ "^(cdn|assets|files)\.") {
         unset req.http.cookie;
     }
+    
+    # Remove cookies for cookie free URLs
+    if (req.http.cookie && req.url ~ "^/(images)") {
+        unset req.http.cookie;
+    }
 
     # Cookie manipulation/sanitiation
     if (req.http.cookie) {
