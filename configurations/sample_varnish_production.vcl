@@ -112,7 +112,7 @@ sub vcl_recv {
     }
     
     # Remove cookies for some extensions
-    if (req.http.cookie && req.url ~ "\.(css|js)$") {
+    if (req.http.cookie && req.url ~ "\.(css|js)(\?(.*))?$") {
         unset req.http.cookie;
     }
     
