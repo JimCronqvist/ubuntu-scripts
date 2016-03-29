@@ -153,14 +153,14 @@ sub vcl_recv {
     if (req.http.Accept-Encoding) {
         if (req.url ~ "\.(jpg|png|gif|gz|tgz|bz2|tbz|mp3|ogg)$") {
             # No point in compressing these
-            remove req.http.Accept-Encoding;
+            unset req.http.Accept-Encoding;
         } elsif (req.http.Accept-Encoding ~ "gzip") {
             set req.http.Accept-Encoding = "gzip";
         } elsif (req.http.Accept-Encoding ~ "deflate" && req.http.user-agent !~ "MSIE") {
             set req.http.Accept-Encoding = "deflate";
         } else {
             # unkown algorithm
-            remove req.http.Accept-Encoding;
+            unset req.http.Accept-Encoding;
         }
     }
 	
