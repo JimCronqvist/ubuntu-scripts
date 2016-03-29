@@ -110,7 +110,12 @@ sub vcl_recv {
     if (req.http.cookie && req.url ~ "^/(images)") {
         unset req.http.cookie;
     }
-
+    
+    # Remove cookies for some extensions
+    if (req.http.cookie && req.url ~ "\.(css|js)$") {
+        unset req.http.cookie;
+    }
+    
     # Cookie manipulation/sanitiation
     if (req.http.cookie) {
     
