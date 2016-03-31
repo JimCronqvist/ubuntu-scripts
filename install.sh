@@ -477,6 +477,7 @@ EOF"
             if Confirm "Do you want to download a new configuration file?" Y; then
                 DownloadNewConfigFile "/etc/haproxy/haproxy.cfg" "https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/configurations/sample_haproxy.cfg"
                 sudo service haproxy restart
+                sudo service rsyslog restart
             fi
             ;;
             
