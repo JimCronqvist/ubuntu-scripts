@@ -75,10 +75,11 @@ install.sh by Jim Cronqvist
 (7) Install web tools (git, npm, uglifyjs)
 (8) Install Apache2
 (9) Install PHP 5 and Composer
-(10) Install a database (MySQL/Percona Server/Percona XtraDB Cluster)
-(11) Install keepalived
-(12) Install haproxy
-(13) Install Varnish cache
+(10) Install PHP 7 and Composer
+(11) Install a database (MySQL/Percona Server/Percona XtraDB Cluster)
+(12) Install keepalived
+(13) Install haproxy
+(14) Install Varnish cache
 (0) Quit
 ----------------------------------
 EOF
@@ -402,7 +403,35 @@ EOF"
             fi
             ;;
             
-        "10") # Install a database (MySQL/Percona Server/Percona XtraDB Cluster)
+        "10") # Install PHP 7 and Composer
+            
+            sudo apt-get install -y language-pack-en-base
+            sudo LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php
+            
+            APT_UPDATED=0
+            AptGetUpdate
+            
+            sudo apt-get install php7.0 -y
+            sudo apt-get install php7.0-ldap -y
+            sudo apt-get install mysql-client -y
+            sudo apt-get install php7.0-mysqlnd -y
+            sudo apt-get install php7.0-curl -y
+            sudo apt-get install php7.0-xsl -y
+            sudo apt-get install php7.0-gd -y
+            sudo apt-get install imagemagick php-imagick -y
+            sudo apt-get install php7.0-json -y
+            sudo apt-get install php7.0-intl -y
+            sudo apt-get install memcached php-memcached -y
+            sudo apt-get install php7.0-mcrypt -y
+            
+            # Disable PHP ubuntu default garbage collector.
+            rm /etc/cron.d/php
+            
+            # Download composer
+            curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
+            ;;
+            
+        "11") # Install a database (MySQL/Percona Server/Percona XtraDB Cluster)
             
             if ! grep "repo.percona.com" /etc/apt/sources.list > /dev/null; then
                 # Adding repositories from Percona.
@@ -454,7 +483,7 @@ EOF"
             fi
             ;;
             
-        "11") # Install keepalived
+        "12") # Install keepalived
             
             sudo apt-get install keepalived -y
             
@@ -468,7 +497,7 @@ EOF"
             fi
             ;;
             
-        "12") # Install ha-proxy
+        "13") # Install ha-proxy
             
             add-apt-repository ppa:vbernat/haproxy-1.6
             APT_UPDATED=0
@@ -484,7 +513,7 @@ EOF"
             fi
             ;;
             
-        "13") # Install Varnish cache
+        "14") # Install Varnish cache
             
             apt-get install apt-transport-https
             curl https://repo.varnish-cache.org/GPG-key.txt | apt-key add -
