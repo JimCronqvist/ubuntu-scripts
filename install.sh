@@ -424,6 +424,7 @@ EOF"
             sudo apt-get install memcached php-memcached -y
             sudo apt-get install php7.0-mcrypt -y
             sudo apt-get install php7.0-mbstring -y
+            sudo apt-get install php7.0-zip -y
             
             # Disable PHP ubuntu default garbage collector.
             rm /etc/cron.d/php
