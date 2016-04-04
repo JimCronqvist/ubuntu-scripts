@@ -15,7 +15,7 @@ backend default {
         # We prefer to only do a HEAD /
         .request =
             "HEAD / HTTP/1.1"
-            "Host: localhost"
+            "Host: example.com"
             "Connection: close"
             "User-Agent: Varnish Health Probe";
 
