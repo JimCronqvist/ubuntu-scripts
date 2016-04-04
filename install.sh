@@ -429,6 +429,9 @@ EOF"
             
             # Download composer
             curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
+            
+            # Install the apache2 module for php7
+            sudo apt-get install libapache2-mod-php7.0
             ;;
             
         "11") # Install a database (MySQL/Percona Server/Percona XtraDB Cluster)
