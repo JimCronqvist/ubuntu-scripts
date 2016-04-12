@@ -195,6 +195,9 @@ EOF
             # Install pv
             sudo apt-get install pv -y
             
+            # Install dos2unix
+            sudo apt-get install dos2unix -y
+            
             # Install a MTA
             if Confirm "Do you want to install a MTA?" Y; then
                 sudo apt-get install sendmail mailutils -y
