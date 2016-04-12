@@ -127,6 +127,7 @@ sub vcl_recv {
         set req.http.Cookie = regsuball(req.http.Cookie, "__utm.=[^;]+(; )?", "");
         set req.http.Cookie = regsuball(req.http.Cookie, "_ga=[^;]+(; )?", "");
         set req.http.Cookie = regsuball(req.http.Cookie, "_gat=[^;]+(; )?", "");
+        set req.http.Cookie = regsuball(req.http.Cookie, "_gat_newTracker=[^;]+(; )?", "");
         set req.http.Cookie = regsuball(req.http.Cookie, "utmctr=[^;]+(; )?", "");
         set req.http.Cookie = regsuball(req.http.Cookie, "utmcmd.=[^;]+(; )?", "");
         set req.http.Cookie = regsuball(req.http.Cookie, "utmccn.=[^;]+(; )?", "");
