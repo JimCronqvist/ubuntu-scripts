@@ -228,6 +228,12 @@ EOF
                 sudo bash -c "echo '* hard nofile 8192' >> /etc/security/limits.conf"
             fi
             
+            # Change default limits in Ubuntu.	
+            if Confirm "Do you want to change the open files limit to 100000 instead of 1024? (Needed for VERY powerful web servers)" Y; then
+                sudo bash -c "echo '* soft nofile 100000' >> /etc/security/limits.conf"
+                sudo bash -c "echo '* hard nofile 100000' >> /etc/security/limits.conf"
+            fi
+            
             if Confirm "Do you want to change the default TCP settings for a high-performance web-server?" Y; then
                 sudo bash -c "echo 'net.ipv4.ip_local_port_range = 1024 65535' >> /etc/sysctl.conf"
                 # Decrease TIME_WAIT seconds to 30 seconds instead of the default of 60 seconds.
