@@ -80,6 +80,7 @@ install.sh by Jim Cronqvist
 (12) Install keepalived
 (13) Install haproxy
 (14) Install Varnish cache
+(15) Install Redis
 (0) Quit
 ----------------------------------
 EOF
@@ -387,7 +388,8 @@ EOF
             sudo apt-get install php5-imagick -y
             sudo apt-get install php5-json -y
             sudo apt-get install php5-intl -y
-            sudo apt-get install memcached php5-memcached -y
+            #sudo apt-get install memcached php5-memcached -y
+            sudo apt-get install php5-redis -y
             
             # Install php5 mcrypt
             sudo apt-get install php5-mcrypt -y
@@ -431,7 +433,8 @@ EOF"
             sudo apt-get install imagemagick php-imagick -y
             sudo apt-get install php7.0-json -y
             sudo apt-get install php7.0-intl -y
-            sudo apt-get install memcached php-memcached -y
+            #sudo apt-get install memcached php-memcached -y
+            sudo apt-get install php-redis -y
             sudo apt-get install php7.0-mcrypt -y
             sudo apt-get install php7.0-mbstring -y
             sudo apt-get install php7.0-zip -y
@@ -543,7 +546,15 @@ EOF"
                 sudo service varnish restart
             fi
             ;;
+        
+        "15") # Install Redis
             
+            sudo add-apt-repository ppa:chris-lea/redis-server
+            APT_UPDATED=0
+            AptGetUpdate
+            sudo apt-get install redis-server -y
+            ;;
+        
         "0")
             exit
             ;;
