@@ -306,22 +306,31 @@ sub vcl_backend_response {
         set beresp.do_esi = true;
     }
     
+    # Varnish determined the object was not cacheable
+    if (beresp.ttl <= 0s) {
+        set beresp.http.X-Cacheable = "NO:Not Cacheable";
+    }
     # Don't cache requests with "Set-Cookie" headers
-    if (beresp.http.Set-Cookie) {
+    elsif (beresp.http.Set-Cookie) {
+        set beresp.http.X-Cacheable = "NO:Set-Cookie";
         set beresp.uncacheable = true;
         return (deliver);
     }
-
     # Don't cache requests with cache-control header that explicitly states that we should not cache.
-    if (beresp.http.Cache-Control ~ "(private|no-cache|no-store)") {
+    elsif (beresp.http.Cache-Control ~ "(private|no-cache|no-store)") {
+        set beresp.http.X-Cacheable = "NO:Cache-Control=(private|no-cache|no-store)";
         set beresp.uncacheable = true;
         return (deliver);
     }
-    
     # Don't cache requests with no cache headers defined (Cache-Control, Expires, ETag or Last-Modified), should fall back on "no-cache"
-    if (!beresp.http.Cache-Control && !beresp.http.Expires && !beresp.http.ETag && !beresp.http.Last-Modified) {
+    elsif (!beresp.http.Cache-Control && !beresp.http.Expires && !beresp.http.ETag && !beresp.http.Last-Modified) {
+        set beresp.http.X-Cacheable = "NO:No cache headers present";
         set beresp.uncacheable = true;
         return (deliver);
+    } 
+    # Varnish determined the object was cacheable
+    else {
+        set beresp.http.X-Cacheable = "YES";
     }
 
     # Allow stale content, in case the backend goes down.
