@@ -243,6 +243,9 @@ sub vcl_hit {
     if (req.method == "PURGE") {
         return (synth(200, "Purged"));
     }
+    
+    # Set to use as a debug header later
+    set req.http.X-Cache-TTL-Remaining = obj.ttl;
 
     if (obj.ttl >= 0s) {
         # A pure unadultered hit, deliver it
@@ -341,6 +344,11 @@ sub vcl_deliver {
     
     # Add debug header to see the remaining cookies after filtering.
     set resp.http.X-Cookie-Debug = req.http.Cookie;
+    
+    # Add debug header to see the remaining TTL for the cached object
+    if (req.http.X-Cache-TTL-Remaining) {
+        set resp.http.X-Cache-TTL-Remaining = req.http.X-Cache-TTL-Remaining;
+    }
 
     # Please note that obj.hits behaviour changed in 4.0, now it counts per objecthead, not per object
     # and obj.hits may not be reset in some cases where bans are in use. See bug 1492 for details.
