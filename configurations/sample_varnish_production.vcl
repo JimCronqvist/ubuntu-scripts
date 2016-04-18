@@ -317,6 +317,12 @@ sub vcl_backend_response {
         set beresp.uncacheable = true;
         return (deliver);
     }
+    
+    # Don't cache requests with no cache headers defined (Cache-Control, Expires, ETag or Last-Modified), should fall back on "no-cache"
+    if (!beresp.http.Cache-Control && !beresp.http.Expires && !beresp.http.ETag && !beresp.http.Last-Modified) {
+        set beresp.uncacheable = true;
+        return (deliver);
+    }
 
     # Allow stale content, in case the backend goes down.
     # make Varnish keep all objects for 6 hours beyond their TTL
