@@ -169,6 +169,9 @@ EOF
             # Install htop
             apt-get install htop -y
             
+            # Install iotop
+            apt-get install iotop -y
+            
             # Install iftop
             apt-get install iftop -y
             
