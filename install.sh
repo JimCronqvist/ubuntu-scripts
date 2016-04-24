@@ -277,7 +277,9 @@ EOF
                 sudo service zabbix-agent restart
                 
                 if Confirm "Do you want to install Percona Zabbix Templates?" N; then
-                    apt-get install percona-zabbix-templates -y
+                    sudo apt-get install percona-zabbix-templates -y
+                    sudo cp /var/lib/zabbix/percona/templates/userparameter_percona_mysql.conf /etc/zabbix/zabbix_agentd.conf.d/
+                    sudo service zabbix-agent restart
                 fi
             fi
             ;;
