@@ -301,7 +301,7 @@ EOF
                         sudo umount -f /mnt
                     fi
                 fi
-                if Confirm "Do you want to add a symlink for the www folder?" Y; then
+                if Confirm "Do you want to add a symlink for the www folder?" N; then
                     sudo mv /var/www /var/www_old 2>/dev/null
                     sudo ln -s /mnt/hgfs/www /var/www
                 fi
