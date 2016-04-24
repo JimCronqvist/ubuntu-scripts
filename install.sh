@@ -275,6 +275,10 @@ EOF
                 sudo bash -c "echo 'Hostname='`hostname --fqdn` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
                 sudo bash -c "echo 'EnableRemoteCommands=1' >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
                 sudo service zabbix-agent restart
+                
+                if Confirm "Do you want to install Percona Zabbix Templates?" N; then
+                    apt-get install percona-zabbix-templates -y
+                fi
             fi
             ;;
             
