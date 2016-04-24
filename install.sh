@@ -484,8 +484,8 @@ EOF"
                 sudo apt-get install percona-toolkit -y
             fi
             
-            if Confirm "Do you want to install Percona XtraDB Cluster 5.5? (cluster version)" N; then
-                sudo apt-get install percona-xtradb-cluster-server-5.5 percona-xtradb-cluster-client-5.5 percona-xtradb-cluster-galera-2.x -y
+            if Confirm "Do you want to install Percona XtraDB Cluster 5.6?" N; then
+                sudo apt-get install percona-xtradb-cluster-56 -y
                 sudo apt-get install percona-toolkit -y
             fi
             
