@@ -152,7 +152,7 @@ EOF
             sudo apt-get install policykit-1 -y
             
             # LVM - Amazon EC2 instances does not come with this by default
-            sudo apt-get install lvm2
+            sudo apt-get install lvm2 -y
             
             # Install lrzsz to use with Xshell ssh client, allows you to transfer files by dropping them in the console.
             sudo apt-get install lrzsz -y
