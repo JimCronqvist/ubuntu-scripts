@@ -476,6 +476,8 @@ EOF"
             
             # Install Xtrabackup
             sudo apt-get install percona-xtrabackup -y
+            # Install mysql-utilities
+            sudo apt-get install mysql-utilities -y
             
             if Confirm "Do you want to install Oracle MySQL Server?" N; then
                 # Optional installation of Mysql Server. Will trigger a question.
