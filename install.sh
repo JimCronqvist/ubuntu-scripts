@@ -282,6 +282,12 @@ EOF
                 if Confirm "Do you want to install Percona Zabbix Templates?" N; then
                     sudo apt-get install percona-zabbix-templates -y
                     sudo cp /var/lib/zabbix/percona/templates/userparameter_percona_mysql.conf /etc/zabbix/zabbix_agentd.conf.d/
+                    echo "<?php" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
+                    echo "\$mysql_user = 'root';" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
+                    echo "\$mysql_pass = '';" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
+                    sudo apt-get install php5-cli -y
+                    sudo apt-get install php5-mysqlnd -y
+                    echo "Edit the password in: /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf"
                     sudo service zabbix-agent restart
                 fi
             fi
