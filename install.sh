@@ -282,15 +282,20 @@ EOF
                 if Confirm "Do you want to install Percona Zabbix Templates?" N; then
                     sudo apt-get install percona-zabbix-templates -y
                     sudo cp /var/lib/zabbix/percona/templates/userparameter_percona_mysql.conf /etc/zabbix/zabbix_agentd.conf.d/
+                    read -e -i "" -p "Please enter the root MySQL password: " PASS
                     echo "<?php" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
                     echo "\$mysql_user = 'root';" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
-                    echo "\$mysql_pass = '';" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
-                    echo "[client]" >> ~zabbix/.my.cnf && echo "user = root" >> ~zabbix/.my.cnf && echo "password = " >> ~zabbix/.my.cnf
+                    echo "\$mysql_pass = '$PASS';" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
+                    echo "[client]" >> ~zabbix/.my.cnf && echo "user = root" >> ~zabbix/.my.cnf && echo "password = $PASS" >> ~zabbix/.my.cnf
                     sudo chown zabbix:zabbix ~zabbix/.my.cnf && chmod 0600 ~zabbix/.my.cnf
                     sudo apt-get install php5-cli -y
                     sudo apt-get install php5-mysqlnd -y
                     echo "Edit the password in: /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf"
                     sudo service zabbix-agent restart
+                    
+                    echo "Testing:"
+                    /var/lib/zabbix/percona/scripts/get_mysql_stats_wrapper.sh gg
+                    sudo -u zabbix -H /var/lib/zabbix/percona/scripts/get_mysql_stats_wrapper.sh running-slave
                 fi
             fi
             ;;
