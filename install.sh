@@ -285,6 +285,8 @@ EOF
                     echo "<?php" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
                     echo "\$mysql_user = 'root';" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
                     echo "\$mysql_pass = '';" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
+                    echo "[client]" >> ~zabbix/.my.cnf && echo "user = root" >> ~zabbix/.my.cnf && echo "password = " >> ~zabbix/.my.cnf
+                    sudo chown zabbix:zabbix ~zabbix/.my.cnf && chmod 0600 ~zabbix/.my.cnf
                     sudo apt-get install php5-cli -y
                     sudo apt-get install php5-mysqlnd -y
                     echo "Edit the password in: /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf"
