@@ -283,9 +283,16 @@ EOF
                     sudo apt-get install percona-zabbix-templates -y
                     sudo cp /var/lib/zabbix/percona/templates/userparameter_percona_mysql.conf /etc/zabbix/zabbix_agentd.conf.d/
                     read -e -i "" -p "Please enter the root MySQL password: " PASS
+                    
                     echo "<?php" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
                     echo "\$mysql_user = 'root';" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
                     echo "\$mysql_pass = '$PASS';" >> /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf
+                    
+                    # Change the home directory as the default is /var/run/zabbix and that is inside a tmpfs which will be cleared on reboot.
+                    sudo service zabbix-agent stop
+                    sudo usermod -d /home/zabbix -m zabbix
+                    sudo service zabbix-agent restart
+                    
                     echo "[client]" >> ~zabbix/.my.cnf && echo "user = root" >> ~zabbix/.my.cnf && echo "password = $PASS" >> ~zabbix/.my.cnf
                     sudo chown zabbix:zabbix ~zabbix/.my.cnf && chmod 0600 ~zabbix/.my.cnf
                     sudo apt-get install php5-cli -y
