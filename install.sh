@@ -141,6 +141,9 @@ EOF
                 fi
             fi
             
+            # Turn off ec2 instances automatic renaming of the hostname at each reboot
+            sudo sed -i 's/preserve_hostname: false/preserve_hostname: true/' /etc/cloud/cloud.cfg
+            
             # To get the latest package lists
             #apt-get update
             AptGetUpdate
