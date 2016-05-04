@@ -505,6 +505,7 @@ EOF"
             if Confirm "Do you want to install Oracle MySQL Server?" N; then
                 # Optional installation of Mysql Server. Will trigger a question.
                 sudo apt-get install mysql-server -y
+                sudo chmod 0755 /var/lib/mysql
                 # To be able to connect to mysql remotely, add a "#" in /etc/mysql/my.cnf before "bind-address = 127.0.0.1".
                 # Make sure that the user that you connect with has the setting: host = %.
             fi
@@ -516,11 +517,13 @@ EOF"
                 sudo apt-get install percona-server-client-5.6 -y
                 sudo apt-get install percona-server-server-5.6 -y
                 sudo apt-get install percona-toolkit -y
+                sudo chmod 0755 /var/lib/mysql
             fi
             
             if Confirm "Do you want to install Percona XtraDB Cluster 5.6?" N; then
                 sudo apt-get install percona-xtradb-cluster-56 -y
                 sudo apt-get install percona-toolkit -y
+                sudo chmod 0755 /var/lib/mysql
             fi
             
             if Confirm "Do you want to install Galera arbitrator to be used with Percona XtraDB Cluster?" N; then
