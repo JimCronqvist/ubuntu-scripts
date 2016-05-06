@@ -142,10 +142,16 @@ sub vcl_recv {
         set req.http.Cookie = regsuball(req.http.Cookie, "__atuv.=[^;]+(; )?", "");
     
         # Remove the Hotjar cookies
-        set req.http.Cookie = regsuball(req.http.Cookie, "mp_mixpanel__c=[^;]+(; )?", "");
+        set req.http.Cookie = regsuball(req.http.Cookie, "mp_mixpanel__c.?=[^;]+(; )?", "");
 
-        # Remove the Zopim cookies
+        # Remove the Zopim cookie
         set req.http.Cookie = regsuball(req.http.Cookie, "__zlcmid=[^;]+(; )?", "");
+        
+        # Remove the xdebug cookie
+        set req.http.Cookie = regsuball(req.http.Cookie, "XDEBUG_SESSION=[^;]+(; )?", "");
+        
+        # Remove the cookie accepted cookie
+        set req.http.Cookie = regsuball(req.http.Cookie, "jc_cookie=[^;]+(; )?", "");
 
         # Remove a ";" prefix in the cookie if present
         set req.http.Cookie = regsuball(req.http.Cookie, "^;\s*", "");
@@ -174,7 +180,12 @@ sub vcl_recv {
     # Send Surrogate-Capability headers to announce ESI support to backend
     set req.http.Surrogate-Capability = "key=ESI/1.0";
 	
-    if (req.http.Authorization) {
+	# Check if there is any forbidden cookies - Not cacheable
+    if (!req.http.Cookie ~ "(jc_debug)=") {
+        return (pass);
+    }
+	
+	if (req.http.Authorization) {
         # Not cacheable by default
         return (pass);
     }
