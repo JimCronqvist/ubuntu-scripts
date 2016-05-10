@@ -34,6 +34,6 @@ echo "$REMOTE_GZIP will be used for compression on the remote machine"
 echo "$LOCAL_GZIP will be used for decompression on this machine"
 date
 echo "Starting the MySQL dump and import, this could take a while..."
-ssh -i $SSH_CERT $SSH_USER@$SSH_HOST "mysqldump --single-transaction --compress --all-databases --add-drop-database -u $DB_USER -p$DB_PASS | $REMOTE_GZIP -c --fast" | pv > latest.sql.gz && date && echo "Starting the import.." && pv latest.sql.gz | $LOCAL_GZIP -dc | mysql -u $DB_USER -p$DB_PASS
+ssh -i $SSH_CERT $SSH_USER@$SSH_HOST "mysqldump --single-transaction --events --triggers --routines --compress --all-databases --add-drop-database -u $DB_USER -p$DB_PASS | $REMOTE_GZIP -c --fast" | pv > latest.sql.gz && date && echo "Starting the import.." && pv latest.sql.gz | $LOCAL_GZIP -dc | mysql -u $DB_USER -p$DB_PASS
 date
 echo "The db import has finished."
