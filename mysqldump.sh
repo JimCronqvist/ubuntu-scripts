@@ -18,4 +18,4 @@ if [ $KEEP_DAYS -gt 0 ]; then
     find "$BACKUP_FOLDER"* -maxdepth 0 -type f -mtime +$KEEP_DAYS -iname "$DB_HOST*.sql" -print -delete
 fi
 
-mysqldump --single-transaction --master-data --complete-insert --events -h $DB_HOST -u $DB_USER -p$DB_PASS --all-databases > "$BACKUP_FOLDER$DB_HOST""_"`date +%Y-%m-%d_%H.%M.%S.sql`
+mysqldump --single-transaction --master-data --complete-insert --events --triggers --routines -h $DB_HOST -u $DB_USER -p$DB_PASS --all-databases > "$BACKUP_FOLDER$DB_HOST""_"`date +%Y-%m-%d_%H.%M.%S.sql`
