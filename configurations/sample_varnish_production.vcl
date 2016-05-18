@@ -234,6 +234,10 @@ sub vcl_hash {
     # Called after vcl_recv to create a hash value for the request. This is used as a key
     # to look up the object in Varnish.
 
+    hash_data(req.proto);
+    if (req.http.X-Forwarded-Proto) {
+        hash_data(req.http.X-Forwarded-Proto);
+    }
     hash_data(req.url);
 
     if (req.http.host) {
