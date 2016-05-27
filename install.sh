@@ -576,6 +576,7 @@ EOF"
             APT_UPDATED=0
             AptGetUpdate
             apt-get install varnish -y
+            sudo sed -i 's/SERVICE=.*/SERVICE="varnish"/' /etc/init.d/varnish
             
             if Confirm "Do you want to download a new configuration file?" Y; then
                 DownloadNewConfigFile "/etc/varnish/production.vcl" "https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/configurations/sample_varnish_production.vcl"
