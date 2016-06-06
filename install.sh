@@ -559,6 +559,7 @@ EOF"
             AptGetUpdate
             apt-get install haproxy -y
             apt-get install vim-haproxy -y
+            apt-get install hatop -y
 			
             # Download a finished configuration file.
             if Confirm "Do you want to download a new configuration file?" Y; then
