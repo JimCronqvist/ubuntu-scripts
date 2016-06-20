@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>2.0</version>
-    <date>2016-03-06T12:18:26Z</date>
+    <version>3.0</version>
+    <date>2016-06-20T13:19:45Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -23,6 +23,49 @@
                 </application>
             </applications>
             <items>
+                <item>
+                    <name>DNS Resolution</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>net.dns[,www.google.com,A]</key>
+                    <delay>60</delay>
+                    <history>7</history>
+                    <trends>365</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ubuntu</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                </item>
                 <item>
                     <name>Available normal updates</name>
                     <type>0</type>
@@ -80,135 +123,6 @@
                     <value_type>3</value_type>
                     <allowed_hosts/>
                     <units>updates</units>
-                    <delta>0</delta>
-                    <snmpv3_contextname/>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Ubuntu</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                    <logtimefmt/>
-                </item>
-                <item>
-                    <name>DNS Resolution</name>
-                    <type>0</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>net.dns[,www.google.com,A]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_contextname/>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Ubuntu</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                    <logtimefmt/>
-                </item>
-                <item>
-                    <name>New release of Ubuntu is available</name>
-                    <type>0</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.run[&quot;grep -q 'New release' /var/run/motd* &amp;&amp; grep 'New release' /var/run/motd* | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;]</key>
-                    <delay>43200</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>4</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_contextname/>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>Checks if there is any newer Ubuntu release available. When running on a LTS version it will only check for newer LTS versions.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Ubuntu</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                    <logtimefmt/>
-                </item>
-                <item>
-                    <name>Number of file systems</name>
-                    <type>0</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;]</key>
-                    <delay>150</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units>fs</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -325,13 +239,56 @@
                     <logtimefmt/>
                 </item>
                 <item>
-                    <name>System restart required</name>
+                    <name>New release of Ubuntu is available</name>
                     <type>0</type>
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;test -e /var/run/reboot-required &amp;&amp; echo 1 || echo 0&quot;]</key>
-                    <delay>300</delay>
+                    <key>system.run[&quot;grep -q 'New release' /var/run/motd* &amp;&amp; grep 'New release' /var/run/motd* | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;]</key>
+                    <delay>43200</delay>
+                    <history>7</history>
+                    <trends>0</trends>
+                    <status>0</status>
+                    <value_type>4</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>Checks if there is any newer Ubuntu release available. When running on a LTS version it will only check for newer LTS versions.</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ubuntu</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                </item>
+                <item>
+                    <name>VMware tools is not running</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[&quot;grep -s -q 'Vendor: VMware' /proc/scsi/scsi &amp;&amp; ! test -e /var/run/vmtoolsd.pid &amp;&amp; echo 1 || echo 0&quot;]</key>
+                    <delay>600</delay>
                     <history>7</history>
                     <trends>365</trends>
                     <status>0</status>
@@ -411,19 +368,62 @@
                     <logtimefmt/>
                 </item>
                 <item>
-                    <name>VMware tools is not running</name>
+                    <name>System restart required</name>
                     <type>0</type>
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;grep -s -q 'Vendor: VMware' /proc/scsi/scsi &amp;&amp; ! test -e /var/run/vmtoolsd.pid &amp;&amp; echo 1 || echo 0&quot;]</key>
-                    <delay>600</delay>
+                    <key>system.run[&quot;test -e /var/run/reboot-required &amp;&amp; echo 1 || echo 0&quot;]</key>
+                    <delay>300</delay>
                     <history>7</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
                     <units/>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ubuntu</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                </item>
+                <item>
+                    <name>Number of file systems</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[&quot;timeout 1.0 df -ah | awk '{print $2}' | grep -v '^0$' | wc -l || echo 0&quot;]</key>
+                    <delay>150</delay>
+                    <history>7</history>
+                    <trends>365</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units>fs</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -503,6 +503,21 @@ or&#13;
             <dependencies/>
         </trigger>
         <trigger>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7</expression>
+            <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+            <url/>
+            <status>0</status>
+            <priority>2</priority>
+            <description/>
+            <type>0</type>
+            <dependencies>
+                <dependency>
+                    <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+                </dependency>
+            </dependencies>
+        </trigger>
+        <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
             <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
             <url/>
@@ -526,21 +541,6 @@ or&#13;
             <description/>
             <type>0</type>
             <dependencies/>
-        </trigger>
-        <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7</expression>
-            <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
-            <url/>
-            <status>0</status>
-            <priority>2</priority>
-            <description/>
-            <type>0</type>
-            <dependencies>
-                <dependency>
-                    <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
-                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
-                </dependency>
-            </dependencies>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;test -e /etc/sudoers.d/zabbix &amp;&amp; sudo -n lsof / | grep deleted | awk '{s+=$7/1024/1024/1024} END {print s}'&quot;].last(0)}&gt;1</expression>
@@ -593,7 +593,7 @@ or&#13;
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].max(1d)} and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].last(0)}&gt;0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | awk '{print $2}' | grep -v '^0$' | wc -l || echo 0&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | awk '{print $2}' | grep -v '^0$' | wc -l || echo 0&quot;].max(1d)} and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | awk '{print $2}' | grep -v '^0$' | wc -l || echo 0&quot;].last(0)}&gt;0</expression>
             <name>The number of file systems has decreased on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -603,7 +603,7 @@ or&#13;
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -Th | wc -l || echo 0&quot;].count(#2,0)}&gt;1</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | awk '{print $2}' | grep -v '^0$' | wc -l || echo 0&quot;].count(#2,0)}&gt;1</expression>
             <name>Unresponsive file systems on {HOST.NAME}</name>
             <url/>
             <status>0</status>
