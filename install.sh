@@ -471,6 +471,10 @@ EOF"
             sudo apt-get install php7.0-mbstring -y
             sudo apt-get install php7.0-zip -y
             
+            # Use dcraw as delegate for DNG files in Imagemagick
+            sudo apt-get install dcraw -y
+            sudo sed -i 's/"dng:decode".*/"dng:decode" stealth="True" command="\/usr\/bin\/dcraw -c -w \&quot;%i\&quot; \&gt; \&quot;%u.ppm\&quot;"\/>/' /etc/ImageMagick/delegates.xml
+            
             # Disable PHP ubuntu default garbage collector.
             rm /etc/cron.d/php
             
