@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>2.0</version>
-    <date>2016-02-21T17:09:21Z</date>
+    <version>3.0</version>
+    <date>2016-07-05T09:00:32Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -79,7 +79,7 @@
             <name>An Apache process larger than 1 GB found</name>
             <url/>
             <status>0</status>
-            <priority>3</priority>
+            <priority>2</priority>
             <description/>
             <type>0</type>
             <dependencies/>
