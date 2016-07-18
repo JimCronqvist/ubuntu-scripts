@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>3.0</version>
+    <date>2016-07-18T22:40:26Z</date>
+    <groups>
+        <group>
+            <name>Templates</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template App Asterisk Service - Jim Cronqvist</template>
+            <name>Template App Asterisk Service - Jim Cronqvist</name>
+            <description/>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>Asterisk</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>Asterisk is running</name>
+                    <type>3</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>net.tcp.service[http,,5060]</key>
+                    <delay>60</delay>
+                    <history>7</history>
+                    <trends>365</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                    <valuemap>
+                        <name>0:No, 1:Yes</name>
+                    </valuemap>
+                    <logtimefmt/>
+                </item>
+            </items>
+            <discovery_rules/>
+            <macros/>
+            <templates/>
+            <screens/>
+        </template>
+    </templates>
+    <triggers>
+        <trigger>
+            <expression>{Template App Asterisk Service - Jim Cronqvist:net.tcp.service[http,,5060].last(#3)}=0</expression>
+            <name>Asterisk service is down on {HOST.NAME}</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+    </triggers>
+    <value_maps>
+        <value_map>
+            <name>0:No, 1:Yes</name>
+            <mappings>
+                <mapping>
+                    <value>0</value>
+                    <newvalue>No</newvalue>
+                </mapping>
+                <mapping>
+                    <value>1</value>
+                    <newvalue>Yes</newvalue>
+                </mapping>
+            </mappings>
+        </value_map>
+    </value_maps>
+</zabbix_export>
