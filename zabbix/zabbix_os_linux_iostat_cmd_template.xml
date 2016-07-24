@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-07-19T23:53:17Z</date>
+    <date>2016-07-24T14:43:13Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -24,16 +24,16 @@
             </applications>
             <items>
                 <item>
-                    <name>Iostat: Collect statistics</name>
+                    <name>Iostat output generated</name>
                     <type>0</type>
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>iostat.collect</key>
-                    <delay>60</delay>
+                    <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 2&gt;/dev/null &gt;&gt; /tmp/zabbix_iostat.log &amp;&amp; cat /tmp/zabbix_iostat.log | tr '\n' '\r' | sed -r 's/(.?*)Device(.*)/Device\2/g' | tr '\r' '\n' | tee /tmp/zabbix_iostat.log &gt;/dev/null &amp;&amp; echo 1 || echo 0&quot;]</key>
+                    <delay>30</delay>
                     <history>7</history>
                     <trends>365</trends>
-                    <status>1</status>
+                    <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
                     <units/>
@@ -107,7 +107,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='%util' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                            <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='%util' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                             <delay>60</delay>
                             <history>7</history>
                             <trends>365</trends>
@@ -151,7 +151,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='avgqu-sz' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                            <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='avgqu-sz' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                             <delay>60</delay>
                             <history>7</history>
                             <trends>365</trends>
@@ -195,7 +195,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='avgrq-sz' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                            <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='avgrq-sz' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                             <delay>60</delay>
                             <history>7</history>
                             <trends>365</trends>
@@ -239,7 +239,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='await' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                            <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='await' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                             <delay>60</delay>
                             <history>7</history>
                             <trends>365</trends>
@@ -283,7 +283,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='r/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                            <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='r/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                             <delay>60</delay>
                             <history>7</history>
                             <trends>365</trends>
@@ -327,7 +327,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='rkB/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                            <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='rkB/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                             <delay>60</delay>
                             <history>7</history>
                             <trends>365</trends>
@@ -371,7 +371,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='rrqm/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                            <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='rrqm/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                             <delay>60</delay>
                             <history>7</history>
                             <trends>365</trends>
@@ -415,7 +415,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='r_await' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                            <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='r_await' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                             <delay>60</delay>
                             <history>7</history>
                             <trends>365</trends>
@@ -459,7 +459,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='w/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                            <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='w/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                             <delay>60</delay>
                             <history>7</history>
                             <trends>365</trends>
@@ -503,7 +503,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='wkB/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                            <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='wkB/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                             <delay>60</delay>
                             <history>7</history>
                             <trends>365</trends>
@@ -547,7 +547,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='wrqm/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                            <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='wrqm/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                             <delay>60</delay>
                             <history>7</history>
                             <trends>365</trends>
@@ -591,7 +591,7 @@
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
-                            <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='w_await' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                            <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='w_await' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                             <delay>60</delay>
                             <history>7</history>
                             <trends>365</trends>
@@ -630,7 +630,18 @@
                             <application_prototypes/>
                         </item_prototype>
                     </item_prototypes>
-                    <trigger_prototypes/>
+                    <trigger_prototypes>
+                        <trigger_prototype>
+                            <expression>{Template OS Linux Iostat cmd - Jim Cronqvist:system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='%util' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;].last(3)}&gt;75</expression>
+                            <name>Disk {#HARDDISK} is more than 75% saturated on  {HOST.NAME}</name>
+                            <url/>
+                            <status>0</status>
+                            <priority>2</priority>
+                            <description/>
+                            <type>0</type>
+                            <dependencies/>
+                        </trigger_prototype>
+                    </trigger_prototypes>
                     <graph_prototypes>
                         <graph_prototype>
                             <name>Disk {#HARDDISK} await</name>
@@ -659,7 +670,7 @@
                                     <type>0</type>
                                     <item>
                                         <host>Template OS Linux Iostat cmd - Jim Cronqvist</host>
-                                        <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='await' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                                        <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='await' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                                     </item>
                                 </graph_item>
                                 <graph_item>
@@ -671,7 +682,7 @@
                                     <type>0</type>
                                     <item>
                                         <host>Template OS Linux Iostat cmd - Jim Cronqvist</host>
-                                        <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='r_await' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                                        <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='r_await' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                                     </item>
                                 </graph_item>
                                 <graph_item>
@@ -683,7 +694,7 @@
                                     <type>0</type>
                                     <item>
                                         <host>Template OS Linux Iostat cmd - Jim Cronqvist</host>
-                                        <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='w_await' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                                        <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='w_await' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                                     </item>
                                 </graph_item>
                             </graph_items>
@@ -715,7 +726,7 @@
                                     <type>0</type>
                                     <item>
                                         <host>Template OS Linux Iostat cmd - Jim Cronqvist</host>
-                                        <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='rrqm/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                                        <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='rrqm/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                                     </item>
                                 </graph_item>
                                 <graph_item>
@@ -727,7 +738,7 @@
                                     <type>0</type>
                                     <item>
                                         <host>Template OS Linux Iostat cmd - Jim Cronqvist</host>
-                                        <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='wrqm/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                                        <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='wrqm/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                                     </item>
                                 </graph_item>
                             </graph_items>
@@ -759,7 +770,7 @@
                                     <type>0</type>
                                     <item>
                                         <host>Template OS Linux Iostat cmd - Jim Cronqvist</host>
-                                        <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='avgqu-sz' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                                        <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='avgqu-sz' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                                     </item>
                                 </graph_item>
                                 <graph_item>
@@ -771,7 +782,7 @@
                                     <type>0</type>
                                     <item>
                                         <host>Template OS Linux Iostat cmd - Jim Cronqvist</host>
-                                        <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='avgrq-sz' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                                        <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='avgrq-sz' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                                     </item>
                                 </graph_item>
                             </graph_items>
@@ -803,7 +814,7 @@
                                     <type>0</type>
                                     <item>
                                         <host>Template OS Linux Iostat cmd - Jim Cronqvist</host>
-                                        <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='rkB/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                                        <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='rkB/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                                     </item>
                                 </graph_item>
                                 <graph_item>
@@ -815,7 +826,7 @@
                                     <type>0</type>
                                     <item>
                                         <host>Template OS Linux Iostat cmd - Jim Cronqvist</host>
-                                        <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='wkB/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                                        <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='wkB/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                                     </item>
                                 </graph_item>
                             </graph_items>
@@ -847,7 +858,7 @@
                                     <type>0</type>
                                     <item>
                                         <host>Template OS Linux Iostat cmd - Jim Cronqvist</host>
-                                        <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='%util' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                                        <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='%util' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                                     </item>
                                 </graph_item>
                                 <graph_item>
@@ -859,7 +870,7 @@
                                     <type>0</type>
                                     <item>
                                         <host>Template OS Linux Iostat cmd - Jim Cronqvist</host>
-                                        <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='r/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                                        <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='r/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                                     </item>
                                 </graph_item>
                                 <graph_item>
@@ -871,7 +882,7 @@
                                     <type>0</type>
                                     <item>
                                         <host>Template OS Linux Iostat cmd - Jim Cronqvist</host>
-                                        <key>system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 | awk -v col='w/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1\&quot; \&quot;$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
+                                        <key>system.run[&quot;cat /tmp/zabbix_iostat.log | awk -v col='w/s' 'NR==1 {for(i=1;i&lt;=NF;i++) if($i==col) break} {print $1,$i}' | grep '{#HARDDISK}' | awk '{print $2}'&quot;]</key>
                                     </item>
                                 </graph_item>
                             </graph_items>
@@ -887,8 +898,8 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template OS Linux Iostat cmd - Jim Cronqvist:iostat.collect.last(0)}=1</expression>
-            <name>Iostat statistics not collected on {HOSTNAME}</name>
+            <expression>{Template OS Linux Iostat cmd - Jim Cronqvist:system.run[&quot;iostat -xyd 1 1 | tail -n+3 | head -n -1 2&gt;/dev/null &gt;&gt; /tmp/zabbix_iostat.log &amp;&amp; cat /tmp/zabbix_iostat.log | tr '\n' '\r' | sed -r 's/(.?*)Device(.*)/Device\2/g' | tr '\r' '\n' | tee /tmp/zabbix_iostat.log &gt;/dev/null &amp;&amp; echo 1 || echo 0&quot;].last(0)}=0</expression>
+            <name>Iostat statistics was not possible to generate on {HOSTNAME}</name>
             <url/>
             <status>0</status>
             <priority>2</priority>
