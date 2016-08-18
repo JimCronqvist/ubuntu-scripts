@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-06-20T13:19:45Z</date>
+    <date>2016-08-18T11:18:36Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -57,6 +57,49 @@
                     <privatekey/>
                     <port/>
                     <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ubuntu</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                </item>
+                <item>
+                    <name>New release of Ubuntu is available</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[&quot;/usr/lib/ubuntu-release-upgrader/release-upgrade-motd | grep -q 'New release' &amp;&amp; grep 'New release' /var/run/motd* | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;]</key>
+                    <delay>43200</delay>
+                    <history>7</history>
+                    <trends>0</trends>
+                    <status>0</status>
+                    <value_type>4</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>Checks if there is any newer Ubuntu release available. When running on a LTS version it will only check for newer LTS versions.</description>
                     <inventory_link>0</inventory_link>
                     <applications>
                         <application>
@@ -229,49 +272,6 @@
                     <privatekey/>
                     <port/>
                     <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Ubuntu</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                    <logtimefmt/>
-                </item>
-                <item>
-                    <name>New release of Ubuntu is available</name>
-                    <type>0</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.run[&quot;grep -q 'New release' /var/run/motd* &amp;&amp; grep 'New release' /var/run/motd* | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;]</key>
-                    <delay>43200</delay>
-                    <history>7</history>
-                    <trends>0</trends>
-                    <status>0</status>
-                    <value_type>4</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_contextname/>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>Checks if there is any newer Ubuntu release available. When running on a LTS version it will only check for newer LTS versions.</description>
                     <inventory_link>0</inventory_link>
                     <applications>
                         <application>
@@ -563,7 +563,7 @@ or&#13;
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;grep -q 'New release' /var/run/motd* &amp;&amp; grep 'New release' /var/run/motd* | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;].str(No new)}=0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;/usr/lib/ubuntu-release-upgrader/release-upgrade-motd | grep -q 'New release' &amp;&amp; grep 'New release' /var/run/motd* | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;].str(No new)}=0</expression>
             <name>New Ubuntu OS ({ITEM.LASTVALUE}) available on {HOST.NAME}</name>
             <url/>
             <status>0</status>
