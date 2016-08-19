@@ -592,6 +592,7 @@ EOF"
         
         "15") # Install Redis
             
+            sudo apt-get install software-properties-common -y
             sudo add-apt-repository ppa:chris-lea/redis-server
             APT_UPDATED=0
             AptGetUpdate
