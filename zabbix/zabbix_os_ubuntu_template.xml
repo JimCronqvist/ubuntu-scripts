@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-08-20T08:49:50Z</date>
+    <date>2016-08-20T09:25:41Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -166,6 +166,49 @@
                     <value_type>3</value_type>
                     <allowed_hosts/>
                     <units>updates</units>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ubuntu</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                </item>
+                <item>
+                    <name>No longer required packages installed</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[&quot;apt-get autoremove --dry-run | grep 'Remv' | wc -l&quot;]</key>
+                    <delay>300</delay>
+                    <history>7</history>
+                    <trends>365</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units>packages</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -575,6 +618,16 @@ or&#13;
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;/usr/lib/update-notifier/apt-check 2&gt;&amp;1 | cut -d';' -f1&quot;].last(0)}&gt;0</expression>
             <name>New updates available on {HOSTNAME} ({ITEM.LASTVALUE})</name>
+            <url/>
+            <status>0</status>
+            <priority>1</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;apt-get autoremove --dry-run | grep 'Remv' | wc -l&quot;].last(0)}&gt;10</expression>
+            <name>No longer required packages installed on {HOSTNAME} ({ITEM.LASTVALUE})</name>
             <url/>
             <status>0</status>
             <priority>1</priority>
