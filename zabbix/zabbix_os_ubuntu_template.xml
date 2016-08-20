@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-08-18T11:18:36Z</date>
+    <date>2016-08-20T08:49:50Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -72,7 +72,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;/usr/lib/ubuntu-release-upgrader/release-upgrade-motd | grep -q 'New release' &amp;&amp; grep 'New release' /var/run/motd* | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;]</key>
+                    <key>system.run[&quot;/usr/lib/ubuntu-release-upgrader/release-upgrade-motd | grep -q 'New release' &amp;&amp; /usr/lib/ubuntu-release-upgrader/release-upgrade-motd | grep 'New release' | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;]</key>
                     <delay>43200</delay>
                     <history>7</history>
                     <trends>0</trends>
@@ -563,7 +563,7 @@ or&#13;
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;/usr/lib/ubuntu-release-upgrader/release-upgrade-motd | grep -q 'New release' &amp;&amp; grep 'New release' /var/run/motd* | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;].str(No new)}=0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;/usr/lib/ubuntu-release-upgrader/release-upgrade-motd | grep -q 'New release' &amp;&amp; /usr/lib/ubuntu-release-upgrader/release-upgrade-motd | grep 'New release' | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;].str(No new)}=0</expression>
             <name>New Ubuntu OS ({ITEM.LASTVALUE}) available on {HOST.NAME}</name>
             <url/>
             <status>0</status>
