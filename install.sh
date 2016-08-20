@@ -193,6 +193,9 @@ EOF
             # Install iostat
             sudo apt-get install sysstat -y
             
+            # Install sysdig
+            sudo apt-get install sysdig -y
+            
             # Install tree
             sudo apt-get install tree -y
             
