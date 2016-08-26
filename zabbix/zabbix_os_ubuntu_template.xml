@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-08-20T09:25:41Z</date>
+    <date>2016-08-26T18:49:51Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -330,7 +330,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;grep -s -q 'Vendor: VMware' /proc/scsi/scsi &amp;&amp; ! test -e /var/run/vmtoolsd.pid &amp;&amp; echo 1 || echo 0&quot;]</key>
+                    <key>system.run[&quot;grep -qs 'Vendor: VMware' /proc/scsi/scsi &amp;&amp; if ps -ef | grep -v grep | grep -qis vmtoolsd; then echo 0; else echo 1; fi || echo 0&quot;]</key>
                     <delay>600</delay>
                     <history>7</history>
                     <trends>365</trends>
@@ -666,7 +666,7 @@ or&#13;
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;grep -s -q 'Vendor: VMware' /proc/scsi/scsi &amp;&amp; ! test -e /var/run/vmtoolsd.pid &amp;&amp; echo 1 || echo 0&quot;].last(0)}&gt;0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;grep -qs 'Vendor: VMware' /proc/scsi/scsi &amp;&amp; if ps -ef | grep -v grep | grep -qis vmtoolsd; then echo 0; else echo 1; fi || echo 0&quot;].last(0)}&gt;0</expression>
             <name>VMware tools is not running on {HOSTNAME}</name>
             <url/>
             <status>0</status>
