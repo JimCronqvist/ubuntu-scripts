@@ -568,9 +568,12 @@ EOF"
             
         "14") # Install Varnish cache
             
-            apt-get install apt-transport-https
-            curl https://repo.varnish-cache.org/GPG-key.txt | apt-key add -
-            echo "deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.1" >> /etc/apt/sources.list.d/varnish-cache.list
+            if [ $(lsb_release -rs | xargs printf "%.0f") -eq 14 ]; then
+                apt-get install apt-transport-https
+                curl https://repo.varnish-cache.org/GPG-key.txt | apt-key add -
+                echo "deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.1" >> /etc/apt/sources.list.d/varnish-cache.list
+            fi
+            
             APT_UPDATED=0
             AptGetUpdate
             apt-get install varnish -y
