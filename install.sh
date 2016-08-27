@@ -321,7 +321,7 @@ EOF
             
             # VMware tools
             if grep -s -q 'Vendor: VMware' /proc/scsi/scsi ; then
-                if [ $(lsb_release -r | awk '{print $2}' | xargs printf "%.0f") -ge 14 ]; then
+                if [ $(lsb_release -rs | xargs printf "%.0f") -ge 14 ]; then
                     echo "14.04 or higher, use open-vm-tools"
                     AptGetUpdate
                     sudo apt-get install open-vm-tools -y
@@ -416,74 +416,60 @@ EOF
             
         "9") # Install PHP 5 and Composer
             
-            sudo apt-get install php5 -y
-            sudo apt-get install php5-ldap -y
-            sudo apt-get install mysql-client -y
-            sudo apt-get install php5-mysqlnd -y
-            sudo apt-get install php5-curl -y
-            sudo apt-get install php5-xsl -y
-            sudo apt-get install php5-gd -y
-            sudo apt-get install imagemagick -y
-            sudo apt-get install php5-imagick -y
-            sudo apt-get install php5-json -y
-            sudo apt-get install php5-intl -y
-            #sudo apt-get install memcached php5-memcached -y
-            sudo apt-get install php5-redis -y
+            if [ $(lsb_release -rs | xargs printf "%.0f") -lt 16 ]; then
             
-            # Install php5 mcrypt
-            sudo apt-get install php5-mcrypt -y
-            sudo ln -s /etc/php5/conf.d/mcrypt.ini /etc/php5/mods-available/mcrypt.ini
-            sudo php5enmod mcrypt
+                sudo apt-get install php5 php5-ldap php5-curl php5-xsl php5-gd php5-imagick php5-json php5-intl php5-redis -y
+                sudo apt-get install mysql-client -y
+                sudo apt-get install php5-mysqlnd -y
+                sudo apt-get install imagemagick -y
             
-            # Disable PHP ubuntu default garbage collector.
-            rm /etc/cron.d/php5
+                # Install php5 mcrypt
+                sudo apt-get install php5-mcrypt -y
+                sudo ln -s /etc/php5/conf.d/mcrypt.ini /etc/php5/mods-available/mcrypt.ini
+                sudo php5enmod mcrypt
             
-            # Download composer
-            curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
+                # Disable PHP ubuntu default garbage collector.
+                rm /etc/cron.d/php5
             
-            # Install xdebug.
-            if Confirm "Do you want to install xdebug?" N; then
-            sudo apt-get install php5-xdebug -y
-            sudo bash -c "cat <<EOF >> /etc/php5/apache2/php.ini
+                # Download composer
+                curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
+            
+                # Install xdebug.
+                if Confirm "Do you want to install xdebug?" N; then
+                sudo apt-get install php5-xdebug -y
+                sudo bash -c "cat <<EOF >> /etc/php5/apache2/php.ini
             
 [xdebug]
 xdebug.remote_enable=1
 xdebug.remote_connect_back=1
 xdebug.idekey=ubuntu
 EOF"
+                fi
+            
+            else
+                echo "PHP 5 are not available on this Ubuntu version, please install PHP 7."
             fi
             ;;
             
         "10") # Install PHP 7 and Composer
             
-            sudo apt-get install -y language-pack-en-base
-            sudo LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php
+            if [ $(lsb_release -rs | xargs printf "%.0f") -lt 16 ]; then
+                sudo apt-get install -y language-pack-en-base
+                sudo LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php
+            fi
             
             APT_UPDATED=0
             AptGetUpdate
             
-            sudo apt-get install php7.0 -y
-            sudo apt-get install php7.0-ldap -y
+            sudo apt-get install php7.0 php7.0-ldap php7.0-curl php7.0-xsl php7.0-gd php7.0-json php7.0-intl php7.0-mcrypt php7.0-mbstring php7.0-zip -y
             sudo apt-get install mysql-client -y
             sudo apt-get install php7.0-mysqlnd -y
-            sudo apt-get install php7.0-curl -y
-            sudo apt-get install php7.0-xsl -y
-            sudo apt-get install php7.0-gd -y
             sudo apt-get install imagemagick php-imagick -y
-            sudo apt-get install php7.0-json -y
-            sudo apt-get install php7.0-intl -y
             #sudo apt-get install memcached php-memcached -y
             sudo apt-get install php-redis -y
-            sudo apt-get install php7.0-mcrypt -y
-            sudo apt-get install php7.0-mbstring -y
-            sudo apt-get install php7.0-zip -y
-            
-            # Use dcraw as delegate for DNG files in Imagemagick
-            sudo apt-get install dcraw -y
-            sudo sed -i 's/"dng:decode".*/"dng:decode" stealth="True" command="\/usr\/bin\/dcraw -c -w \&quot;%i\&quot; \&gt; \&quot;%u.ppm\&quot;"\/>/' /etc/ImageMagick/delegates.xml
             
             # Disable PHP ubuntu default garbage collector.
-            rm /etc/cron.d/php
+            sudo rm /etc/cron.d/php
             
             # Download composer
             curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
