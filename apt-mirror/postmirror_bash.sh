@@ -4,7 +4,7 @@
 #
 # 1. Add this file at /var/spool/apt-mirror/var/postmirror_bash.sh
 # 2. Execute the following line: 
-#    sudo bash -c "echo 'bash ./postmirror_bash.sh' >> /var/spool/apt-mirror/var/postmirror.sh"
+#    sudo bash -c "echo 'bash /var/spool/apt-mirror/var/postmirror_bash.sh' >> /var/spool/apt-mirror/var/postmirror.sh"
 #
 
 # CONFIGURE THIS ONE TO REFLECT YOUR LOCAL APT-MIRROR DOMAIN OR IP
