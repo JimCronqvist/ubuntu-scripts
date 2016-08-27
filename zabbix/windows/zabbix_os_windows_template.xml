@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-08-21T13:19:15Z</date>
+    <date>2016-08-27T14:57:32Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -1477,7 +1477,7 @@
                             </condition>
                         </conditions>
                     </filter>
-                    <lifetime>7</lifetime>
+                    <lifetime>3</lifetime>
                     <description/>
                     <item_prototypes>
                         <item_prototype>
@@ -1533,7 +1533,7 @@
                             <name>Service {#SVCDISPNAME} is not running</name>
                             <url/>
                             <status>0</status>
-                            <priority>4</priority>
+                            <priority>2</priority>
                             <description/>
                             <type>0</type>
                             <dependencies/>
