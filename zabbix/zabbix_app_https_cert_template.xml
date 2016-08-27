@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>2.0</version>
-    <date>2014-12-26T16:03:30Z</date>
+    <version>3.0</version>
+    <date>2016-08-27T09:39:30Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -11,6 +11,7 @@
         <template>
             <template>Template App HTTPS Cert - Jim Cronqvist</template>
             <name>Template App HTTPS Cert - Jim Cronqvist</name>
+            <description/>
             <groups>
                 <group>
                     <name>Templates</name>
@@ -29,7 +30,7 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>system.run[&quot;openssl s_client -host localhost -port 443 -showcerts &lt; /dev/null 2&gt;/dev/null | openssl x509 -enddate -noout | sed -n 's/notAfter=//p' | xargs -I {} date +%s -d {} | xargs echo $(date +%s) | awk '{print ($2-$1)/3600/24}'&quot;]</key>
-                    <delay>14400</delay>
+                    <delay>3600</delay>
                     <history>7</history>
                     <trends>365</trends>
                     <status>0</status>
@@ -99,12 +100,12 @@
             </dependencies>
         </trigger>
         <trigger>
-            <expression>{Template App HTTPS Cert - Jim Cronqvist:system.run[&quot;openssl s_client -host localhost -port 443 -showcerts &lt; /dev/null 2&gt;/dev/null | openssl x509 -enddate -noout | sed -n 's/notAfter=//p' | xargs -I {} date +%s -d {} | xargs echo $(date +%s) | awk '{print ($2-$1)/3600/24}'&quot;].last(0)}&lt;60</expression>
-            <name>HTTPS Certificate for {HOST.NAME} expires within 60 days</name>
+            <expression>{Template App HTTPS Cert - Jim Cronqvist:system.run[&quot;openssl s_client -host localhost -port 443 -showcerts &lt; /dev/null 2&gt;/dev/null | openssl x509 -enddate -noout | sed -n 's/notAfter=//p' | xargs -I {} date +%s -d {} | xargs echo $(date +%s) | awk '{print ($2-$1)/3600/24}'&quot;].last(0)}&lt;45</expression>
+            <name>HTTPS Certificate for {HOST.NAME} expires within 45 days</name>
             <url/>
             <status>0</status>
             <priority>1</priority>
-            <description>HTTPS Certificate expires within 60 days</description>
+            <description>HTTPS Certificate expires within 45 days</description>
             <type>0</type>
             <dependencies>
                 <dependency>
