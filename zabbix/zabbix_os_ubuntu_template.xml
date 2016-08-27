@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-08-26T18:49:51Z</date>
+    <date>2016-08-27T14:52:52Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -73,7 +73,7 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>system.run[&quot;/usr/lib/ubuntu-release-upgrader/release-upgrade-motd | grep -q 'New release' &amp;&amp; /usr/lib/ubuntu-release-upgrader/release-upgrade-motd | grep 'New release' | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;]</key>
-                    <delay>43200</delay>
+                    <delay>3600</delay>
                     <history>7</history>
                     <trends>0</trends>
                     <status>0</status>
@@ -459,7 +459,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;timeout 1.0 df -ah | awk '{print $2}' | grep -v '^0$' | wc -l || echo 0&quot;]</key>
+                    <key>system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;]</key>
                     <delay>150</delay>
                     <history>7</history>
                     <trends>365</trends>
@@ -646,7 +646,7 @@ or&#13;
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | awk '{print $2}' | grep -v '^0$' | wc -l || echo 0&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | awk '{print $2}' | grep -v '^0$' | wc -l || echo 0&quot;].max(1d)} and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | awk '{print $2}' | grep -v '^0$' | wc -l || echo 0&quot;].last(0)}&gt;0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].max(1d)} and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].last(0)}&gt;0</expression>
             <name>The number of file systems has decreased on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -656,7 +656,7 @@ or&#13;
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | awk '{print $2}' | grep -v '^0$' | wc -l || echo 0&quot;].count(#2,0)}&gt;1</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].count(#2,0)}&gt;1</expression>
             <name>Unresponsive file systems on {HOST.NAME}</name>
             <url/>
             <status>0</status>
