@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>2.0</version>
-    <date>2016-02-22T15:33:43Z</date>
+    <version>3.0</version>
+    <date>2016-08-28T16:04:41Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -23,92 +23,6 @@
                 </application>
             </applications>
             <items>
-                <item>
-                    <name>HTTP Connect time</name>
-                    <type>0</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.run[&quot;curl -s -k -o /dev/null -I -L -w '%{time_connect}' http://$(hostname --fqdn)/&quot;]</key>
-                    <delay>90</delay>
-                    <history>90</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units>seconds</units>
-                    <delta>0</delta>
-                    <snmpv3_contextname/>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>HTTP service</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                    <logtimefmt/>
-                </item>
-                <item>
-                    <name>HTTP Error found</name>
-                    <type>0</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.run[&quot;curl -s -k -L http://$(hostname --fqdn)/ | head -n 6 | grep -m 1 '[Parse|Fatal] error' | wc -l&quot;]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_contextname/>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>Check if there is an error in the first lines of the response</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>HTTP service</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                    <logtimefmt/>
-                </item>
                 <item>
                     <name>HTTP service is running</name>
                     <type>3</type>
@@ -155,12 +69,12 @@
                     <logtimefmt/>
                 </item>
                 <item>
-                    <name>HTTP Status Code</name>
+                    <name>HTTP Error found</name>
                     <type>0</type>
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;timeout 2 curl -s -k -o /dev/null -I -L -w '%{http_code}' http://$(hostname --fqdn)/ || echo 0&quot;]</key>
+                    <key>system.run[&quot;curl -s -k -L http://$(hostname --fqdn)/ | tac | tac | head -n 6 | grep -m 1 '[Parse|Fatal] error' | wc -l&quot;]</key>
                     <delay>30</delay>
                     <history>90</history>
                     <trends>365</trends>
@@ -187,7 +101,7 @@
                     <publickey/>
                     <privatekey/>
                     <port/>
-                    <description>Get the HTTP Status Code from the index URL.</description>
+                    <description>Check if there is an error in the first lines of the response</description>
                     <inventory_link>0</inventory_link>
                     <applications>
                         <application>
@@ -198,12 +112,12 @@
                     <logtimefmt/>
                 </item>
                 <item>
-                    <name>HTTP Total time</name>
+                    <name>HTTP Connect time</name>
                     <type>0</type>
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;curl -s -k -o /dev/null -I -L -w '%{time_total}' http://$(hostname --fqdn)/&quot;]</key>
+                    <key>system.run[&quot;curl -s -k -o /dev/null -I -L -w '%{time_connect}' http://$(hostname --fqdn)/&quot;]</key>
                     <delay>90</delay>
                     <history>90</history>
                     <trends>365</trends>
@@ -283,6 +197,92 @@
                     <valuemap/>
                     <logtimefmt/>
                 </item>
+                <item>
+                    <name>HTTP Total time</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[&quot;curl -s -k -o /dev/null -I -L -w '%{time_total}' http://$(hostname --fqdn)/&quot;]</key>
+                    <delay>90</delay>
+                    <history>90</history>
+                    <trends>365</trends>
+                    <status>0</status>
+                    <value_type>0</value_type>
+                    <allowed_hosts/>
+                    <units>seconds</units>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>HTTP service</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                </item>
+                <item>
+                    <name>HTTP Status Code</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[&quot;timeout 2 curl -s -k -o /dev/null -I -L -w '%{http_code}' http://$(hostname --fqdn)/ || echo 0&quot;]</key>
+                    <delay>30</delay>
+                    <history>90</history>
+                    <trends>365</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>Get the HTTP Status Code from the index URL.</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>HTTP service</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                </item>
             </items>
             <discovery_rules/>
             <macros/>
@@ -292,7 +292,7 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template App HTTP Service - Jim Cronqvist:system.run[&quot;curl -s -k -L http://$(hostname --fqdn)/ | head -n 6 | grep -m 1 '[Parse|Fatal] error' | wc -l&quot;].last()}=1</expression>
+            <expression>{Template App HTTP Service - Jim Cronqvist:system.run[&quot;curl -s -k -L http://$(hostname --fqdn)/ | tac | tac | head -n 6 | grep -m 1 '[Parse|Fatal] error' | wc -l&quot;].last()}=1</expression>
             <name>HTTP Error found on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -337,4 +337,19 @@
             <dependencies/>
         </trigger>
     </triggers>
+    <value_maps>
+        <value_map>
+            <name>Service state</name>
+            <mappings>
+                <mapping>
+                    <value>0</value>
+                    <newvalue>Down</newvalue>
+                </mapping>
+                <mapping>
+                    <value>1</value>
+                    <newvalue>Up</newvalue>
+                </mapping>
+            </mappings>
+        </value_map>
+    </value_maps>
 </zabbix_export>
