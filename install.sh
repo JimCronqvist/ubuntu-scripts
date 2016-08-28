@@ -264,6 +264,7 @@ EOF
             if Confirm "Do you want to change the maximum shared memory to 128 MB?" N; then
                 sudo bash -c "echo '#128 MB' >> /etc/sysctl.d/10-shared-memory.conf"
                 sudo bash -c "echo 'kernel.shmmax=134217728' >> /etc/sysctl.d/10-shared-memory.conf"
+            fi
             ;;
             
         "5") # Enable monitoring (SNMP & Zabbix)
