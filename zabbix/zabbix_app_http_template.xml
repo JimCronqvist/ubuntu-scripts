@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-08-28T16:04:41Z</date>
+    <date>2016-08-31T06:49:29Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -74,7 +74,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;curl -s -k -L http://$(hostname --fqdn)/ | tac | tac | head -n 6 | grep -m 1 '[Parse|Fatal] error' | wc -l&quot;]</key>
+                    <key>system.run[&quot;curl -s -k -L http://$(hostname --fqdn)/ | tac | tac | head -n 6 | grep -E -m 1 '([Parse|Fatal] error)|&lt;\?php' | wc -l&quot;]</key>
                     <delay>30</delay>
                     <history>90</history>
                     <trends>365</trends>
@@ -292,7 +292,7 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template App HTTP Service - Jim Cronqvist:system.run[&quot;curl -s -k -L http://$(hostname --fqdn)/ | tac | tac | head -n 6 | grep -m 1 '[Parse|Fatal] error' | wc -l&quot;].last()}=1</expression>
+            <expression>{Template App HTTP Service - Jim Cronqvist:system.run[&quot;curl -s -k -L http://$(hostname --fqdn)/ | tac | tac | head -n 6 | grep -E -m 1 '([Parse|Fatal] error)|&lt;\?php' | wc -l&quot;].last()}=1</expression>
             <name>HTTP Error found on {HOST.NAME}</name>
             <url/>
             <status>0</status>
