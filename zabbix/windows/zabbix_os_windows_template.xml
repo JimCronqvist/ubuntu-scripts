@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-08-27T15:11:54Z</date>
+    <date>2016-09-01T18:27:38Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -28,13 +28,13 @@
                     <name>Network interface(s)</name>
                 </application>
                 <application>
-                    <name>Quota(s)</name>
+                    <name>Quotas</name>
                 </application>
                 <application>
                     <name>Windows events</name>
                 </application>
                 <application>
-                    <name>Windows service(s)</name>
+                    <name>Windows services</name>
                 </application>
                 <application>
                     <name>Windows update</name>
@@ -1272,7 +1272,7 @@
                     <item_prototypes>
                         <item_prototype>
                             <name>Quota &quot;{#QUPATH}&quot; bytes free</name>
-                            <type>7</type>
+                            <type>0</type>
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
@@ -1307,7 +1307,7 @@
                             <inventory_link>0</inventory_link>
                             <applications>
                                 <application>
-                                    <name>Quota(s)</name>
+                                    <name>Quotas</name>
                                 </application>
                             </applications>
                             <valuemap/>
@@ -1316,7 +1316,7 @@
                         </item_prototype>
                         <item_prototype>
                             <name>Quota &quot;{#QUPATH}&quot; bytes limit</name>
-                            <type>7</type>
+                            <type>0</type>
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
@@ -1351,7 +1351,7 @@
                             <inventory_link>0</inventory_link>
                             <applications>
                                 <application>
-                                    <name>Quota(s)</name>
+                                    <name>Quotas</name>
                                 </application>
                             </applications>
                             <valuemap/>
@@ -1360,7 +1360,7 @@
                         </item_prototype>
                         <item_prototype>
                             <name>Quota &quot;{#QUPATH}&quot; bytes used</name>
-                            <type>7</type>
+                            <type>0</type>
                             <snmp_community/>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
@@ -1395,7 +1395,7 @@
                             <inventory_link>0</inventory_link>
                             <applications>
                                 <application>
-                                    <name>Quota(s)</name>
+                                    <name>Quotas</name>
                                 </application>
                             </applications>
                             <valuemap/>
@@ -1560,7 +1560,7 @@
                             <inventory_link>0</inventory_link>
                             <applications>
                                 <application>
-                                    <name>Windows service(s)</name>
+                                    <name>Windows services</name>
                                 </application>
                             </applications>
                             <valuemap>
@@ -1630,18 +1630,10 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>Application audit failure message(s) logged in eventlog on {HOST.NAME}</name>
-            <url/>
-            <status>0</status>
-            <priority>4</priority>
-            <description/>
-            <type>0</type>
-            <dependencies/>
-        </trigger>
-        <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4</expression>
-            <name>Application error message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
             <priority>3</priority>
@@ -1650,11 +1642,25 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2</expression>
-            <name>Application warning message(s) logged in eventlog on {HOST.NAME}</name>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <name>Application error message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
             <priority>2</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <name>Application warning message(s) logged in eventlog on {HOST.NAME}</name>
+            <url/>
+            <status>1</status>
+            <priority>1</priority>
             <description/>
             <type>0</type>
             <dependencies/>
@@ -1690,7 +1696,9 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>Directory service audit failure message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -1700,7 +1708,9 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>Directory service error message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -1710,7 +1720,9 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>Directory service warning message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -1730,7 +1742,9 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>DNS Server audit failure message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -1740,7 +1754,9 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>DNS Server error message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -1750,7 +1766,9 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>DNS Server warning message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -1760,7 +1778,9 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>File Replication Service audit failure message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -1770,7 +1790,9 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>File Replication Service error message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -1780,7 +1802,9 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>File Replication Service warning message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -1790,48 +1814,46 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>Security audit failure message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
-            <priority>4</priority>
+            <priority>3</priority>
             <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>Security error message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
-            <priority>3</priority>
+            <priority>2</priority>
             <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>Security warning message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
-            <priority>2</priority>
+            <priority>1</priority>
             <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>System audit failure message(s) logged in eventlog on {HOST.NAME}</name>
-            <url/>
-            <status>0</status>
-            <priority>4</priority>
-            <description/>
-            <type>0</type>
-            <dependencies/>
-        </trigger>
-        <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4</expression>
-            <name>System error message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
             <priority>3</priority>
@@ -1840,11 +1862,23 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2</expression>
-            <name>System warning message(s) logged in eventlog on {HOST.NAME}</name>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4 and {Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <name>System error message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
             <priority>2</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2&#13;
+and&#13;
+{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <name>System warning message(s) logged in eventlog on {HOST.NAME}</name>
+            <url/>
+            <status>1</status>
+            <priority>1</priority>
             <description/>
             <type>0</type>
             <dependencies/>
