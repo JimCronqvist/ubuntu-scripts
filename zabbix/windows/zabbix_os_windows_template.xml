@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-09-01T18:27:38Z</date>
+    <date>2016-09-21T03:58:17Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -1690,7 +1690,7 @@ and&#13;
             <name>Critical Windows updates available on {HOST.NAME}</name>
             <url/>
             <status>0</status>
-            <priority>4</priority>
+            <priority>2</priority>
             <description/>
             <type>0</type>
             <dependencies/>
@@ -1862,12 +1862,15 @@ and&#13;
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4 and {Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <expression>{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4 &#13;
+and {Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logeventid(3)}=0&#13;
+and {Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
             <name>System error message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
             <priority>2</priority>
-            <description/>
+            <description>Excludes the following event IDs:&#13;
+- 3: KDC_ERR_PREAUTH_REQUIRED</description>
             <type>0</type>
             <dependencies/>
         </trigger>
