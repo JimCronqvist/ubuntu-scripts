@@ -346,20 +346,33 @@ EOF
                 AptGetUpdate
                 sudo apt-get install virtualbox-guest-dkms -y
                 
-                if Confirm "Do you want to add a second NIC?" Y; then
-                    sudo bash -c "echo '' >> /etc/network/interfaces"
-                    sudo bash -c "echo '# Virtualbox Host-only adapter' >> /etc/network/interfaces"
-                    sudo bash -c "echo 'auto eth1' >> /etc/network/interfaces"
-                    sudo bash -c "echo 'iface eth1 inet dhcp' >> /etc/network/interfaces"
-                    sudo /etc/init.d/networking restart
-                    sudo ifconfig eth1 up
-                    sudo dhclient eth1
+                if ! grep -s -q 'auto eth1' /etc/network/interfaces ; then
+                    if Confirm "Do you want to add a second NIC?" Y; then
+                        sudo bash -c "echo '' >> /etc/network/interfaces"
+                        sudo bash -c "echo '# Virtualbox Host-only adapter' >> /etc/network/interfaces"
+                        sudo bash -c "echo 'auto eth1' >> /etc/network/interfaces"
+                        sudo bash -c "echo 'iface eth1 inet dhcp' >> /etc/network/interfaces"
+                        sudo /etc/init.d/networking restart
+                        sudo ifconfig eth1 up
+                        sudo dhclient eth1
+                    fi
                 fi
                 
                 sudo adduser www-data vboxsf
                 sudo adduser ubuntu vboxsf
                 
-                if Confirm "Do you want to add a symlink for the www folder?" Y; then
+                if Confirm "Do you want to mount the www folder (C:\Users\%USERPROFILE%\www) from the Windows host to '/var/www'?" Y; then
+                    read -p "Please enter your Windows username: " WIN_USER
+					read -p "Please enter your Windows password: " WIN_PASS
+                    MOUNT_COMMAND="sudo mount -t cifs -o username=$WIN_USER,password=$WIN_PASS,uid=ubuntu,gid=ubuntu,vers=3.02,mfsymlinks,file_mode=0777,dir_mode=0777,iocharset=utf8 \"//\"\$(route | grep default | awk '{print \$2}')\"/C$/Users/$WIN_USER/www\" /var/www/"
+					echo $MOUNT_COMMAND
+					eval $MOUNT_COMMAND
+					sudo sed -i '${/exit 0/d;}' /etc/rc.local
+					echo "" >> /etc/rc.local
+					echo $MOUNT_COMMAND >> /etc/rc.local
+					echo "" >> /etc/rc.local
+					echo "exit 0" >> /etc/rc.local
+                elif Confirm "Do you want to add a symlink for the www folder?" N; then
                     sudo ln -s /media/sf_www /var/www
                 fi
             fi
