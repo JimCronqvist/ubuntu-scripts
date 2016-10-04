@@ -391,6 +391,7 @@ EOF
             sudo apt-get install npm -y
             sudo ln -s /usr/bin/nodejs /usr/bin/node
             sudo npm install -g uglify-js
+            sudo npm install -g webpack
             ;;
             
         "8") # Install Apache2
