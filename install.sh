@@ -363,15 +363,17 @@ EOF
                 
                 if Confirm "Do you want to mount the www folder (C:\Users\%USERPROFILE%\www) from the Windows host to '/var/www'?" Y; then
                     read -p "Please enter your Windows username: " WIN_USER
-					read -p "Please enter your Windows password: " WIN_PASS
+                    read -p "Please enter your Windows password: " WIN_PASS
                     MOUNT_COMMAND="sudo mount -t cifs -o username=$WIN_USER,password=$WIN_PASS,uid=ubuntu,gid=ubuntu,vers=3.02,mfsymlinks,file_mode=0777,dir_mode=0777,iocharset=utf8 \"//\"\$(route | grep default | awk '{print \$2}')\"/C$/Users/$WIN_USER/www\" /var/www/"
-					echo $MOUNT_COMMAND
-					eval $MOUNT_COMMAND
-					sudo sed -i '${/exit 0/d;}' /etc/rc.local
-					echo "" >> /etc/rc.local
-					echo $MOUNT_COMMAND >> /etc/rc.local
-					echo "" >> /etc/rc.local
-					echo "exit 0" >> /etc/rc.local
+                    echo $MOUNT_COMMAND
+                    sudo mkdir -p /var/www
+                    eval $MOUNT_COMMAND
+                    sudo sed -i '/\/C\$\/Users\//d' /etc/rc.local
+                    sudo sed -i '${/exit 0/d;}' /etc/rc.local
+                    echo "" >> /etc/rc.local
+                    echo $MOUNT_COMMAND >> /etc/rc.local
+                    echo "" >> /etc/rc.local
+                    echo "exit 0" >> /etc/rc.local
                 elif Confirm "Do you want to add a symlink for the www folder?" N; then
                     sudo ln -s /media/sf_www /var/www
                 fi
