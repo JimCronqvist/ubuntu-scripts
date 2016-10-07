@@ -364,7 +364,7 @@ EOF
                 if Confirm "Do you want to mount the www folder (C:\Users\%USERPROFILE%\www) from the Windows host to '/var/www'?" Y; then
                     read -p "Please enter your Windows username: " WIN_USER
                     read -p "Please enter your Windows password: " WIN_PASS
-                    MOUNT_COMMAND="sudo mount -t cifs -o username=$WIN_USER,password=$WIN_PASS,uid=ubuntu,gid=ubuntu,vers=3.02,mfsymlinks,file_mode=0777,dir_mode=0777,iocharset=utf8 \"//\"\$(route | grep default | awk '{print \$2}')\"/C$/Users/$WIN_USER/www\" /var/www/"
+                    MOUNT_COMMAND="sudo mount -t cifs -o username=$WIN_USER,password=$WIN_PASS,uid=ubuntu,gid=ubuntu,vers=3.02,mfsymlinks,file_mode=0777,dir_mode=0777,iocharset=utf8 \"//10.0.2.2/C$/Users/$WIN_USER/www\" /var/www/"
                     echo $MOUNT_COMMAND
                     sudo mkdir -p /var/www
                     eval $MOUNT_COMMAND
