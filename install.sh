@@ -12,6 +12,15 @@ if [ "$(id -u)" -ne "0" ] ; then
     exit 1;
 fi
 
+REPLY=0
+INTERACTIVE=1
+while getopts ":o:" opt; do
+  case $opt in
+    o )  REPLY="$OPTARG"; INTERACTIVE=0;;
+    \? ) echo "Invalid option -$OPTARG" >&2; exit 1;;
+    : )  echo "Option -$OPTARG requires an argument." >&2; exit 1;;
+  esac
+done
 
 # Confirm function that will be used later for yes and no questions.
 Confirm () {
@@ -24,15 +33,16 @@ Confirm () {
             default=N
         else
             prompt="y/n"
-            default=
+            default=N
         fi
             
-        read -p "${1:-Are you sure?} [$prompt]: " reply
-            
-        #Default?
-        if [ -z "$reply" ]; then
-            reply=$default
-        fi
+        if [ $INTERACTIVE == 1 ]; then
+            read -p "${1:-Are you sure?} [$prompt]: " reply
+            #Default?
+            if [ -z "$reply" ]; then
+                reply=$default
+            fi
+	    fi
             
         case ${reply:-$2} in
             [Yy]* ) return 0;;
@@ -61,7 +71,10 @@ DownloadNewConfigFile () {
 
 while :
 do
-    #clear
+    # Only ask for a choice if we are in interactive mode.
+    if [ $INTERACTIVE == 1 ]; then
+
+        #clear
     cat<<EOF
 ==================================
 install.sh by Jim Cronqvist
@@ -85,7 +98,9 @@ install.sh by Jim Cronqvist
 ----------------------------------
 EOF
 
-    read -p "Please enter your choice: " REPLY
+       read -p "Please enter your choice: " REPLY
+    fi
+
     case "$REPLY" in
         
         "1") #Install all available updates
@@ -622,4 +637,7 @@ EOF"
             echo "Invalid option, please try again."
             ;;
     esac
+    if [ $INTERACTIVE == 0 ]; then
+        REPLY=0;
+   fi
 done
