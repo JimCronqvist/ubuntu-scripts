@@ -222,6 +222,12 @@ EOF
             
             # Install dos2unix
             sudo apt-get install dos2unix -y
+	    
+	    # Install debconf-utils
+	    sudo apt-get install debconf-utils -y
+	    
+            # Install required software for add-apt-repository
+            sudo apt-get install software-properties-common -y
             
             # Install a MTA
             if Confirm "Do you want to install a MTA?" Y; then
@@ -488,7 +494,6 @@ EOF"
         "10") # Install PHP 7 and Composer
             
             if [ $(lsb_release -rs | xargs printf "%.0f") -lt 16 ]; then
-                sudo apt-get install software-properties-common -y
                 sudo apt-get install -y language-pack-en-base
                 sudo LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php
             fi
@@ -623,7 +628,6 @@ EOF"
         
         "15") # Install Redis
             
-            sudo apt-get install software-properties-common -y
             sudo add-apt-repository ppa:chris-lea/redis-server
             APT_UPDATED=0
             AptGetUpdate
