@@ -408,6 +408,7 @@ EOF
             #apt-get install gitk -y
             
             # Install npm & uglifyjs
+	    curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
             sudo apt-get install nodejs -y
             sudo apt-get install npm -y
             sudo npm install npm@latest -g
