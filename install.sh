@@ -473,6 +473,7 @@ EOF"
         "10") # Install PHP 7 and Composer
             
             if [ $(lsb_release -rs | xargs printf "%.0f") -lt 16 ]; then
+                sudo apt-get install software-properties-common -y
                 sudo apt-get install -y language-pack-en-base
                 sudo LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php
             fi
