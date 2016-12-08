@@ -511,6 +511,9 @@ EOF"
             
             # Disable PHP ubuntu default garbage collector.
             sudo rm /etc/cron.d/php
+	    
+	    # Correct the permissions on the sessions folder when "files" are used as the php session driver.
+	    sudo chown -R www-data:www-data /var/lib/php/sessions
             
             # Download composer
             curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
