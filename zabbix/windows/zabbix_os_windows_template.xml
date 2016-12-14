@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-09-21T03:58:17Z</date>
+    <date>2016-12-14T10:47:33Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -1820,7 +1820,7 @@ and&#13;
             <name>Security audit failure message(s) logged in eventlog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
-            <priority>3</priority>
+            <priority>2</priority>
             <description/>
             <type>0</type>
             <dependencies/>
