@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-09-24T17:03:11Z</date>
+    <date>2017-01-22T07:13:54Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -50,7 +50,7 @@
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>max(MySQL.relay-log-space, 86400)&gt;0</params>
+                    <params>max(MySQL.relay-log-space, 14d)&gt;0</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
                     <authtype>0</authtype>
