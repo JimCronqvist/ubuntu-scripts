@@ -8,4 +8,7 @@ do
     
     # Optional if you want to enable sudo without password - if not, comment it away
     ssh -t $var "sudo bash -c \"echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' | ( umask 337; cat >> /etc/sudoers.d/ubuntu; )\""
+    
+    # Run the below command on the remote server to disable password authentication via ssh
+    #sudo sed -i -E 's/(#?)PasswordAuthentication (yes|no)/PasswordAuthentication no/g' /etc/ssh/sshd_config && sudo service ssh restart
 done
