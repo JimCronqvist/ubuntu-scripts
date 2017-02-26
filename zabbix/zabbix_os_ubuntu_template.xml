@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-08-27T14:52:52Z</date>
+    <date>2017-02-26T13:41:21Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -209,6 +209,49 @@
                     <value_type>3</value_type>
                     <allowed_hosts/>
                     <units>packages</units>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ubuntu</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                </item>
+                <item>
+                    <name>Password login allowed via SSH</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[&quot;cat /etc/ssh/sshd_config | grep -q '^PasswordAuthentication no$' &amp;&amp; echo 0 || echo 1&quot;]</key>
+                    <delay>3600</delay>
+                    <history>7</history>
+                    <trends>365</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -662,6 +705,16 @@ or&#13;
             <status>0</status>
             <priority>5</priority>
             <description>Check if the file systems are responding, so that unresponsive nfs or cifs mounted file systems can be noticed in time.</description>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;cat /etc/ssh/sshd_config | grep -q '^PasswordAuthentication no$' &amp;&amp; echo 0 || echo 1&quot;].last(0)}&gt;0</expression>
+            <name>Unsafe configuration: Password logins via SSH is enabled on {HOSTNAME}</name>
+            <url/>
+            <status>0</status>
+            <priority>1</priority>
+            <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
