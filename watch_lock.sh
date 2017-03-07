@@ -46,7 +46,7 @@ function checkLockFiles {
                     "composer.lock" )
                         composer install &> /dev/null ;;
                     "yarn.lock" )
-                        yarn install &> /dev/null ;;
+                        yarn install --pure-lockfile &> /dev/null ;;
                 esac
                 LOCKFILES[$LOCKFILE]=$CURRENT_COMMIT_ID
             else
