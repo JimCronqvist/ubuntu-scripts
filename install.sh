@@ -415,6 +415,7 @@ EOF
             sudo npm install -g bower
             sudo npm install -g uglify-js
             sudo npm install -g webpack
+            sudo npm install -g yarn
             ;;
             
         "8") # Install Apache2
