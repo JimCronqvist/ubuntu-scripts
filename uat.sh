@@ -2,7 +2,7 @@
 
 FEATURE_HOME="/var/www/features"
 REPO_HOME="/var/www/app"
-LOG_FILE="/var/log/uat.log"
+LOG_FILE="/dev/null"
 
 
 echo $(date) | tee -a $LOG_FILE
@@ -45,3 +45,70 @@ do
         rm -rf $FEATURE_DIR
     fi
 done
+
+# Abort if we already have installed the virtual hosts before
+if [ -f /etc/apache2/sites-available/zzz_virtual_uat.conf ]; then
+    exit 0
+fi
+
+
+###
+# One time setup below
+###
+
+# Virtual host for the uat subdomains
+cat | sudo tee /etc/apache2/sites-available/zzz_virtual_uat.conf <<EOF
+<VirtualHost *:80>
+    ServerName x.localhost
+    ServerAlias *.uat.example.com
+    VirtualDocumentRoot /var/www/features/%1/public
+    <Directory /var/www/features/*/public>
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    SetEnv APP_ENV uat
+</VirtualHost>
+EOF
+
+cat | sudo tee /etc/apache2/sites-available/zzz_virtual_uat.ssl.conf <<EOF
+<VirtualHost *:443>
+    ServerName x.localhost
+    ServerAlias *.uat.example.com
+    VirtualDocumentRoot /var/www/features/%1/public
+    <Directory /var/www/features/*/public>
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+        Order allow,deny
+        Allow from all
+    </Directory>
+    SetEnv APP_ENV uat
+        
+    SSLEngine on
+    SSLCertificateFile /etc/apache2/ssl/ssl_certificate.crt
+    SSLCertificateKeyFile /etc/apache2/ssl/uat.example.com.key
+    SSLCertificateChainFile /etc/apache2/ssl/IntermediateCA.crt
+    <FilesMatch "\.(cgi|shtml|phtml|php)$">
+        SSLOptions +StdEnvVars
+    </FilesMatch>
+    <Directory /usr/lib/cgi-bin>
+        SSLOptions +StdEnvVars
+    </Directory>
+    BrowserMatch "MSIE [2-6]" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0
+    BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
+</VirtualHost>
+EOF
+
+# Replace with the correct domain and enable the new sites
+sudo sed -i 's/uat.example.com/'$(hostname --fqdn)'/g' /etc/apache2/sites-available/zzz_virtual_uat.conf
+sudo sed -i 's/uat.example.com/'$(hostname --fqdn)'/g' /etc/apache2/sites-available/zzz_virtual_uat.ssl.conf
+sudo a2ensite zzz_virtual_uat
+sudo a2ensite zzz_virtual_uat.ssl
+sudo service apache2 reload
+
+# Set up the cronjob
+cat | sudo tee /etc/cron.d/uat <<EOF
+#!/bin/bash
+* * * * * ubuntu bash /home/ubuntu/uat.sh
+EOF
+sudo chmod 0644 /etc/cron.d/uat
