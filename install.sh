@@ -447,6 +447,12 @@ EOF
             
             sudo service apache2 restart
             
+            if Confirm "Do you want to enable vhost_alias and proxy_http modules?" N; then
+                a2enmod vhost_alias
+                a2enmod proxy_http
+                sudo service apache2 restart
+            fi
+            
             # Install SSL for Apache2
             if Confirm "Do you want to enable SSL (https) for apache2?" N; then
                 sudo a2enmod ssl
