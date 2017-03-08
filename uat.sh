@@ -11,6 +11,7 @@ mkdir -p $FEATURE_HOME
 
 git fetch origin
 git remote update origin --prune
+git reset --hard && git checkout develop && git pull
 
 for BRANCH in $(git for-each-ref --format='%(refname)' refs/remotes/)
 do
