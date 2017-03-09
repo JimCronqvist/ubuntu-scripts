@@ -45,6 +45,8 @@ do
     fi
 done
 
+echo ""
+
 # Abort if we already have installed the virtual hosts before
 if [ -f /etc/apache2/sites-available/zzz_virtual_uat.conf ]; then
     exit 0
