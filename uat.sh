@@ -2,10 +2,9 @@
 
 FEATURE_HOME="/var/www/features"
 REPO_HOME="/var/www/app"
-LOG_FILE="/dev/null"
 
 
-echo $(date) | tee -a $LOG_FILE
+echo $(date)
 cd $REPO_HOME || exit 1
 mkdir -p $FEATURE_HOME
 
@@ -23,8 +22,8 @@ do
 
         # Create a feature directory if it does not exist yet
         if [ ! -d $FEATURE_DIR ]; then
-            echo "Creating new feature directory: ${FEATURE_DIR}" | tee -a $LOG_FILE
-            cp -R ${REPO_HOME} ${FEATURE_DIR}/
+            echo "Creating new feature directory: ${FEATURE_DIR}"
+            rsync -a --stats ${REPO_HOME}/ ${FEATURE_DIR}/
             ( cd $FEATURE_DIR && git reset --hard && git checkout $FEATURE_BRANCH && composer install && yarn install --pure-lockfile )
         fi
 
@@ -41,7 +40,7 @@ for FEATURE_DIR in $FEATURE_HOME/*
 do
     BRANCH="feature/${FEATURE_DIR##*/}"
     if [ $( git branch -r | grep ${BRANCH} | wc -l ) != 1 ]; then
-        echo "${BRANCH} no longer exists, removing..." | tee -a $LOG_FIL
+        echo "${BRANCH} no longer exists, removing..."
         rm -rf $FEATURE_DIR
     fi
 done
@@ -107,8 +106,12 @@ sudo a2ensite zzz_virtual_uat.ssl
 sudo service apache2 reload
 
 # Set up the cronjob
+sudo touch /var/log/uat.log
+sudo chmod 0644 /var/log/uat.log
+sudo chown ubuntu:ubuntu /var/log/uat.log
+
 cat | sudo tee /etc/cron.d/uat <<EOF
 #!/bin/bash
-* * * * * ubuntu bash /home/ubuntu/uat.sh
+* * * * * ubuntu bash /home/ubuntu/uat.sh >> /var/log/uat.log 2>&1
 EOF
 sudo chmod 0644 /etc/cron.d/uat
