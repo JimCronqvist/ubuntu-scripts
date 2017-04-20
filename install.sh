@@ -533,8 +533,8 @@ EOF"
             if ! grep "repo.percona.com" /etc/apt/sources.list > /dev/null; then
                 # Adding repositories from Percona.
                 sudo apt-get install lsb-release -y
-                if sudo apt-key adv --keyserver keys.gnupg.net --recv-keys 1C4CBDCDCD2EFD2A | grep "key 1C4CBDCDCD2EFD2A not found on keyserver" ; then
-                        echo "Error: Can't find the key for the Percona repository, please try to run this scrpt again.";
+                if sudo apt-key adv --keyserver keys.gnupg.net --recv-keys 8507EFA5 | grep "key 8507EFA5 not found on keyserver" ; then
+                        echo "Error: Can't find the key for the Percona repository, please try to run this script again.";
                         exit;
                 fi
                 sudo echo "" >> /etc/apt/sources.list
