@@ -327,8 +327,8 @@ EOF
                     
                     echo "[client]" >> ~zabbix/.my.cnf && echo "user = root" >> ~zabbix/.my.cnf && echo "password = $PASS" >> ~zabbix/.my.cnf
                     sudo chown zabbix:zabbix ~zabbix/.my.cnf && chmod 0600 ~zabbix/.my.cnf
-                    sudo apt-get install php5-cli -y
-                    sudo apt-get install php5-mysqlnd -y
+                    sudo apt-get install php7.0-cli -y
+                    sudo apt-get install php7.0-mysql -y
                     echo "Edit the password in: /var/lib/zabbix/percona/scripts/ss_get_mysql_stats.php.cnf"
                     sudo service zabbix-agent restart
                     
