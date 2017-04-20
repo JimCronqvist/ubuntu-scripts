@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>3.0</version>
-    <date>2016-12-14T10:47:33Z</date>
+    <version>3.2</version>
+    <date>2017-04-20T11:52:20Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -1075,43 +1075,67 @@
                     <trigger_prototypes>
                         <trigger_prototype>
                             <expression>{Template OS Windows - Jim Cronqvist:net.if.in[{#NICADDR},dropped].last(0)}&gt;0</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Incoming dropped packets was detected on {#NICNAME}</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>3</priority>
                             <description/>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>{Template OS Windows - Jim Cronqvist:net.if.in[{#NICADDR},errors].last(0)}&gt;0</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Incoming errors was detected on {#NICNAME}</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>3</priority>
                             <description/>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>{Template OS Windows - Jim Cronqvist:net.if.out[{#NICADDR},dropped].last(0)}&gt;0</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Outgoing dropped packets was detected on {#NICNAME}</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>3</priority>
                             <description/>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>{Template OS Windows - Jim Cronqvist:net.if.out[{#NICADDR},errors].last(0)}&gt;0</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Outgoing errors was detected on {#NICNAME}</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>3</priority>
                             <description/>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                     </trigger_prototypes>
                     <graph_prototypes>
@@ -1406,33 +1430,51 @@
                     <trigger_prototypes>
                         <trigger_prototype>
                             <expression>({Template OS Windows - Jim Cronqvist:quota[free,{#QUPATH}].last(0)}&lt;{$QUOTA_THRESHOLD_CRIT}) and ({Template OS Windows - Jim Cronqvist:quota[free,{#QUPATH}].last(0)}&gt;{$QUOTA_THRESHOLD_DEPL})</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Quota &quot;{#QUPATH}&quot; bytes free critical</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>3</priority>
                             <description/>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>{Template OS Windows - Jim Cronqvist:quota[free,{#QUPATH}].last(0)}&lt;{$QUOTA_THRESHOLD_DEPL}</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Quota &quot;{#QUPATH}&quot; bytes free depleted</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>4</priority>
                             <description/>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>({Template OS Windows - Jim Cronqvist:quota[free,{#QUPATH}].last(0)}&lt;{$QUOTA_THRESHOLD_LOW}) and ({Template OS Windows - Jim Cronqvist:quota[free,{#QUPATH}].last(0)}&gt;{$QUOTA_THRESHOLD_CRIT})</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Quota &quot;{#QUPATH}&quot; bytes free low</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>2</priority>
                             <description/>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                     </trigger_prototypes>
                     <graph_prototypes>
@@ -1509,7 +1551,7 @@
                     <privatekey/>
                     <port/>
                     <filter>
-                        <evaltype>0</evaltype>
+                        <evaltype>1</evaltype>
                         <formula/>
                         <conditions>
                             <condition>
@@ -1573,19 +1615,26 @@
                     <trigger_prototypes>
                         <trigger_prototype>
                             <expression>{Template OS Windows - Jim Cronqvist:service_state[{#SVCNAME}].last(0)}&lt;&gt;0</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Service {#SVCDISPNAME} is not running</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>2</priority>
                             <description/>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                     </trigger_prototypes>
                     <graph_prototypes/>
                     <host_prototypes/>
                 </discovery_rule>
             </discovery_rules>
+            <httptests/>
             <macros>
                 <macro>
                     <macro>{$CPU_THRESHOLD_HIGH}</macro>
@@ -1633,268 +1682,406 @@
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Application audit failure message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Application error message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[Application,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Application warning message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>1</status>
             <priority>1</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:perf_counter[&quot;\1848(_Total)\1850&quot;].avg(600)}&gt;{$CPU_THRESHOLD_HIGH}</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>CPU usage exceeded {$CPU_THRESHOLD_HIGH}% on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>4</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:perf_counter[&quot;\1848(_Total)\1850&quot;].avg(600)}&gt;{$CPU_THRESHOLD_WARN} and {Template OS Windows - Jim Cronqvist:perf_counter[&quot;\1848(_Total)\1850&quot;].avg(600)}&lt;{$CPU_THRESHOLD_HIGH}</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>CPU usage exceeded {$CPU_THRESHOLD_WARN}% on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:wu.crit.last(0)}&gt;0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Critical Windows updates available on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Directory service audit failure message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>4</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Directory service error message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[Directory Service,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Directory service warning message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:net.dns[,www.google.com,A].last(3)}&lt;1</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>DNS resolution failed on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>4</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>DNS Server audit failure message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>4</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>DNS Server error message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[DNS Server,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>DNS Server warning message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>File Replication Service audit failure message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>4</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>File Replication Service error message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[File Replication Service,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>File Replication Service warning message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Security audit failure message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Security error message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[Security,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Security warning message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>1</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=7&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>System audit failure message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=4 &#13;
 and {Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logeventid(3)}=0&#13;
 and {Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>System error message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description>Excludes the following event IDs:&#13;
 - 3: KDC_ERR_PREAUTH_REQUIRED</description>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].logseverity(0)}=2&#13;
 and&#13;
 {Template OS Windows - Jim Cronqvist:eventlog[System,,&quot;Warning|Error|Failure&quot;,,,,skip].nodata(10m)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>System warning message(s) logged in eventlog on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>1</status>
             <priority>1</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Windows - Jim Cronqvist:wu.all.last(0)}&gt;0 and {Template OS Windows - Jim Cronqvist:wu.crit.last(0)}&lt;1</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Windows updates available on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>1</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
     </triggers>
     <value_maps>
