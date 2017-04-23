@@ -429,11 +429,9 @@ EOF
             sudo a2enmod rewrite
             sudo a2enmod headers
             # Disable mod_autoindex to prevent directory listing
-            sudo a2dismod autoindex 
+            sudo a2dismod autoindex -f
             
-            # Cleaning (Ubuntu 13.10 and less)
-            rm /var/www/index.html
-            # Cleaning (Ubuntu 14.04)
+            # Cleaning (Ubuntu 14.04+)
             rm /var/www/html/index.html
             rmdir /var/www/html
             
