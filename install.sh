@@ -308,6 +308,7 @@ EOF
             if Confirm "Do you want to install zabbix agent (For monitoring)?" N; then
                 # Install zabbix agent
                 sudo apt-get install zabbix-agent -y
+		sudo adduser zabbix adm
                 sudo bash -c "echo 'Server=zabbix.'`dnsdomainname` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
                 sudo bash -c "echo 'ServerActive=zabbix.'`dnsdomainname` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
                 sudo bash -c "echo 'Hostname='`hostname --fqdn` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
