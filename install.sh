@@ -214,6 +214,9 @@ EOF
             # Install tree
             sudo apt-get install tree -y
             
+            # Install ncdu
+            sudo apt-get install ncdu -y
+            
             # Install acct
             sudo apt-get install acct -y
             
@@ -222,10 +225,10 @@ EOF
             
             # Install dos2unix
             sudo apt-get install dos2unix -y
-	    
-	    # Install debconf-utils
-	    sudo apt-get install debconf-utils -y
-	    
+            
+            # Install debconf-utils
+            sudo apt-get install debconf-utils -y
+            
             # Install required software for add-apt-repository
             sudo apt-get install software-properties-common -y
             
@@ -408,7 +411,7 @@ EOF
             #apt-get install gitk -y
             
             # Install npm & uglifyjs
-	    curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+            curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
             sudo apt-get install nodejs -y
             sudo npm install npm@latest -g
             sudo ln -s /usr/bin/nodejs /usr/bin/node
