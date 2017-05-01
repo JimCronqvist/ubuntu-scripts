@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>3.0</version>
-    <date>2016-07-05T09:00:32Z</date>
+    <version>3.2</version>
+    <date>2017-05-01T07:44:08Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -66,8 +66,52 @@
                     <valuemap/>
                     <logtimefmt/>
                 </item>
+                <item>
+                    <name>Apache error log file size</name>
+                    <type>0</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[&quot;test -f /var/log/apache2/error.log &amp;&amp; du -b /var/log/apache2/error.log | awk '{print $1}' || echo -1&quot;]</key>
+                    <delay>180</delay>
+                    <history>90</history>
+                    <trends>365</trends>
+                    <status>0</status>
+                    <value_type>0</value_type>
+                    <allowed_hosts/>
+                    <units>bytes</units>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Apache</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                </item>
             </items>
             <discovery_rules/>
+            <httptests/>
             <macros/>
             <templates/>
             <screens/>
@@ -76,13 +120,55 @@
     <triggers>
         <trigger>
             <expression>{Template App Apache2 - Jim Cronqvist:system.run[&quot;ps -aylC apache2 | grep apache2 | awk '{print $8}' | sort -n | tail -n 1 | awk '{print $1/1024}'&quot;].last()}&gt;1000</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>An Apache process larger than 1 GB found</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
+        </trigger>
+        <trigger>
+            <expression>{Template App Apache2 - Jim Cronqvist:system.run[&quot;test -f /var/log/apache2/error.log &amp;&amp; du -b /var/log/apache2/error.log | awk '{print $1}' || echo -1&quot;].last()}&gt;1000000000</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
+            <name>The Apache error log file size is greater than 1 GB</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
+            <url/>
+            <status>0</status>
+            <priority>2</priority>
+            <description>After checking the error log file content, to delete the file and restart apache2:&#13;
+sudo rm -f /var/log/apache2/error.log &amp;&amp; sudo service apache2 restart</description>
+            <type>0</type>
+            <manual_close>0</manual_close>
+            <dependencies/>
+            <tags/>
+        </trigger>
+        <trigger>
+            <expression>{Template App Apache2 - Jim Cronqvist:system.run[&quot;test -f /var/log/apache2/error.log &amp;&amp; du -b /var/log/apache2/error.log | awk '{print $1}' || echo -1&quot;].last()}=-1</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
+            <name>Unable to read the file size of the Apache error log</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
+            <url/>
+            <status>0</status>
+            <priority>2</priority>
+            <description>2 possible reasons:&#13;
+- The file does not exist, check configuration for log file location&#13;
+- The zabbix user does not have permission, to solve it: &#13;
+&quot;sudo adduser zabbix adm &amp;&amp; sudo service zabbix-agent restart&quot;</description>
+            <type>0</type>
+            <manual_close>0</manual_close>
+            <dependencies/>
+            <tags/>
         </trigger>
     </triggers>
 </zabbix_export>
