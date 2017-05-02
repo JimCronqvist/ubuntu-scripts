@@ -4,13 +4,23 @@ FEATURE_HOME="/var/www/features"
 REPO_HOME="/var/www/app"
 
 
+RUNNING=$(pgrep -fl ${CURRENT_SCRIPT} | grep -E "bash|${CURRENT_SCRIPT}" | wc -l)
+if [ $RUNNING -gt 2 ]; then
+    echo "Instance of ${CURRENT_SCRIPT} is already running ($RUNNING)..."
+    exit
+fi
+
 echo $(date)
 cd $REPO_HOME || exit 1
 mkdir -p $FEATURE_HOME
 
 git fetch origin
 git remote update origin --prune
+COMMIT=$(git describe)
 git reset --hard && git checkout develop && git pull
+if [ "$COMMIT" != "$(git describe)" ]; then
+    /usr/local/bin/composer install && yarn install --pure-lockfile
+fi
 
 for BRANCH in $(git for-each-ref --format='%(refname)' refs/remotes/)
 do
@@ -29,7 +39,7 @@ do
 
         # Update if commit id of local is not identical to remote feature branch
         if [ $(git rev-parse origin/${FEATURE_BRANCH}) != $( cd $FEATURE_DIR && git rev-parse HEAD ) ]; then
-            echo "The branch '${FEATURE_BRANCH}' has remote changes and will be updated. " | tee -a $LOG_FIL
+            echo "The branch '${FEATURE_BRANCH}' has remote changes and will be updated. "
             ( cd $FEATURE_DIR && git add . && git reset --hard && git pull && /usr/local/bin/composer install && yarn install --pure-lockfile )
         fi
     fi
