@@ -4,6 +4,7 @@ FEATURE_HOME="/var/www/features"
 REPO_HOME="/var/www/app"
 
 
+CURRENT_SCRIPT=$(basename "$0")
 RUNNING=$(pgrep -fl ${CURRENT_SCRIPT} | grep -E "bash|${CURRENT_SCRIPT}" | wc -l)
 if [ $RUNNING -gt 2 ]; then
     echo "Instance of ${CURRENT_SCRIPT} is already running ($RUNNING)..."
