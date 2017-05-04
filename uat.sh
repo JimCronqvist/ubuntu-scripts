@@ -41,7 +41,7 @@ do
         # Update if commit id of local is not identical to remote feature branch
         if [ $(git rev-parse origin/${FEATURE_BRANCH}) != $( cd $FEATURE_DIR && git rev-parse HEAD ) ]; then
             echo "The branch '${FEATURE_BRANCH}' has remote changes and will be updated. "
-            ( cd $FEATURE_DIR && git add . && git reset --hard && git pull && /usr/local/bin/composer install && yarn install --pure-lockfile )
+            ( cd $FEATURE_DIR && git add . && git reset --hard && git checkout $FEATURE_BRANCH && git pull && /usr/local/bin/composer install && yarn install --pure-lockfile )
         fi
     fi
 done
