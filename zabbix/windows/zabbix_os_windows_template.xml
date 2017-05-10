@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.2</version>
-    <date>2017-04-20T11:52:20Z</date>
+    <date>2017-05-10T05:23:10Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -1074,7 +1074,7 @@
                     </item_prototypes>
                     <trigger_prototypes>
                         <trigger_prototype>
-                            <expression>{Template OS Windows - Jim Cronqvist:net.if.in[{#NICADDR},dropped].last(0)}&gt;0</expression>
+                            <expression>{Template OS Windows - Jim Cronqvist:net.if.in[{#NICADDR},dropped].last(0)}&gt;5</expression>
                             <recovery_mode>0</recovery_mode>
                             <recovery_expression/>
                             <name>Incoming dropped packets was detected on {#NICNAME}</name>
