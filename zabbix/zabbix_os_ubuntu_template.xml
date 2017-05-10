@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>3.0</version>
-    <date>2017-03-14T15:54:57Z</date>
+    <version>3.2</version>
+    <date>2017-05-10T05:40:04Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -584,6 +584,7 @@
                 </item>
             </items>
             <discovery_rules/>
+            <httptests/>
             <macros/>
             <templates/>
             <screens/>
@@ -592,194 +593,309 @@
     <triggers>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:net.dns[,www.google.com,A].last(0)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>DNS resolution failed on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;90)&#13;
 or&#13;
 ({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;86)</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>High memory usage ({ITEM.LASTVALUE}) on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies>
                 <dependency>
                     <name>High memory usage ({ITEM.LASTVALUE}) on {HOST.NAME}</name>
                     <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;95)&#13;
 or&#13;
 ({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;91)</expression>
+                    <recovery_expression/>
                 </dependency>
             </dependencies>
+            <tags/>
         </trigger>
         <trigger>
             <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;95)&#13;
 or&#13;
 ({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;91)</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>High memory usage ({ITEM.LASTVALUE}) on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;df -h | awk '{ print $5 }' | grep -E '^((9[5-9])|100)%$' | wc -l&quot;].last(0)}&gt;0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Less than 5% space left on a partition on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>4</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7</expression>
+            <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7)&#13;
+or&#13;
+({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.6)</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies>
                 <dependency>
                     <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
-                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+                    <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9)&#13;
+or&#13;
+({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7)</expression>
+                    <recovery_expression/>
                 </dependency>
             </dependencies>
+            <tags/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9</expression>
+            <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9)&#13;
+or&#13;
+({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.7)</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies>
                 <dependency>
                     <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
-                    <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;1.5</expression>
+                    <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;1.5)&#13;
+or&#13;
+({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9)</expression>
+                    <recovery_expression/>
                 </dependency>
             </dependencies>
+            <tags/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;1.5</expression>
+            <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;1.5)&#13;
+or&#13;
+({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;echo $(cat /proc/loadavg | cut -d ' ' -f 2) $(nproc) | awk '{ print $1/$2 }'&quot;].avg(2m)}&gt;0.9)</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Load average is too high on {HOST.NAME} ({ITEM.LASTVALUE} avg per core)</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>4</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;test -e /etc/sudoers.d/zabbix &amp;&amp; sudo -n lsof / | grep deleted | awk '{s+=$7/1024/1024/1024} END {print s}'&quot;].last(0)}&gt;1</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>More than 1 GB open deleted file descriptors on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;/usr/lib/update-notifier/apt-check 2&gt;&amp;1 | cut -d';' -f2&quot;].last(0)}&gt;0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>New security updates available on {HOSTNAME} ({ITEM.LASTVALUE})</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;/usr/lib/ubuntu-release-upgrader/release-upgrade-motd | grep -q 'New release' &amp;&amp; /usr/lib/ubuntu-release-upgrader/release-upgrade-motd | grep 'New release' | cut -d\&quot;'\&quot; -f2 | tail -n 1 || echo 'No new release available.'&quot;].str(No new)}=0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>New Ubuntu OS ({ITEM.LASTVALUE}) available on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>1</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;/usr/lib/update-notifier/apt-check 2&gt;&amp;1 | cut -d';' -f1&quot;].last(0)}&gt;0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>New updates available on {HOSTNAME} ({ITEM.LASTVALUE})</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>1</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;apt-get autoremove --dry-run | grep 'Remv' | wc -l&quot;].last(0)}&gt;10</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>No longer required packages installed on {HOSTNAME} ({ITEM.LASTVALUE})</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>1</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;test -e /var/run/reboot-required &amp;&amp; echo 1 || echo 0&quot;].last(0)}&gt;0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>System reboot required on {HOSTNAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>1</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].max(1d)} and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].last(0)}&gt;0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>The number of file systems has decreased on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>4</priority>
             <description>Check for decreasing number of file systems, such as missing nfs or cifs mounted file systems.</description>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].count(#2,0)}&gt;1</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Unresponsive file systems on {HOST.NAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>5</priority>
             <description>Check if the file systems are responding, so that unresponsive nfs or cifs mounted file systems can be noticed in time.</description>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;cat /etc/ssh/sshd_config | grep -q '^PasswordAuthentication no$' &amp;&amp; echo 0 || echo 1&quot;].last(0)}&gt;0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Unsafe configuration: Password logins via SSH is enabled on {HOSTNAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>1</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;grep -qs 'Vendor: VMware' /proc/scsi/scsi &amp;&amp; if ps -ef | grep -v grep | grep -qis vmtoolsd; then echo 0; else echo 1; fi || echo 0&quot;].last(0)}&gt;0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>VMware tools is not running on {HOSTNAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>1</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
     </triggers>
     <graphs>
