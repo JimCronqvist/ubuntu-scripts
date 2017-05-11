@@ -647,6 +647,58 @@ EOF"
             AptGetUpdate
             sudo apt-get install redis-server -y
             ;;
+            
+        "16") # Install FTP
+            
+            # Install the FTP service
+            sudo apt-get install vsftpd -y
+            # Set up a new dummy shell (vsftpd does not allow logins if the shell does not exist)
+            sudo bash -c "echo '/bin/false' >> /etc/shells"
+            sudo tee -a <<EOF /etc/vsftpd.conf > /dev/null
+
+# Custom configuration from install.sh
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+chroot_local_user=YES
+
+# When behind NAT, configure passive mode and public IP.
+#pasv_address=x.x.x.x
+pasv_min_port=10000
+pasv_max_port=10024
+
+# Log all FTP transfers and commands
+#log_ftp_protocol=YES
+EOF
+
+            # Set up for SFTP instead of FTP
+            # If there already is a "Subsystem sftp *" row, it needs to be commented first.
+            sudo sed -e '/Subsystem sftp/ s/^#*/#/' -i /etc/ssh/sshd_config
+            sudo tee -a <<EOF /etc/ssh/sshd_config > /dev/null
+
+# Custom configuration from install.sh
+Subsystem sftp internal-sftp
+Match group sftponly
+  ChrootDirectory %h
+  ForceCommand internal-sftp
+  AllowTcpForwarding no
+  PermitTunnel no
+  AllowAgentForwarding no
+  X11Forwarding no
+EOF
+
+            sudo addgroup sftponly
+            sudo service ssh restart
+            
+            # Modify the 'ftp' user
+            sudo useradd -m ftp -g sftponly -s /bin/false
+            sudo usermod --home /home/ftp ftp
+            sudo chown root:root /home/ftp
+            echo ""
+            echo "Please enter the password for the 'ftp' user account"
+            sudo passwd ftp
+            
+            ;;
         
         "0")
             exit
