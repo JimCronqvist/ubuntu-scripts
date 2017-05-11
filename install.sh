@@ -94,6 +94,7 @@ install.sh by Jim Cronqvist
 (13) Install haproxy
 (14) Install Varnish cache
 (15) Install Redis
+(16) Install FTP
 (0) Quit
 ----------------------------------
 EOF
@@ -672,9 +673,10 @@ pasv_max_port=10024
 EOF
 
             # Set up for SFTP instead of FTP
-            # If there already is a "Subsystem sftp *" row, it needs to be commented first.
-            sudo sed -e '/Subsystem sftp/ s/^#*/#/' -i /etc/ssh/sshd_config
-            sudo tee -a <<EOF /etc/ssh/sshd_config > /dev/null
+            if ! grep -s -q 'Custom configuration from install.sh' /etc/ssh/sshd_config ; then
+                # If there already is a "Subsystem sftp *" row, it needs to be commented first.
+                sudo sed -e '/Subsystem sftp/ s/^#*/#/' -i /etc/ssh/sshd_config
+                sudo tee -a <<EOF /etc/ssh/sshd_config > /dev/null
 
 # Custom configuration from install.sh
 Subsystem sftp internal-sftp
@@ -686,7 +688,8 @@ Match group sftponly
   AllowAgentForwarding no
   X11Forwarding no
 EOF
-
+            fi
+            
             sudo addgroup sftponly
             sudo service ssh restart
             
@@ -697,7 +700,6 @@ EOF
             echo ""
             echo "Please enter the password for the 'ftp' user account"
             sudo passwd ftp
-            
             ;;
         
         "0")
