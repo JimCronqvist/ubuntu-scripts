@@ -694,6 +694,7 @@ EOF
             sudo service ssh restart
             
             # Modify the 'ftp' user
+            sudo mkdir /home/ftp -p
             sudo useradd -m ftp -g sftponly -s /bin/false
             sudo usermod --home /home/ftp ftp
             sudo chown root:root /home/ftp
