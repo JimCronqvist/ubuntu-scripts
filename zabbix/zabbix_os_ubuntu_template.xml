@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.2</version>
-    <date>2017-05-10T05:40:04Z</date>
+    <date>2017-05-14T15:07:46Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -287,7 +287,7 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>system.run[&quot;df -h | awk '{ print $5 }' | grep -E '^((9[5-9])|100)%$' | wc -l&quot;]</key>
+                    <key>system.run[&quot;df -h | grep -v ^// | awk '{ print $5 }' | grep -E '^((9[5-9])|100)%$' | wc -l&quot;]</key>
                     <delay>60</delay>
                     <history>7</history>
                     <trends>365</trends>
@@ -652,7 +652,7 @@ or&#13;
             <tags/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;df -h | awk '{ print $5 }' | grep -E '^((9[5-9])|100)%$' | wc -l&quot;].last(0)}&gt;0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;df -h | grep -v ^// | awk '{ print $5 }' | grep -E '^((9[5-9])|100)%$' | wc -l&quot;].last(0)}&gt;0</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>Less than 5% space left on a partition on {HOST.NAME}</name>
