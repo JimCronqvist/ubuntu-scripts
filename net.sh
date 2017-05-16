@@ -11,3 +11,6 @@ netstat -an | grep :443 | wc -l
 
 echo Count of all categories of connections, such as TIME_WAIT, LISTEN, etc.
 netstat -ant | awk '{print $6}' | sort | uniq -c | sort -n
+
+echo Display all services that are listening on a port
+netstat -nlpt
