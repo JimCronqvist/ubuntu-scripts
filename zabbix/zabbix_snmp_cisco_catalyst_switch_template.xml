@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>3.0</version>
-    <date>2016-07-15T22:30:03Z</date>
+    <version>3.2</version>
+    <date>2017-05-19T07:51:09Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -2164,37 +2164,59 @@ SNMP interface (ifType)&#13;
                     <trigger_prototypes>
                         <trigger_prototype>
                             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:snmp.agent[RFC1213-MIB::ifInErrors.{#SNMPINDEX}].last(0)}&gt;10</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Inbound packet on interface {#SNMPVALUE} contained error that prevents delivery to a higher-layer protocol</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>2</priority>
                             <description/>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:snmp.agent[RFC1213-MIB::ifInDiscards.{#SNMPINDEX}].last(0)}&gt;100</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Inbound packet on interface {#SNMPVALUE} was chosen to be discarded</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>1</priority>
                             <description>One possible reason for discarding such a packet could be to free up buffer space</description>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:snmp.agent[RFC1213-MIB::ifInUnknownProtos.{#SNMPINDEX}].last(0)}&gt;100</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Inbound packet on interface {#SNMPVALUE} was chosen to be discarded because of an unknown or unsupported protocol</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>1</priority>
                             <description/>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:snmp.agent[1.3.6.1.4.1.9.9.315.1.2.1.1.2.{#SNMPINDEX}].last(0)}=3</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Interface {#SNMPVALUE} has been err-disabled due to a port-security violation</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>3</priority>
@@ -2204,37 +2226,57 @@ Use the below command to see the reason for the err-disabled state of the interf
 &#13;
 #sh int status err-disabled</description>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:snmp.agent[RFC1213-MIB::ifAdminStatus.{#SNMPINDEX}].last(0)}&lt;&gt;{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:snmp.agent[RFC1213-MIB::ifOperStatus.{#SNMPINDEX}].last(0)}</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Interface {#SNMPVALUE} in undesired state: {ITEM.VALUE2}</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>1</status>
                             <priority>2</priority>
                             <description/>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:snmp.agent[RFC1213-MIB::ifOutErrors.{#SNMPINDEX}].last(0)}&gt;10</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Outbound packet on interface {#SNMPVALUE} could not be transmitted because of error</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>2</priority>
                             <description/>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:snmp.agent[RFC1213-MIB::ifOutDiscards.{#SNMPINDEX}].max(1h)}&gt;2500</expression>
+                            <recovery_mode>0</recovery_mode>
+                            <recovery_expression/>
                             <name>Outbound packet on interface {#SNMPVALUE} was chosen to be discarded ({ITEM.LASTVALUE} pkts)</name>
+                            <correlation_mode>0</correlation_mode>
+                            <correlation_tag/>
                             <url/>
                             <status>0</status>
                             <priority>1</priority>
                             <description>One possible reason for discarding such a packet could be to free up buffer space.</description>
                             <type>0</type>
+                            <manual_close>0</manual_close>
                             <dependencies/>
+                            <tags/>
                         </trigger_prototype>
                     </trigger_prototypes>
                     <graph_prototypes>
@@ -2438,6 +2480,7 @@ Use the below command to see the reason for the err-disabled state of the interf
                     <host_prototypes/>
                 </discovery_rule>
             </discovery_rules>
+            <httptests/>
             <macros>
                 <macro>
                     <macro>{$SNMP_COMMUNITY}</macro>
@@ -2451,93 +2494,147 @@ Use the below command to see the reason for the err-disabled state of the interf
     <triggers>
         <trigger>
             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:temperatureStatus.last(0)}=3</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Temperature critical on {HOSTNAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>4</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:temperatureStatus.last(0)}&gt;1</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Temperature warning on {HOSTNAME}</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:cpmCPUTotal1minRev.last(0)}&gt;70</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>{HOST.NAME} - CPU is highly loaded {ITEM.LASTVALUE}%</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>2</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:cpmCPUTotal1minRev.last(0)}&gt;90</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>{HOST.NAME} - CPU is overloaded {ITEM.LASTVALUE}%</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:sysName.diff(0)}&gt;0 and {Template SNMP Cisco Catalyst Switch - Jim Cronqvist:sysName.strlen()}&lt;&gt;0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>{HOST.NAME} hostname has changed</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>1</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:sysDescr.diff(0)}&gt;0 and {Template SNMP Cisco Catalyst Switch - Jim Cronqvist:sysDescr.strlen()}&lt;&gt;0</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>{HOST.NAME} IOS version has changed</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>1</priority>
             <description/>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:ciscoMemoryPoolFree.min(10)}/{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:ciscoMemoryTotal.last(0)}&lt; 0.05</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>{HOST.NAME} Memory Free &lt; 5 %</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description>Memory Free &lt; 5 %</description>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
-            <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:cpmCPUTotalMonIntervalValue.nodata(14400)}=1</expression>
+            <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:sysUpTime.nodata(14400)}=1</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>{HOST.NAME} SNMP Failed</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description>{HOST.IP} SNMP Failed. Check configuration, ACL.</description>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template SNMP Cisco Catalyst Switch - Jim Cronqvist:sysUpTime.last(0)}&lt;1800</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>{HOST.NAME} switch reloaded</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>4</priority>
             <description>{HOST.NAME} switch reloaded</description>
             <type>0</type>
+            <manual_close>0</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
     </triggers>
     <value_maps>
