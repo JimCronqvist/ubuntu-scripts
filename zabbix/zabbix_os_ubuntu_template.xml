@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.2</version>
-    <date>2017-05-14T15:07:46Z</date>
+    <date>2017-05-19T08:15:11Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -786,7 +786,7 @@ or&#13;
             <tags/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;/usr/lib/update-notifier/apt-check 2&gt;&amp;1 | cut -d';' -f1&quot;].last(0)}&gt;0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;/usr/lib/update-notifier/apt-check 2&gt;&amp;1 | cut -d';' -f1&quot;].last(0)}&gt;4</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>New updates available on {HOSTNAME} ({ITEM.LASTVALUE})</name>
