@@ -691,6 +691,7 @@ Match group sftponly
   PermitTunnel no
   AllowAgentForwarding no
   X11Forwarding no
+  PasswordAuthentication yes
 EOF
             fi
             
