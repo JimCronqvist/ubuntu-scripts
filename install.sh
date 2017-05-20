@@ -701,7 +701,7 @@ EOF
             # Modify the 'ftp' user
             sudo mkdir /home/ftp -p
             sudo useradd -m ftp -g sftponly -s /bin/false
-            sudo usermod --home /home/ftp ftp
+            sudo usermod -g sftponly -s /bin/false -m --home /home/ftp ftp
             sudo chown root:root /home/ftp
             sudo service vsftpd restart
             echo ""
