@@ -1,14 +1,17 @@
 #!/bin/bash
 
-#CREATE USER 'backup'@'localhost' IDENTIFIED BY 'secret'; GRANT SELECT, SHOW VIEW, RELOAD, REPLICATION CLIENT, EVENT, TRIGGER ON *.* TO 'backup'@'localhost';
-
 DB_HOST="localhost"
 DB_USER="backup"
 DB_PASS="password"
-
 # Keep the SQL dumps for X days, 0 = forever
 KEEP_DAYS=0
 BACKUP_FOLDER="/home/ubuntu/mysqldump/"
+
+# Create a backup user for MySQL with the minimum amount of permissions required
+#CREATE USER 'backup'@'localhost' IDENTIFIED BY 'secret'; GRANT SELECT, SHOW VIEW, RELOAD, REPLICATION CLIENT, EVENT, TRIGGER ON *.* TO 'backup'@'localhost';
+
+# Add the mysqldump as a cronjob to be ran at midnight every day
+#sudo bash -c "echo '0 0 * * * root /home/ubuntu/mysqldump.sh' > /etc/cron.d/mysqldump"
 
 
 mkdir -p "$BACKUP_FOLDER"
