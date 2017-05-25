@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.2</version>
-    <date>2017-05-10T05:23:10Z</date>
+    <date>2017-05-25T16:37:14Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -1339,6 +1339,50 @@
                             <application_prototypes/>
                         </item_prototype>
                         <item_prototype>
+                            <name>Quota &quot;{#QUPATH}&quot; free in percentage</name>
+                            <type>15</type>
+                            <snmp_community/>
+                            <multiplier>0</multiplier>
+                            <snmp_oid/>
+                            <key>quota[freeperc,{#QUPATH}]</key>
+                            <delay>300</delay>
+                            <history>7</history>
+                            <trends>365</trends>
+                            <status>0</status>
+                            <value_type>0</value_type>
+                            <allowed_hosts/>
+                            <units>%</units>
+                            <delta>0</delta>
+                            <snmpv3_contextname/>
+                            <snmpv3_securityname/>
+                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                            <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                            <snmpv3_authpassphrase/>
+                            <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                            <snmpv3_privpassphrase/>
+                            <formula>1</formula>
+                            <delay_flex/>
+                            <params>(1 - last(&quot;quota[used,{#QUPATH}]&quot;, 0) / last(&quot;quota[limit,{#QUPATH}]&quot;, 0)) * 100</params>
+                            <ipmi_sensor/>
+                            <data_type>0</data_type>
+                            <authtype>0</authtype>
+                            <username/>
+                            <password/>
+                            <publickey/>
+                            <privatekey/>
+                            <port/>
+                            <description/>
+                            <inventory_link>0</inventory_link>
+                            <applications>
+                                <application>
+                                    <name>Quotas</name>
+                                </application>
+                            </applications>
+                            <valuemap/>
+                            <logtimefmt/>
+                            <application_prototypes/>
+                        </item_prototype>
+                        <item_prototype>
                             <name>Quota &quot;{#QUPATH}&quot; bytes limit</name>
                             <type>0</type>
                             <snmp_community/>
@@ -1429,10 +1473,10 @@
                     </item_prototypes>
                     <trigger_prototypes>
                         <trigger_prototype>
-                            <expression>({Template OS Windows - Jim Cronqvist:quota[free,{#QUPATH}].last(0)}&lt;{$QUOTA_THRESHOLD_CRIT}) and ({Template OS Windows - Jim Cronqvist:quota[free,{#QUPATH}].last(0)}&gt;{$QUOTA_THRESHOLD_DEPL})</expression>
+                            <expression>{Template OS Windows - Jim Cronqvist:quota[freeperc,{#QUPATH}].last(0)}&lt;{$QUOTA_THRESHOLD_AVG}</expression>
                             <recovery_mode>0</recovery_mode>
                             <recovery_expression/>
-                            <name>Quota &quot;{#QUPATH}&quot; bytes free critical</name>
+                            <name>Quota &quot;{#QUPATH}&quot; has only {ITEM.LASTVALUE} free space left</name>
                             <correlation_mode>0</correlation_mode>
                             <correlation_tag/>
                             <url/>
@@ -1441,14 +1485,20 @@
                             <description/>
                             <type>0</type>
                             <manual_close>0</manual_close>
-                            <dependencies/>
+                            <dependencies>
+                                <dependency>
+                                    <name>Quota &quot;{#QUPATH}&quot; has only {ITEM.LASTVALUE} free space left</name>
+                                    <expression>{Template OS Windows - Jim Cronqvist:quota[freeperc,{#QUPATH}].last(0)}&lt;{$QUOTA_THRESHOLD_HIGH}</expression>
+                                    <recovery_expression/>
+                                </dependency>
+                            </dependencies>
                             <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
-                            <expression>{Template OS Windows - Jim Cronqvist:quota[free,{#QUPATH}].last(0)}&lt;{$QUOTA_THRESHOLD_DEPL}</expression>
+                            <expression>{Template OS Windows - Jim Cronqvist:quota[freeperc,{#QUPATH}].last(0)}&lt;{$QUOTA_THRESHOLD_HIGH}</expression>
                             <recovery_mode>0</recovery_mode>
                             <recovery_expression/>
-                            <name>Quota &quot;{#QUPATH}&quot; bytes free depleted</name>
+                            <name>Quota &quot;{#QUPATH}&quot; has only {ITEM.LASTVALUE} free space left</name>
                             <correlation_mode>0</correlation_mode>
                             <correlation_tag/>
                             <url/>
@@ -1461,10 +1511,10 @@
                             <tags/>
                         </trigger_prototype>
                         <trigger_prototype>
-                            <expression>({Template OS Windows - Jim Cronqvist:quota[free,{#QUPATH}].last(0)}&lt;{$QUOTA_THRESHOLD_LOW}) and ({Template OS Windows - Jim Cronqvist:quota[free,{#QUPATH}].last(0)}&gt;{$QUOTA_THRESHOLD_CRIT})</expression>
+                            <expression>{Template OS Windows - Jim Cronqvist:quota[freeperc,{#QUPATH}].last(0)}&lt;{$QUOTA_THRESHOLD_WARN}</expression>
                             <recovery_mode>0</recovery_mode>
                             <recovery_expression/>
-                            <name>Quota &quot;{#QUPATH}&quot; bytes free low</name>
+                            <name>Quota &quot;{#QUPATH}&quot; has only {ITEM.LASTVALUE} free space left</name>
                             <correlation_mode>0</correlation_mode>
                             <correlation_tag/>
                             <url/>
@@ -1473,7 +1523,13 @@
                             <description/>
                             <type>0</type>
                             <manual_close>0</manual_close>
-                            <dependencies/>
+                            <dependencies>
+                                <dependency>
+                                    <name>Quota &quot;{#QUPATH}&quot; has only {ITEM.LASTVALUE} free space left</name>
+                                    <expression>{Template OS Windows - Jim Cronqvist:quota[freeperc,{#QUPATH}].last(0)}&lt;{$QUOTA_THRESHOLD_AVG}</expression>
+                                    <recovery_expression/>
+                                </dependency>
+                            </dependencies>
                             <tags/>
                         </trigger_prototype>
                     </trigger_prototypes>
@@ -1657,16 +1713,16 @@
                     <value>20</value>
                 </macro>
                 <macro>
-                    <macro>{$QUOTA_THRESHOLD_CRIT}</macro>
-                    <value>2147483648</value>
+                    <macro>{$QUOTA_THRESHOLD_AVG}</macro>
+                    <value>5</value>
                 </macro>
                 <macro>
-                    <macro>{$QUOTA_THRESHOLD_DEPL}</macro>
-                    <value>524288000</value>
+                    <macro>{$QUOTA_THRESHOLD_HIGH}</macro>
+                    <value>2</value>
                 </macro>
                 <macro>
-                    <macro>{$QUOTA_THRESHOLD_LOW}</macro>
-                    <value>5368709120</value>
+                    <macro>{$QUOTA_THRESHOLD_WARN}</macro>
+                    <value>10</value>
                 </macro>
             </macros>
             <templates>
