@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>2.0</version>
-    <date>2015-04-27T18:07:35Z</date>
+    <version>3.2</version>
+    <date>2017-05-29T11:30:50Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -24,6 +24,49 @@
             </applications>
             <items>
                 <item>
+                    <name>Apache2</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>logrt[/var/log/apache2/error.log]</key>
+                    <delay>60</delay>
+                    <history>14</history>
+                    <trends>0</trends>
+                    <status>0</status>
+                    <value_type>2</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_contextname/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authprotocol>0</snmpv3_authprotocol>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privprotocol>0</snmpv3_privprotocol>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Logs</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                    <logtimefmt/>
+                </item>
+                <item>
                     <name>MySQL</name>
                     <type>7</type>
                     <snmp_community/>
@@ -32,7 +75,7 @@
                     <key>logrt[/var/log/mysql/(mysql-)?error\.log]</key>
                     <delay>60</delay>
                     <history>14</history>
-                    <trends>365</trends>
+                    <trends>0</trends>
                     <status>0</status>
                     <value_type>2</value_type>
                     <allowed_hosts/>
@@ -75,7 +118,7 @@
                     <key>logrt[/var/log/syslog]</key>
                     <delay>60</delay>
                     <history>14</history>
-                    <trends>365</trends>
+                    <trends>0</trends>
                     <status>0</status>
                     <value_type>2</value_type>
                     <allowed_hosts/>
@@ -111,6 +154,7 @@
                 </item>
             </items>
             <discovery_rules/>
+            <httptests/>
             <macros/>
             <templates/>
             <screens/>
@@ -118,24 +162,52 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template OS Linux logs - Jim Cronqvist:logrt[/var/log/syslog].regexp(&quot;(oom|kill|mysql|apache)&quot;,15m)}=1</expression>
+            <expression>{Template OS Linux logs - Jim Cronqvist:logrt[/var/log/syslog].regexp(&quot;(oom|mysql|apache)|(kill[^)])&quot;,15m)}=1</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Found a match for &quot;(oom|kill|mysql|apache)&quot; in syslog</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
+        </trigger>
+        <trigger>
+            <expression>{Template OS Linux logs - Jim Cronqvist:logrt[/var/log/apache2/error.log].regexp(&quot;(Segmentation|shutting|MaxClients|raising)&quot;,15m)}=1</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
+            <name>Found a match for &quot;(Segmentation|shutting|MaxClients|raising)&quot; in apache2 error log</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
+            <url/>
+            <status>0</status>
+            <priority>3</priority>
+            <description/>
+            <type>0</type>
+            <manual_close>1</manual_close>
+            <dependencies/>
+            <tags/>
         </trigger>
         <trigger>
             <expression>{Template OS Linux logs - Jim Cronqvist:logrt[/var/log/mysql/(mysql-)?error\.log].regexp(&quot;(error)&quot;,30m)}=1</expression>
+            <recovery_mode>0</recovery_mode>
+            <recovery_expression/>
             <name>Found a match for &quot;error&quot; in mysql-error.log</name>
+            <correlation_mode>0</correlation_mode>
+            <correlation_tag/>
             <url/>
             <status>0</status>
             <priority>3</priority>
             <description/>
             <type>0</type>
+            <manual_close>1</manual_close>
             <dependencies/>
+            <tags/>
         </trigger>
     </triggers>
 </zabbix_export>
