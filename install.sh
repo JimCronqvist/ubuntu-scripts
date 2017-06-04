@@ -85,7 +85,7 @@ install.sh by Jim Cronqvist
 (4) Configure settings
 (5) Enable monitoring (SNMP & Zabbix)
 (6) Install guest tools
-(7) Install web tools (git, npm, uglifyjs)
+(7) Install web tools (git, npm, yarn, uglifyjs, hugo)
 (8) Install Apache2
 (9) Install PHP 5 and Composer
 (10) Install PHP 7 and Composer
@@ -421,6 +421,7 @@ EOF
             sudo npm install -g uglify-js
             sudo npm install -g webpack
             sudo npm install -g yarn
+	    sudo apt-get install hugo -y
             ;;
             
         "8") # Install Apache2
