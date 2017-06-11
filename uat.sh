@@ -15,10 +15,15 @@ echo $(date)
 cd $REPO_HOME || exit 1
 mkdir -p $FEATURE_HOME
 
+BASE_BRANCH="develop"
+if [ $( git branch -r | grep '^  origin/develop$' | wc -l ) != 1 ]; then
+    BASE_BRANCH="master"
+fi
+
 git fetch origin
 git remote update origin --prune
 COMMIT=$(git describe)
-git reset --hard && git checkout develop && git pull
+git reset --hard && git checkout $BASE_BRANCH && git pull
 if [ "$COMMIT" != "$(git describe)" ]; then
     /usr/local/bin/composer install && yarn install --pure-lockfile
 fi
