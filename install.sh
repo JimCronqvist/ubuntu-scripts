@@ -406,7 +406,7 @@ EOF
             fi
             ;;
             
-        "7") # Install web tools (git, npm, uglifyjs)
+        "7") # Install web tools (git, npm, uglifyjs, hugo)
             
             # Install Git
             apt-get install git -y
@@ -421,7 +421,8 @@ EOF
             sudo npm install -g uglify-js
             sudo npm install -g webpack
             sudo npm install -g yarn
-	    sudo apt-get install hugo -y
+            # Install hugo
+            cd ~ && wget https://github.com/spf13/hugo/releases/download/v0.21/hugo_0.21_Linux-64bit.deb && sudo dpkg -i hugo_*_Linux-64bit.deb
             ;;
             
         "8") # Install Apache2
