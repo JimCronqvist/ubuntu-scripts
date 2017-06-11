@@ -52,15 +52,17 @@ do
 done
 
 # Remove branches that don't have a remote to keep things clean
-for FEATURE_DIR in $FEATURE_HOME/*
-do
-    BRANCH="feature/${FEATURE_DIR##*/}"
-    if [ $( git branch -r | grep ${BRANCH} | wc -l ) != 1 ]; then
-        echo "${BRANCH} no longer exists, removing..."
-        rm -rf $FEATURE_DIR
-    fi
-done
-
+if [ $( find $FEATURE_HOME -mindepth 1 -maxdepth 1 -type d | wc -l ) != 0 ]; then
+    for FEATURE_DIR in $FEATURE_HOME/*
+    do
+        BRANCH="feature/${FEATURE_DIR##*/}"
+        if [ $( git branch -r | grep ${BRANCH} | wc -l ) != 1 ]; then
+            echo "${BRANCH} no longer exists, removing..."
+            rm -rf $FEATURE_DIR
+        fi
+    done
+fi
+    
 echo ""
 
 # Abort if we already have installed the virtual hosts before
