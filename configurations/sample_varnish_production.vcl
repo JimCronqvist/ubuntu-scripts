@@ -112,8 +112,8 @@ sub vcl_recv {
         unset req.http.cookie;
     }
     
-    # Remove cookies for some extensions
-    if (req.http.cookie && req.url ~ "\.(css|js)(\?(.*))?$") {
+    # Remove cookies for some extensions on URLs except for the URL exceptions matched.
+    if (req.http.cookie && req.url ~ "\.(css|js)(\?(.*))?$" && req.url !~ "^/(admin)") {
         unset req.http.cookie;
     }
     
