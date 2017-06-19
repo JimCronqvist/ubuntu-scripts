@@ -32,9 +32,9 @@ fi
 
 git fetch origin
 git remote update origin --prune
-COMMIT=$(git describe)
+COMMIT=$(git describe --always)
 git add . && git reset --hard && git checkout $BASE_BRANCH && git reset --hard origin/${BASE_BRANCH}
-if [ "$COMMIT" != "$(git describe)" ]; then
+if [ "$COMMIT" != "$(git describe --always)" ]; then
     /usr/local/bin/composer install && yarn install --pure-lockfile
 fi
 
