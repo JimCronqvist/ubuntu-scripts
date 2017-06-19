@@ -1,7 +1,16 @@
 #!/bin/bash
 
-FEATURE_HOME="/var/www/features"
-REPO_HOME="/var/www/app"
+# Check for 2 passed arguments, otherwise abort.
+if [ $# -lt 2 ] ; then
+    echo "You have not passed the correct number of arguments. This script should be used with the following syntax:"
+    echo "bash uat.sh /var/www/app /var/www/features"
+    echo ""
+    exit 1;
+fi
+
+
+REPO_HOME="${1%/}"
+FEATURE_HOME="${2%/}"
 
 
 CURRENT_SCRIPT=$(basename "$0")
@@ -23,7 +32,7 @@ fi
 git fetch origin
 git remote update origin --prune
 COMMIT=$(git describe)
-git reset --hard && git checkout $BASE_BRANCH && git pull
+git add . && git reset --hard && git checkout $BASE_BRANCH && git reset --hard origin/${BASE_BRANCH}
 if [ "$COMMIT" != "$(git describe)" ]; then
     /usr/local/bin/composer install && yarn install --pure-lockfile
 fi
@@ -46,7 +55,7 @@ do
         # Update if commit id of local is not identical to remote feature branch
         if [ $(git rev-parse origin/${FEATURE_BRANCH}) != $( cd $FEATURE_DIR && git rev-parse HEAD ) ]; then
             echo "The branch '${FEATURE_BRANCH}' has remote changes and will be updated. "
-            ( cd $FEATURE_DIR && git add . && git reset --hard && git checkout $FEATURE_BRANCH && git pull && /usr/local/bin/composer install && yarn install --pure-lockfile )
+            ( cd $FEATURE_DIR && git add . && git reset --hard && git checkout $FEATURE_BRANCH && git reset --hard origin/${FEATURE_BRANCH} && /usr/local/bin/composer install && yarn install --pure-lockfile )
         fi
     fi
 done
