@@ -14,9 +14,9 @@ FEATURE_HOME="${2%/}"
 
 
 CURRENT_SCRIPT=$(basename "$0")
-RUNNING=$(pgrep -fl ${CURRENT_SCRIPT} | grep -E "bash|${CURRENT_SCRIPT}" | wc -l)
+RUNNING=$(ps xah -opid,cmd | grep "$CURRENT_SCRIPT $@" | grep -v '/bin/sh -c' | grep -v grep | wc -l)
 if [ $RUNNING -gt 2 ]; then
-    echo "Instance of ${CURRENT_SCRIPT} is already running ($RUNNING)..."
+    echo "Instance of ${CURRENT_SCRIPT} $@ is already running ($RUNNING)..."
     exit
 fi
 
