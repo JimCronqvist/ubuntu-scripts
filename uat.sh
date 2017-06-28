@@ -30,8 +30,7 @@ if [ $( git branch -r | grep '^  origin/develop$' | wc -l ) != 1 ]; then
     BASE_BRANCH="master"
 fi
 
-git fetch origin
-git remote update origin --prune
+git fetch --all --prune
 COMMIT=$(git describe --always)
 git add . && git reset --hard && git checkout $BASE_BRANCH && git reset --hard origin/${BASE_BRANCH}
 if [ "$COMMIT" != "$(git describe --always)" ]; then
@@ -56,7 +55,7 @@ do
         # Update if commit id of local is not identical to remote feature branch
         if [ $(git rev-parse origin/${FEATURE_BRANCH}) != $( cd $FEATURE_DIR && git rev-parse HEAD ) ]; then
             echo "The branch '${FEATURE_BRANCH}' has remote changes and will be updated. "
-            ( cd $FEATURE_DIR && git fetch origin && git add . && git reset --hard && git checkout $FEATURE_BRANCH && git reset --hard origin/${FEATURE_BRANCH} && /usr/local/bin/composer install && yarn install --pure-lockfile )
+            ( cd $FEATURE_DIR && git fetch --all --prune && git add . && git reset --hard && git checkout $FEATURE_BRANCH && git reset --hard origin/${FEATURE_BRANCH} && /usr/local/bin/composer install && yarn install --pure-lockfile )
         fi
     fi
 done
