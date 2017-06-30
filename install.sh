@@ -422,7 +422,7 @@ EOF
             sudo npm install -g webpack
             sudo npm install -g yarn
             # Install hugo
-            cd ~ && wget https://github.com/spf13/hugo/releases/download/v0.21/hugo_0.21_Linux-64bit.deb && sudo dpkg -i hugo_*_Linux-64bit.deb
+            cd ~ && wget https://github.com/gohugoio/hugo/releases/download/v0.24.1/hugo_0.24.1_Linux-64bit.deb && sudo dpkg -i hugo_*_Linux-64bit.deb && rm hugo_*_Linux-64bit.deb && hugo version
             ;;
             
         "8") # Install Apache2
