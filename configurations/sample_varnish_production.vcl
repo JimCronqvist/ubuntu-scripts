@@ -45,7 +45,7 @@ sub vcl_recv {
     #set req.http.Host = regsub(req.http.Host, ":[0-9]+", "");
 
     # Normalize the query arguments
-    set req.url = std.querysort(req.url);
+    #set req.url = std.querysort(req.url);
 	
     # Allow purging
     if (req.method == "PURGE") {
