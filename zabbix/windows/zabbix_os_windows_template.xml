@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.4</version>
-    <date>2017-09-04T16:55:54Z</date>
+    <date>2017-09-20T15:39:15Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -1680,7 +1680,7 @@
                 </macro>
                 <macro>
                     <macro>{$CPU_THRESHOLD_WARN}</macro>
-                    <value>60</value>
+                    <value>75</value>
                 </macro>
                 <macro>
                     <macro>{$DISK_THRESHOLD_DISASTER}</macro>
