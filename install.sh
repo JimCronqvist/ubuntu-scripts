@@ -3,7 +3,7 @@
 #############################################
 ##        Automatic install script         ##
 ## Jim Cronqvist <jim.cronqvist@gmail.com> ##
-##          Updated: 2016-02-25            ##
+##          Updated: 2017-10-08            ##
 #############################################
 
 # Abort if not root.
@@ -74,21 +74,24 @@ do
     # Only ask for a choice if we are in interactive mode.
     if [ $INTERACTIVE == 1 ]; then
 
-        #clear
-    cat<<EOF
-==================================
-install.sh by Jim Cronqvist
-----------------------------------
+        echo ""
+        echo "=================================="
+        echo "install.sh by Jim Cronqvist"
+        echo "----------------------------------"
+        echo "Hostname: $(hostname --fqdn)"
+        echo "IP: $(hostname -I)"
+        echo "----------------------------------"
+    	cat<<EOF
 (1) Install all available updates
 (2) Cleaning (apt-get, /tmp, /boot)
 (3) Basic installation and set-up (recommended)
-(4) Configure settings
+(4) Configure advanced settings
 (5) Enable monitoring (SNMP & Zabbix)
-(6) Install guest tools
+(6) Install (NOTHING HERE)
 (7) Install web tools (git, npm, yarn, uglifyjs, hugo)
 (8) Install Apache2
-(9) Install PHP 5 and Composer
-(10) Install PHP 7 and Composer
+(9) Install (NOTHING HERE)
+(10) Install PHP 7.0 and Composer
 (11) Install a database (MySQL/Percona Server/Percona XtraDB Cluster)
 (12) Install keepalived
 (13) Install haproxy
@@ -145,8 +148,7 @@ EOF
             # Turn off ec2 instances automatic renaming of the hostname at each reboot
             sudo sed -i 's/preserve_hostname: false/preserve_hostname: true/' /etc/cloud/cloud.cfg
             
-            # To get the latest package lists
-            #apt-get update
+            # Get the latest package lists
             AptGetUpdate
             
             # Install ssh, pkexec, lvm (ec2 does not come with this by default), lrzsz (xshell support), vim, dialog
@@ -174,9 +176,29 @@ EOF
             sudo apt-get install rkhunter chkrootkit -y
             #rkhunter --check
             
+            # Guest tools - VMware tools
+            if grep -s -q 'Vendor: VMware' /proc/scsi/scsi ; then
+                AptGetUpdate
+                sudo apt-get install open-vm-tools -y
+            fi
+            
+            # Guest tools - Virtualbox guest additions
+            if grep -s -q 'Vendor: VBOX' /proc/scsi/scsi ; then
+                sudo apt-get install virtualbox-guest-dkms -y
+
+                sudo adduser ubuntu vboxsf
+                sudo adduser www-data vboxsf
+            fi
+            
+            # If more than 4 GB ram, it is a "powerful" server, up the default open files limit in Ubuntu
+            if [ $(free -m | awk '/^Mem:/{print $2}') -gt 4000 ]; then
+                sudo bash -c "echo '* soft nofile 8192' >> /etc/security/limits.conf"
+                sudo bash -c "echo '* hard nofile 8192' >> /etc/security/limits.conf"
+            fi
+            
             ;;
             
-        "4") # Configure settings
+        "4") # Configure advanced settings
             
             # Change the port apache2 is listening on.
             if Confirm "Do you want to change the port that apache2 is listening on?" N; then
@@ -187,13 +209,7 @@ EOF
                 sed -i 's/Listen '$OLD_PORT'$/Listen '$NEW_PORT'/g' /etc/apache2/ports.conf
                 sudo service apache2 restart
             fi
-			
-            # Change default limits in Ubuntu.	
-            if Confirm "Do you want to change the open files limit to 8192 instead of 1024? (Needed for powerful web servers)" Y; then
-                sudo bash -c "echo '* soft nofile 8192' >> /etc/security/limits.conf"
-                sudo bash -c "echo '* hard nofile 8192' >> /etc/security/limits.conf"
-            fi
-            
+			            
             # Change default limits in Ubuntu.	
             if Confirm "Do you want to change the open files limit to 100000 instead of 1024? (Needed for VERY powerful web servers)" Y; then
                 sudo bash -c "echo '* soft nofile 100000' >> /etc/security/limits.conf"
@@ -240,7 +256,7 @@ EOF
             if Confirm "Do you want to install zabbix agent (For monitoring)?" N; then
                 # Install zabbix agent
                 sudo apt-get install zabbix-agent -y
-		sudo adduser zabbix adm
+                sudo adduser zabbix adm
                 sudo bash -c "echo 'Server=zabbix.'`dnsdomainname` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
                 sudo bash -c "echo 'ServerActive=zabbix.'`dnsdomainname` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
                 sudo bash -c "echo 'Hostname='`hostname --fqdn` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
@@ -275,22 +291,10 @@ EOF
             fi
             ;;
             
-        "6") # Install guest tools
+        "6") # Install Nothing
             
-            # VMware tools
-            if grep -s -q 'Vendor: VMware' /proc/scsi/scsi ; then
-                AptGetUpdate
-                sudo apt-get install open-vm-tools -y
-            fi
+            echo "Nothing here"
             
-            # Virtualbox guest additions
-            if grep -s -q 'Vendor: VBOX' /proc/scsi/scsi ; then
-                AptGetUpdate
-                sudo apt-get install virtualbox-guest-dkms -y
-
-                sudo adduser www-data vboxsf
-                sudo adduser ubuntu vboxsf
-            fi
             ;;
             
         "7") # Install web tools (git, npm, uglifyjs, hugo)
@@ -352,31 +356,10 @@ EOF
             fi
             ;;
             
-        "9") # Install PHP 5 and Composer
+        "9") # Install Nothing
             
-            if [ $(lsb_release -rs | xargs printf "%.0f") -lt 16 ]; then
+            echo "Nothing here"
             
-                sudo apt-get install php5 php5-ldap php5-curl php5-xsl php5-gd php5-imagick php5-json php5-intl php5-redis -y
-                sudo apt-get install mysql-client -y
-                sudo apt-get install php5-mysqlnd -y
-                sudo apt-get install imagemagick -y
-            
-                # Install php5 mcrypt
-                sudo apt-get install php5-mcrypt -y
-                sudo ln -s /etc/php5/conf.d/mcrypt.ini /etc/php5/mods-available/mcrypt.ini
-                sudo php5enmod mcrypt
-            
-                # Disable PHP ubuntu default garbage collector.
-                rm /etc/cron.d/php5
-            
-                # Download composer
-                curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
-            
-                
-            
-            else
-                echo "PHP 5 are not available on this Ubuntu version, please install PHP 7."
-            fi
             ;;
             
         "10") # Install PHP 7 and Composer
@@ -443,7 +426,7 @@ EOF"
             # Install mysql-utilities
             sudo apt-get install mysql-utilities -y
             
-            if Confirm "Do you want to install Oracle MySQL Server?" N; then
+            if Confirm "Do you want to install Oracle MySQL Server?" Y; then
                 # Optional installation of Mysql Server. Will trigger a question.
                 sudo apt-get install mysql-server -y
                 sudo chmod 0755 /var/lib/mysql
