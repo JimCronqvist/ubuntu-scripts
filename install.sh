@@ -109,10 +109,7 @@ EOF
             # Get the latest package lists and install all available upgrades
             AptGetUpdate
             sudo apt-get dist-upgrade -y
-            
-            # Update the VMware tools in case it is not running but it has been installed earlier. For example in case a kernel has been updated.
-            grep -s -q 'Vendor: VMware' /proc/scsi/scsi && ! test -e /var/run/vmtoolsd.pid && sudo /usr/bin/vmware-config-tools.pl -d
-            
+
             ;;
             
         "2") # Cleaning (apt-get, /tmp, /boot)
@@ -127,18 +124,6 @@ EOF
                 sudo rm -r /tmp/*
             fi
             
-            # Clean the /boot partition
-            if Confirm "Do you want to uninstall all old linux kernels to clear the /boot partition?" N; then
-                echo "Currently installed linux kernel: "$(uname -r)
-                echo "The following kernels will be uninstalled:"
-                dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | grep -v $(uname -r | cut -f1,2 -d"-") | egrep --color '[0-9]+\.[0-9]+\.[0-9]+'
-                if Confirm "Are you sure you want to continue?" N; then
-                    # Remove all kernels that is installed but not the newest that is currently used
-                    dpkg -l linux-{image,headers}-* | awk '/^ii/{print $2}' | grep -v $(uname -r | cut -f1,2 -d"-") | egrep --color '[0-9]+\.[0-9]+\.[0-9]+' | xargs sudo apt-get -y purge
-                    echo ""
-                    echo "All old kernels has been removed."
-                fi
-            fi
             ;;
             
         "3") #Basic installation and set-up (recommended)
@@ -164,85 +149,31 @@ EOF
             #apt-get update
             AptGetUpdate
             
-            # Install ssh
-            apt-get install ssh -y
-            
-            # Install pkexec
-            sudo apt-get install policykit-1 -y
-            
-            # LVM - Amazon EC2 instances does not come with this by default
-            sudo apt-get install lvm2 -y
-            
-            # Install lrzsz to use with Xshell ssh client, allows you to transfer files by dropping them in the console.
-            sudo apt-get install lrzsz -y
+            # Install ssh, pkexec, lvm (ec2 does not come with this by default), lrzsz (xshell support), vim, dialog
+            apt-get install ssh policykit-1 lvm2 lrzsz vim dialog -y
             
             # Set vim as the default text-editor.
             export EDITOR="vi"
             
-            # Install vim
-            apt-get install vim -y
+            # Install troubleshooting tools
+            apt-get install htop iotop iftop traceroute sysstat sysdig ncdu -y
+                        
+            # Install tools for mounting a samba/cifs & nfs storage.
+            sudo apt-get install cifs-utils samba samba-common nfs-common -y
             
-            # Install dialog
-            sudo apt-get install dialog -y
-            
-            # Install htop
-            apt-get install htop -y
-            
-            # Install iotop
-            apt-get install iotop -y
-            
-            # Install iftop
-            apt-get install iftop -y
-            
-            # Traceroute
-            apt-get install traceroute -y
-            
-            # Install tools for mounting a samba/cifs storage.
-            sudo apt-get install cifs-utils samba samba-common -y
-            
-            # Install NTP server
-            sudo apt-get install ntp -y
-            
-            # Install curl
-            sudo apt-get install curl -y
-            
-            # Install iostat
-            sudo apt-get install sysstat -y
-            
-            # Install sysdig
-            sudo apt-get install sysdig -y
-            
-            # Install tree
-            sudo apt-get install tree -y
-            
-            # Install ncdu
-            sudo apt-get install ncdu -y
-            
+            # Install basics that is good to have
+            sudo apt-get install ntp curl tree pv dos2unix debconf-utils software-properties-common -y
+                                   
             # Install acct
             sudo apt-get install acct -y
             
-            # Install pv
-            sudo apt-get install pv -y
-            
-            # Install dos2unix
-            sudo apt-get install dos2unix -y
-            
-            # Install debconf-utils
-            sudo apt-get install debconf-utils -y
-            
-            # Install required software for add-apt-repository
-            sudo apt-get install software-properties-common -y
-            
-            # Install a MTA
-            if Confirm "Do you want to install a MTA?" Y; then
-                sudo apt-get install sendmail mailutils -y
-            fi
+            # Install an MTA
+            sudo apt-get install sendmail mailutils -y
             
             # Install rkhunter to find any potential root kits
-            if Confirm "Do you want to install rkhunter" Y; then
-                sudo apt-get install rkhunter chkrootkit -y
-                #rkhunter --check
-            fi            
+            sudo apt-get install rkhunter chkrootkit -y
+            #rkhunter --check
+            
             ;;
             
         "4") # Configure settings
@@ -348,61 +279,17 @@ EOF
             
             # VMware tools
             if grep -s -q 'Vendor: VMware' /proc/scsi/scsi ; then
-                if [ $(lsb_release -rs | xargs printf "%.0f") -ge 14 ]; then
-                    echo "14.04 or higher, use open-vm-tools"
-                    AptGetUpdate
-                    sudo apt-get install open-vm-tools -y
-                else
-                    if Confirm "Is the vmware tools installer mounted?" Y; then
-                        sudo apt-get install gcc make linux-headers-`uname -r` -y
-                        sudo mount /dev/cdrom /mnt
-                        sudo tar xvfz /mnt/VMwareTools-*.tar.gz -C /tmp/
-                        sudo perl /tmp/vmware-tools-distrib/vmware-install.pl -d
-                        sudo umount -f /mnt
-                    fi
-                fi
-                if Confirm "Do you want to add a symlink for the www folder?" N; then
-                    sudo mv /var/www /var/www_old 2>/dev/null
-                    sudo ln -s /mnt/hgfs/www /var/www
-                fi
+                AptGetUpdate
+                sudo apt-get install open-vm-tools -y
             fi
             
             # Virtualbox guest additions
             if grep -s -q 'Vendor: VBOX' /proc/scsi/scsi ; then
                 AptGetUpdate
                 sudo apt-get install virtualbox-guest-dkms -y
-                
-                if ! grep -s -q 'auto eth1' /etc/network/interfaces ; then
-                    if Confirm "Do you want to add a second NIC?" Y; then
-                        sudo bash -c "echo '' >> /etc/network/interfaces"
-                        sudo bash -c "echo '# Virtualbox Host-only adapter' >> /etc/network/interfaces"
-                        sudo bash -c "echo 'auto eth1' >> /etc/network/interfaces"
-                        sudo bash -c "echo 'iface eth1 inet dhcp' >> /etc/network/interfaces"
-                        sudo /etc/init.d/networking restart
-                        sudo ifconfig eth1 up
-                        sudo dhclient eth1
-                    fi
-                fi
-                
+
                 sudo adduser www-data vboxsf
                 sudo adduser ubuntu vboxsf
-                
-                if Confirm "Do you want to mount the www folder (C:\Users\%USERPROFILE%\www) from the Windows host to '/var/www'?" Y; then
-                    read -p "Please enter your Windows username: " WIN_USER
-                    read -p "Please enter your Windows password: " WIN_PASS
-                    MOUNT_COMMAND="sudo mount -t cifs -o username=$WIN_USER,password=$WIN_PASS,uid=ubuntu,gid=ubuntu,vers=3.02,mfsymlinks,file_mode=0777,dir_mode=0777 \"//10.0.2.2/C$/Users/$WIN_USER/www\" /var/www/"
-                    echo $MOUNT_COMMAND
-                    sudo mkdir -p /var/www
-                    eval $MOUNT_COMMAND
-                    sudo sed -i '/\/C\$\/Users\//d' /etc/rc.local
-                    sudo sed -i '${/exit 0/d;}' /etc/rc.local
-                    echo "" >> /etc/rc.local
-                    echo $MOUNT_COMMAND >> /etc/rc.local
-                    echo "" >> /etc/rc.local
-                    echo "exit 0" >> /etc/rc.local
-                elif Confirm "Do you want to add a symlink for the www folder?" N; then
-                    sudo ln -s /media/sf_www /var/www
-                fi
             fi
             ;;
             
@@ -410,7 +297,6 @@ EOF
             
             # Install Git
             apt-get install git -y
-            #apt-get install gitk -y
             
             # Install npm & uglifyjs
             curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
@@ -486,17 +372,7 @@ EOF
                 # Download composer
                 curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
             
-                # Install xdebug.
-                if Confirm "Do you want to install xdebug?" N; then
-                sudo apt-get install php5-xdebug -y
-                sudo bash -c "cat <<EOF >> /etc/php5/apache2/php.ini
-            
-[xdebug]
-xdebug.remote_enable=1
-xdebug.remote_connect_back=1
-xdebug.idekey=ubuntu
-EOF"
-                fi
+                
             
             else
                 echo "PHP 5 are not available on this Ubuntu version, please install PHP 7."
@@ -523,14 +399,27 @@ EOF"
             # Disable PHP ubuntu default garbage collector.
             sudo rm /etc/cron.d/php
 	    
-	    # Correct the permissions on the sessions folder when "files" are used as the php session driver.
-	    sudo chown -R www-data:www-data /var/lib/php/sessions
+            # Correct the permissions on the sessions folder when "files" are used as the php session driver.
+            sudo chown -R www-data:www-data /var/lib/php/sessions
             
             # Download composer
             curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer
             
             # Install the apache2 module for php7
             sudo apt-get install libapache2-mod-php7.0
+            
+            # Install xdebug.
+            if Confirm "Do you want to install xdebug?" N; then
+                sudo apt-get install php-xdebug -y
+                sudo bash -c "cat <<EOF >> /etc/php/7.0/apache2/php.ini
+
+[xdebug]
+xdebug.remote_enable=1
+xdebug.remote_connect_back=1
+xdebug.idekey=ubuntu
+EOF"
+            fi
+                
             ;;
             
         "11") # Install a database (MySQL/Percona Server/Percona XtraDB Cluster)
