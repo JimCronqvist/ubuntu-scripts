@@ -99,6 +99,11 @@ sub vcl_recv {
         set req.url = regsub(req.url, "\?$", "");
     }
     
+    # Check if there is any forbidden cookies - Not cacheable
+    if (req.http.Cookie ~ "(jc_debug)=") {
+        return (pass);
+    }
+    
     # Unset the entire cookie
     #unset req.http.cookie;
     
@@ -179,11 +184,6 @@ sub vcl_recv {
 	
     # Send Surrogate-Capability headers to announce ESI support to backend
     set req.http.Surrogate-Capability = "key=ESI/1.0";
-	
-	# Check if there is any forbidden cookies - Not cacheable
-    if (req.http.Cookie ~ "(jc_debug)=") {
-        return (pass);
-    }
 	
 	if (req.http.Authorization) {
         # Not cacheable by default
