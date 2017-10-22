@@ -486,6 +486,7 @@ EOF"
             FQDN=$(hostname --fqdn)
             if [ ! -f "/etc/ssl/private/$FQDN.pem" ]; then
                 sudo openssl req -x509 -nodes -days 365 -newkey rsa:4096 -keyout /etc/ssl/private/$FQDN.pem -out /etc/ssl/private/$FQDN.pem -subj "/C=/ST=/L=/O=/CN= "
+                sudo chmod 0600 /etc/ssl/private/$FQDN.pem
                 sudo service haproxy restart
             fi
 	    
