@@ -87,7 +87,7 @@ do
 (3) Basic installation and set-up (recommended)
 (4) Configure advanced settings
 (5) Enable monitoring (SNMP & Zabbix)
-(6) Install (NOTHING HERE)
+(6) Change hostname
 (7) Install web tools (git, npm, yarn, uglifyjs, hugo)
 (8) Install Apache2
 (9) Install (NOTHING HERE)
@@ -281,9 +281,22 @@ EOF
             fi
             ;;
             
-        "6") # Install Nothing
+        "6") # Change hostname
             
-            echo "Nothing here"
+            OLD_FQDN=$(hostname --fqdn)
+            read -e -i "$OLD_FQDN" -p "Please enter the new hostname: " FQDN
+            
+            sudo hostnamectl set-hostname $FQDN
+            sed -i "s/^Hostname=.*$/Hostname=${FQDN}/" /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf
+            
+            echo ""
+            echo "Hostname changed, there could be more locations where it is necessary to update, such as:"
+            echo "- Apache2 vhosts files in /etc/apache2/sites-enabled"
+            echo "- Varnish/ha-proxy configuration files"
+            echo ""
+            echo "Old: $OLD_FQDN"
+            echo "New: $(hostname --fqdn)"
+            echo ""
             
             ;;
             
