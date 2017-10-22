@@ -94,7 +94,7 @@ do
 (10) Install PHP 7.0 and Composer
 (11) Install a database (MySQL/Percona Server/Percona XtraDB Cluster)
 (12) Install keepalived
-(13) Install haproxy
+(13) Install haproxy (for web)
 (14) Install Varnish cache
 (15) Install Redis
 (16) Install FTP
@@ -199,24 +199,14 @@ EOF
             ;;
             
         "4") # Configure advanced settings
-            
-            # Change the port apache2 is listening on.
-            if Confirm "Do you want to change the port that apache2 is listening on?" N; then
-                read -e -i "80" -p "Please enter the old port: " OLD_PORT
-                read -e -i "8080" -p "Please enter the old port: " NEW_PORT
-                
-                sed -i 's/:'$OLD_PORT'>/:'$NEW_PORT'>/g' /etc/apache2/sites-enabled/*
-                sed -i 's/Listen '$OLD_PORT'$/Listen '$NEW_PORT'/g' /etc/apache2/ports.conf
-                sudo service apache2 restart
-            fi
-			            
+            		            
             # Change default limits in Ubuntu.	
-            if Confirm "Do you want to change the open files limit to 100000 instead of 1024? (Needed for VERY powerful web servers)" Y; then
+            if Confirm "Do you want to change the open files limit to 100000 instead of 1024? (Needed for VERY powerful web servers)" N; then
                 sudo bash -c "echo '* soft nofile 100000' >> /etc/security/limits.conf"
                 sudo bash -c "echo '* hard nofile 100000' >> /etc/security/limits.conf"
             fi
             
-            if Confirm "Do you want to change the default TCP settings for a high-performance web-server?" Y; then
+            if Confirm "Do you want to change the default TCP settings for a high-performance web-server?" N; then
                 sudo bash -c "echo 'net.ipv4.ip_local_port_range = 1024 65535' >> /etc/sysctl.conf"
                 # Decrease TIME_WAIT seconds to 30 seconds instead of the default of 60 seconds.
                 sudo bash -c "echo 'net.ipv4.tcp_fin_timeout = 30' >> /etc/sysctl.conf"
@@ -476,7 +466,7 @@ EOF"
             fi
             ;;
             
-        "13") # Install ha-proxy
+        "13") # Install ha-proxy for web
             
             add-apt-repository ppa:vbernat/haproxy-1.6
             APT_UPDATED=0
@@ -491,6 +481,29 @@ EOF"
                 sudo service haproxy restart
                 sudo service rsyslog restart
             fi
+            
+            # If the certificate that we expect to have does not exist, generate one until the user has replaced it with a valid one to prevent that haproxy does not start up properly.
+            FQDN=$(hostname --fqdn)
+            if [ ! -f "/etc/ssl/private/$FQDN.pem" ]; then
+                sudo openssl req -x509 -nodes -days 365 -newkey rsa:4096 -keyout /etc/ssl/private/$FQDN.pem -out /etc/ssl/private/$FQDN.pem -subj "/C=/ST=/L=/O=/CN= "
+                sudo service haproxy restart
+            fi
+	    
+            # Change the port apache2 is listening on, since haproxy is listening on the same one by default (at least in the sample configuration above).
+            if Confirm "Do you want to change the port that apache2 is listening on from 80 to 8080?" Y; then
+                OLD_PORT=80
+                NEW_PORT=8080
+                sed -i 's/:'$OLD_PORT'>/:'$NEW_PORT'>/g' /etc/apache2/sites-enabled/*
+                sed -i 's/Listen '$OLD_PORT'$/Listen '$NEW_PORT'/g' /etc/apache2/ports.conf
+                sudo service apache2 restart
+                sudo service haproxy restart
+            fi
+            
+            # Check if there is any apache2 site configured, otherwise recommend creating one now.
+            if [ $(ls -l /etc/apache2/sites-enabled/ | tail -n +2 | wc -l) -eq 0 ]; then
+                echo "" && echo "NOTE: You have no enabled apache2 site, you should probably create one now." && echo ""
+            fi
+	    
             ;;
             
         "14") # Install Varnish cache
