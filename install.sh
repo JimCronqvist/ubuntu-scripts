@@ -301,6 +301,10 @@ EOF
             sudo npm install -g uglify-js
             sudo npm install -g webpack
             sudo npm install -g yarn
+	    
+	    # Correct permissions after install
+	    sudo chown ubuntu:ubuntu /home/ubuntu/ -R
+	    
             # Install hugo
             cd ~ && wget https://github.com/gohugoio/hugo/releases/download/v0.25/hugo_0.25_Linux-64bit.deb && sudo dpkg -i hugo_*_Linux-64bit.deb && rm hugo_*_Linux-64bit.deb && hugo version
             ;;
