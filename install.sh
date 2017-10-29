@@ -540,7 +540,9 @@ EOF"
             if Confirm "Do you want to download a new configuration file?" Y; then
                 DownloadNewConfigFile "/etc/varnish/production.vcl" "https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/configurations/sample_varnish_production.vcl"
                 sed -i 's/\/etc\/varnish\/default.vcl/\/etc\/varnish\/production.vcl/g' /etc/default/varnish
-                sed -i 's/\/etc\/varnish\/default.vcl/\/etc\/varnish\/production.vcl/g' /lib/systemd/system/varnish.service
+		sudo cp /lib/systemd/system/varnish.service /etc/systemd/system/
+                sed -i 's/\/etc\/varnish\/default.vcl/\/etc\/varnish\/production.vcl/g' /etc/systemd/system/varnish.service
+		sed -i 's/-s malloc,256m/-s malloc,1G -p workspace_client=256k/g' /etc/systemd/system/varnish.service
                 sudo systemctl daemon-reload
                 sudo service varnish restart
             fi
