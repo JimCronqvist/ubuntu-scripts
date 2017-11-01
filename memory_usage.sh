@@ -22,7 +22,7 @@ if [ ! -f /usr/bin/ps_mem.py ]; then
     sudo wget -O /usr/bin/ps_mem.py https://raw.githubusercontent.com/pixelb/ps_mem/master/ps_mem.py && chmod +x /usr/bin/ps_mem.py
 fi
 
-/usr/bin/ps_mem.py
+sudo /usr/bin/ps_mem.py -S
 
 echo ""
 echo ""
