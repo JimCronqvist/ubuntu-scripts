@@ -3,7 +3,7 @@
 #############################################
 ##        Automatic install script         ##
 ## Jim Cronqvist <jim.cronqvist@gmail.com> ##
-##          Updated: 2017-10-08            ##
+##          Updated: 2017-11-07            ##
 #############################################
 
 # Abort if not root.
@@ -539,10 +539,11 @@ EOF"
             
             if Confirm "Do you want to download a new configuration file?" Y; then
                 DownloadNewConfigFile "/etc/varnish/production.vcl" "https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/configurations/sample_varnish_production.vcl"
-                sed -i 's/\/etc\/varnish\/default.vcl/\/etc\/varnish\/production.vcl/g' /etc/default/varnish
-		sudo cp /lib/systemd/system/varnish.service /etc/systemd/system/
-                sed -i 's/\/etc\/varnish\/default.vcl/\/etc\/varnish\/production.vcl/g' /etc/systemd/system/varnish.service
-		sed -i 's/-s malloc,256m/-s malloc,1G -p workspace_client=256k/g' /etc/systemd/system/varnish.service
+                sudo sed -i 's/\/etc\/varnish\/default.vcl/\/etc\/varnish\/production.vcl/g' /etc/default/varnish
+                sudo cp /lib/systemd/system/varnish.service /etc/systemd/system/
+                sudo sed -i 's/\/etc\/varnish\/default.vcl/\/etc\/varnish\/production.vcl/g' /etc/systemd/system/varnish.service
+                sudo sed -i 's/-s malloc,256m/-s malloc,1G -p workspace_client=256k/g' /etc/systemd/system/varnish.service
+                sudo sed -i 's/-a :6081 -T/-a :6081 -a :6086,PROXY -T/g' /etc/systemd/system/varnish.service
                 sudo systemctl daemon-reload
                 sudo service varnish restart
             fi
