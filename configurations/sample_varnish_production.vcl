@@ -21,7 +21,7 @@ backend default {
             "User-Agent: Varnish Health Probe";
 
         .interval  = 5s; # check the health of each backend every 5 seconds
-        .timeout   = 2s; # timing out after 2 second.
+        .timeout   = 8s; # timing out after 2 second.
         .window    = 5;  # If 3 out of the last 5 polls succeeded the backend is considered healthy, otherwise it will be marked as sick
         .threshold = 3;
     }
@@ -32,6 +32,10 @@ acl purgers {
     "localhost";
     "127.0.0.1";
     "::1";
+}
+
+acl server_status {
+    "127.0.0.1";
 }
 
 sub vcl_recv {
@@ -55,6 +59,11 @@ sub vcl_recv {
         }
         # If you got this stage (and didn't error out above), purge the cached result
         return (purge);
+    }
+    
+    # Allow visiting the server-status page
+    if (req.url ~ "^/server-status" && !client.ip ~ server_status) {
+        return (synth(405, "This IP is not allowed to visit the server-status page."));
     }
 
     # Only deal with "normal" types
