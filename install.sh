@@ -3,7 +3,7 @@
 #############################################
 ##        Automatic install script         ##
 ## Jim Cronqvist <jim.cronqvist@gmail.com> ##
-##          Updated: 2017-11-07            ##
+##          Updated: 2017-11-08            ##
 #############################################
 
 # Abort if not root.
@@ -437,6 +437,10 @@ EOF"
                 # Optional installation of Mysql Server. Will trigger a question.
                 sudo apt-get install mysql-server -y
                 sudo chmod 0755 /var/lib/mysql
+                sudo cp /lib/systemd/system/mysql.service /etc/systemd/system/
+                sudo bash -c "echo 'LimitNOFILE=infinity' >> /etc/systemd/system/mysql.service"
+                sudo bash -c "echo 'LimitMEMLOCK=infinity' >> /etc/systemd/system/mysql.service"
+                sudo systemctl daemon-reload && sudo systemctl restart mysql.service
                 # To be able to connect to mysql remotely, add a "#" in /etc/mysql/my.cnf before "bind-address = 127.0.0.1".
                 # Make sure that the user that you connect with has the setting: host = %.
             fi
@@ -449,12 +453,20 @@ EOF"
                 sudo apt-get install percona-server-server-5.6 -y
                 sudo apt-get install percona-toolkit -y
                 sudo chmod 0755 /var/lib/mysql
+                sudo cp /lib/systemd/system/mysql.service /etc/systemd/system/
+                sudo bash -c "echo 'LimitNOFILE=infinity' >> /etc/systemd/system/mysql.service"
+                sudo bash -c "echo 'LimitMEMLOCK=infinity' >> /etc/systemd/system/mysql.service"
+                sudo systemctl daemon-reload && sudo systemctl restart mysql.service
             fi
             
             if Confirm "Do you want to install Percona XtraDB Cluster 5.6?" N; then
                 sudo apt-get install percona-xtradb-cluster-56 -y
                 sudo apt-get install percona-toolkit -y
                 sudo chmod 0755 /var/lib/mysql
+                sudo cp /lib/systemd/system/mysql.service /etc/systemd/system/
+                sudo bash -c "echo 'LimitNOFILE=infinity' >> /etc/systemd/system/mysql.service"
+                sudo bash -c "echo 'LimitMEMLOCK=infinity' >> /etc/systemd/system/mysql.service"
+                sudo systemctl daemon-reload && sudo systemctl restart mysql.service
             fi
             
             if Confirm "Do you want to install Galera arbitrator to be used with Percona XtraDB Cluster?" N; then
