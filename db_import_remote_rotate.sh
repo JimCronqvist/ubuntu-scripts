@@ -102,6 +102,9 @@ fi
 echo "$(timestamp): $REMOTE_GZIP will be used for compression on the remote machine"
 echo "$(timestamp): $LOCAL_GZIP will be used for decompression on this machine"
 
+echo "$(timestamp): Deleting the database previously set as old"
+drop_db ${DATABASE_OLD}
+
 echo "$(timestamp): Starting the MySQL dump, this might take a while..."
 ssh -i $SSH_CERT $SSH_USER@$SSH_HOST "mysqldump --single-transaction --events --triggers --routines --set-gtid-purged=OFF --compress -u ${DB_SOURCE_USER} -p${DB_SOURCE_PASS} ${DATABASE} | ${REMOTE_GZIP} -c --fast" | pv > latest.sql.gz 
 echo "$(timestamp): MySQL dump downloaded"
@@ -119,7 +122,6 @@ echo "$(timestamp): Integrity validated"
 echo "$(timestamp): Prepare the databases for import"
 drop_db ${DATABASE_TEMP}
 create_db ${DATABASE_TEMP}
-drop_db ${DATABASE_OLD}
 
 echo "$(timestamp): Starting the MySQL import, this might take a while..."
 pv latest.sql | mysql -u $DB_DEST_USER -p$DB_DEST_PASS -A -D${DATABASE_TEMP}
