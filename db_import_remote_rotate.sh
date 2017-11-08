@@ -63,7 +63,7 @@ function rename_db {
 
     for TABLE in $TABLES; do
         echo "$(timestamp): Drop and rename ${SOURCE_SCHEMA}.${TABLE} to ${TARGET_SCHEMA}.${TABLE}"
-        mysql -h ${DB_DEST_HOST} -P 3306 --protocol=tcp -p${DB_DEST_PASS} -u ${DB_DEST_USER} -e "SET FOREIGN_KEY_CHECKS=0; RENAME TABLE ${SOURCE_SCHEMA}.${TABLE} TO ${TARGET_SCHEMA}.${TABLE}"
+        mysql -h ${DB_DEST_HOST} -P 3306 --protocol=tcp -p${DB_DEST_PASS} -u ${DB_DEST_USER} -e "SET FOREIGN_KEY_CHECKS=0; RENAME TABLE \`${SOURCE_SCHEMA}\`.\`${TABLE}\` TO \`${TARGET_SCHEMA}\`.\`${TABLE}\`"
     done
 
     if [ -n "$VIEWS" ]; then
