@@ -3,11 +3,15 @@
 #
 # This script will dump a single MySQL database from a remote server and import it onto the machine the script is executed on.
 # WARNING: This script will drop the database on the local server if it already exist.
+# WARNING: Will restart MySQL at the end of this script.
 #
 # Requirements:
 # - SSH passwordless login to the remote db server
 # - slow_query_log must be turned off, turn off by running the following mysql command:
 #   SET GLOBAL slow_query_log=0
+#
+# Cron for daily import at 23:00:
+# sudo bash -c "echo '00 23 * * * ubuntu /home/ubuntu/db_import_remote_rotate.sh > /home/ubuntu/db.log 2>&1' > /etc/cron.d/importdb"
 #
 # Configuration:
 
@@ -132,5 +136,7 @@ rename_db ${DATABASE} ${DATABASE_OLD}
 rename_db ${DATABASE_TEMP} ${DATABASE}
 
 echo "$(timestamp): Completed"
+
+sudo systemctl restart mysql
 
 exit 0
