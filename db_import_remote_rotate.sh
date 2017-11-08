@@ -58,7 +58,7 @@ function rename_db {
 
     VIEWS=`mysql -h ${DB_DEST_HOST} -u ${DB_DEST_USER} -p${DB_DEST_PASS} --protocol=tcp -P 3306 -e "select TABLE_NAME from information_schema.tables where table_schema='${SOURCE_SCHEMA}' and TABLE_TYPE='VIEW'" -sss`
     if [ -n "$VIEWS" ]; then
-           mysqldump -h ${DB_DEST_HOST} -p${DB_DEST_PASS} -u ${DB_DEST_USER} --protocol=tcp -P 3306 ${SOURCE_SCHEMA} $VIEWS > /tmp/${SOURCE_SCHEMA}_views${TIMESTAMP}.dump
+           mysqldump --set-gtid-purged=OFF -h ${DB_DEST_HOST} -p${DB_DEST_PASS} -u ${DB_DEST_USER} --protocol=tcp -P 3306 ${SOURCE_SCHEMA} $VIEWS > /tmp/${SOURCE_SCHEMA}_views${TIMESTAMP}.dump
     fi  
 
     for TABLE in $TABLES; do
