@@ -306,7 +306,7 @@ EOF
             apt-get install git -y
             
             # Install npm & uglifyjs
-            curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+            curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
             sudo apt-get install nodejs -y
             sudo npm install npm@latest -g
             sudo ln -s /usr/bin/nodejs /usr/bin/node
