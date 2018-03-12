@@ -48,7 +48,7 @@ do
         # Create a feature directory if it does not exist yet
         if [ ! -d $FEATURE_DIR ]; then
             echo "Creating new feature directory: ${FEATURE_DIR}"
-            rsync -a --stats ${REPO_HOME}/ ${FEATURE_DIR}/
+            sudo rsync -a --stats ${REPO_HOME}/ ${FEATURE_DIR}/
             ( cd $FEATURE_DIR && git add . && git reset --hard && git checkout $FEATURE_BRANCH && /usr/local/bin/composer install && yarn install --pure-lockfile )
         fi
 
