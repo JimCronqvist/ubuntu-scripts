@@ -256,8 +256,8 @@ EOF
 	"8") # Install AWS CLI
 	
             sudo apt install python-pip -y
-	    pip install awscli
-	    #aws configure
+            pip install awscli
+            #aws configure
 
         "9") # Install Buildkite
             
@@ -269,7 +269,7 @@ EOF
             sudo apt-get install -y buildkite-agent
             read -e -i "" -p "Please enter your buildkite agent token: " BUILDKITE_AGENT_TOKEN
             sudo sed -i "s/xxx/${BUILDKITE_AGENT_TOKEN}/g" /etc/buildkite-agent/buildkite-agent.cfg
-	    sudo adduser buildkite-agent docker
+            sudo adduser buildkite-agent docker
             sudo systemctl enable buildkite-agent && sudo systemctl start buildkite-agent
             
             ;;
