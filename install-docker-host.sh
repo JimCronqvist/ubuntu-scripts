@@ -81,8 +81,9 @@ do
 (5) Configure advanced settings
 (6) Install and enable monitoring (SNMP & Zabbix)
 (7) Install Docker
-(8) Install Buildkite
-(9) Install database utilities (Xtrabackup, mysqldump)
+(8) Install AWS CLI
+(9) Install Buildkite
+(10) Install database utilities (Xtrabackup, mysqldump)
 (0) Quit
 ----------------------------------
 EOF
@@ -230,9 +231,9 @@ EOF
             fi
 			
             ;;
-        "7") # Install Docker and Git
+        "7") # Install Docker
             
-	    AptGetUpdate
+            AptGetUpdate
 	    
             # Install Git if not previously installed
             apt-get install git -y
@@ -245,19 +246,34 @@ EOF
             AptGetUpdate
             sudo apt-get install docker-ce -y
             
-	    # Install docker-compose
-            DOCKER_COMPOSE_VERSION="1.23.1"
+            # Install docker-compose
+            DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
             sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
             sudo curl -L "https://raw.githubusercontent.com/docker/compose/$DOCKER_COMPOSE_VERSION/contrib/completion/bash/docker-compose" -o /etc/bash_completion.d/docker-compose
    
             ;;
-        "8") # Install Buildkite
+	"8") # Install AWS CLI
+	
+            sudo apt install python-pip -y
+	    pip install awscli
+	    #aws configure
+
+        "9") # Install Buildkite
             
-            echo "Do something"
-	    
+            # https://buildkite.com/docs/agent/v3/ubuntu
+            sudo sh -c 'echo deb https://apt.buildkite.com/buildkite-agent stable main > /etc/apt/sources.list.d/buildkite-agent.list'
+            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 32A37959C2FA5C3C99EFBC32A79206696452D198
+            APT_UPDATED=0
+            AptGetUpdate
+            sudo apt-get install -y buildkite-agent
+            read -e -i "" -p "Please enter your buildkite agent token: " BUILDKITE_AGENT_TOKEN
+            sudo sed -i "s/xxx/${BUILDKITE_AGENT_TOKEN}/g" /etc/buildkite-agent/buildkite-agent.cfg
+	    sudo adduser buildkite-agent docker
+            sudo systemctl enable buildkite-agent && sudo systemctl start buildkite-agent
+            
             ;;
-        "9") # Install database utilities (Xtrabackup, mysqldump)
+        "10") # Install database utilities (Xtrabackup, mysqldump)
             
             # Install Xtrabackup
             sudo apt-get install percona-xtrabackup -y
