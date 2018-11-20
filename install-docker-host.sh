@@ -95,10 +95,10 @@ EOF
         "1") # Install updates
             
             AptGetUpdate 
-			sudo apt-get dist-upgrade -y
+            sudo apt-get dist-upgrade -y
 
             ;;
-		"2") # Change hostname
+        "2") # Change hostname
             
             OLD_FQDN=$(hostname --fqdn)
             read -e -i "$OLD_FQDN" -p "Please enter the new hostname: " FQDN
@@ -155,8 +155,8 @@ EOF
             sudo apt-get install rkhunter chkrootkit acct -y
             #rkhunter --check
 			
-			# Install Git
-			sudo apt-get install git -y
+            # Install Git
+            sudo apt-get install git -y
             
             # Guest tools - VMware tools
             if grep -s -q 'Vendor: VMware' /proc/scsi/scsi ; then
@@ -204,6 +204,8 @@ EOF
             ;;
         "6") # Enable monitoring (SNMP & Zabbix)
             
+	    AptGetUpdate
+	    
             # Install SNMP
             if Confirm "Do you want to install snmpd (will be open for everyone as default)?" N; then
                 sudo apt-get install snmpd -y
@@ -215,9 +217,9 @@ EOF
                 sudo bash -c "echo 'SNMPDOPTS=\"-LS 0-4 d -Lf /dev/null -u snmp -I -smux -p /var/run/snmpd.pid -c /etc/snmp/snmpd.conf\"' >> /etc/default/snmpd"
                 sudo service snmpd restart
             fi
-            
+	    
+            # Install zabbix agent
             if Confirm "Do you want to install zabbix agent (For monitoring)?" N; then
-                # Install zabbix agent
                 sudo apt-get install zabbix-agent -y
                 sudo adduser zabbix adm
                 sudo bash -c "echo 'Server=zabbix.'`dnsdomainname` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
@@ -230,27 +232,30 @@ EOF
             ;;
         "7") # Install Docker and Git
             
+	    AptGetUpdate
+	    
             # Install Git if not previously installed
             apt-get install git -y
             
             # Install docker & docker-compose & dependencies
-			sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y
-			curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-			sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-			APT_UPDATED=0
-			AptGetUpdate
-			sudo apt-get install docker-ce -y
-   			
-			# Install docker-compose
-			DOCKER_COMPOSE_VERSION="1.23.1"
-			sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-			sudo chmod +x /usr/local/bin/docker-compose
-			sudo curl -L "https://raw.githubusercontent.com/docker/compose/$DOCKER_COMPOSE_VERSION/contrib/completion/bash/docker-compose" -o /etc/bash_completion.d/docker-compose
+            sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+            APT_UPDATED=0
+            AptGetUpdate
+            sudo apt-get install docker-ce -y
+            
+	    # Install docker-compose
+            DOCKER_COMPOSE_VERSION="1.23.1"
+            sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+            sudo curl -L "https://raw.githubusercontent.com/docker/compose/$DOCKER_COMPOSE_VERSION/contrib/completion/bash/docker-compose" -o /etc/bash_completion.d/docker-compose
    
-			;;
+            ;;
         "8") # Install Buildkite
             
-            
+            echo "Do something"
+	    
             ;;
         "9") # Install database utilities (Xtrabackup, mysqldump)
             
