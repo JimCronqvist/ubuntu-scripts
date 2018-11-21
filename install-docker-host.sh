@@ -134,6 +134,9 @@ EOF
             # Turn off ec2 instances automatic renaming of the hostname at each reboot
             sudo sed -i 's/preserve_hostname: false/preserve_hostname: true/' /etc/cloud/cloud.cfg
             
+            # Disable sudo password for user "ubuntu"
+            sudo bash -c "echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' | ( umask 337; cat >> /etc/sudoers.d/ubuntu; )"
+            
             # Get the latest package lists
             AptGetUpdate
             
