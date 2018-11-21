@@ -238,7 +238,7 @@ EOF
             # Install Git if not previously installed
             apt-get install git -y
             
-            # Install docker & docker-compose & dependencies
+            # Install docker & dependencies
             sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
             sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
@@ -251,7 +251,9 @@ EOF
             sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
             sudo curl -L "https://raw.githubusercontent.com/docker/compose/$DOCKER_COMPOSE_VERSION/contrib/completion/bash/docker-compose" -o /etc/bash_completion.d/docker-compose
-   
+            
+            sudo adduser ubuntu docker
+            
             ;;
 	"8") # Install AWS CLI
 	
@@ -261,6 +263,12 @@ EOF
 
         "9") # Install Buildkite
             
+	    # Ensure docker is installed first
+	    if [ -x "$(command -v docker)" ]; then
+                echo "Please install docker first, aborting."
+		exit
+	    fi
+	    
             # https://buildkite.com/docs/agent/v3/ubuntu
             sudo sh -c 'echo deb https://apt.buildkite.com/buildkite-agent stable main > /etc/apt/sources.list.d/buildkite-agent.list'
             sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 32A37959C2FA5C3C99EFBC32A79206696452D198
