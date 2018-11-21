@@ -301,7 +301,7 @@ EOF
             sudo systemctl enable --now buildkite-agent@1
             sudo systemctl enable --now buildkite-agent@2
             # Follow them all
-            sudo journalctl -f -u "buildkite-agent@*"
+            #sudo journalctl -f -u "buildkite-agent@*"
             
             ;;
         "10") # Install database utilities (Xtrabackup, mysqldump)
