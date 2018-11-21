@@ -288,10 +288,20 @@ EOF
             APT_UPDATED=0
             AptGetUpdate
             sudo apt-get install -y buildkite-agent
-            read -e -i "" -p "Please enter your buildkite agent token: " BUILDKITE_AGENT_TOKEN
+            read -e -i "" -p "Please enter your Buildkite Agent Token: " BUILDKITE_AGENT_TOKEN
             sudo sed -i "s/xxx/${BUILDKITE_AGENT_TOKEN}/g" /etc/buildkite-agent/buildkite-agent.cfg
             sudo adduser buildkite-agent docker
             sudo systemctl enable buildkite-agent && sudo systemctl start buildkite-agent
+	    
+            # Enable multiple agents on the same host
+            sudo systemctl stop buildkite-agent && sudo systemctl disable buildkite-agent
+            # Create a systemd template
+            sudo cp /lib/systemd/system/buildkite-agent.service /etc/systemd/system/buildkite-agent@.service
+            # Now, as many times as you like, we will by default start 2 agents.
+            sudo systemctl enable --now buildkite-agent@1
+            sudo systemctl enable --now buildkite-agent@2
+            # Follow them all
+            sudo journalctl -f -u "buildkite-agent@*"
             
             ;;
         "10") # Install database utilities (Xtrabackup, mysqldump)
