@@ -277,9 +277,9 @@ EOF
         "9") # Install Buildkite
             
 	    # Ensure docker is installed first
-	    if [ -x "$(command -v docker)" ]; then
+	    if [ ! -x "$(command -v docker)" ]; then
                 echo "Please install docker first, aborting."
-		exit
+                exit
 	    fi
 	    
             # https://buildkite.com/docs/agent/v3/ubuntu
