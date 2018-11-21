@@ -137,6 +137,9 @@ EOF
             # Disable sudo password for user "ubuntu"
             sudo bash -c "echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' | ( umask 337; cat >> /etc/sudoers.d/ubuntu; )"
             
+            # Add the universe repo
+            sudo add-apt-repository universe
+            
             # Get the latest package lists
             AptGetUpdate
             
