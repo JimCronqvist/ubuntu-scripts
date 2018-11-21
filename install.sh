@@ -148,6 +148,9 @@ EOF
             # Turn off ec2 instances automatic renaming of the hostname at each reboot
             sudo sed -i 's/preserve_hostname: false/preserve_hostname: true/' /etc/cloud/cloud.cfg
             
+            # Add the universe repo
+            sudo add-apt-repository universe
+	    
             # Get the latest package lists
             AptGetUpdate
             
