@@ -259,6 +259,9 @@ EOF
             sudo curl -L "https://raw.githubusercontent.com/docker/compose/$DOCKER_COMPOSE_VERSION/contrib/completion/bash/docker-compose" -o /etc/bash_completion.d/docker-compose
             
             sudo adduser ubuntu docker
+	    
+	    # Add a cronjob to prune old unused images
+	    sudo bash -c "echo '0 0 * * * root docker image prune -a --force --filter \"until=24h\"' >> /etc/cron.d/docker-cleanup-images"
             
             ;;
 	"8") # Install AWS CLI
