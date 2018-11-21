@@ -259,11 +259,12 @@ EOF
             
             ;;
 	"8") # Install AWS CLI
-	
+            
             sudo apt install python-pip -y
             pip install awscli
             #aws configure
-
+            
+            ;;
         "9") # Install Buildkite
             
 	    # Ensure docker is installed first
