@@ -260,8 +260,8 @@ EOF
             
             sudo adduser ubuntu docker
 	    
-	    # Add a cronjob to prune old unused images
-	    sudo bash -c "echo '0 0 * * * root docker image prune -a --force --filter \"until=48h\"' >> /etc/cron.d/docker-cleanup-images"
+	    # Add a cronjob to prune unused data for docker (excluding volumes)
+	    sudo bash -c "echo '0 0 * * * root /usr/bin/docker system prune -f' >> /etc/cron.d/docker-system-prune"
             
             ;;
 	"8") # Install AWS CLI
