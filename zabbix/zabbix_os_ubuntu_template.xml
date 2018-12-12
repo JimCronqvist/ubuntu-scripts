@@ -561,7 +561,7 @@
                     <type>0</type>
                     <snmp_community/>
                     <snmp_oid/>
-                    <key>system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;]</key>
+                    <key>system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | grep -v '^/snap/core/' | wc -l || echo 0&quot;]</key>
                     <delay>150s</delay>
                     <history>1w</history>
                     <trends>365d</trends>
