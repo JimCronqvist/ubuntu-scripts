@@ -861,7 +861,7 @@ or&#13;
             <tags/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].max(1d)} and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].last(0)}&gt;0</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | grep -v '^/snap/core/' | wc -l || echo 0&quot;].last(0)}&lt;{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].max(1d)} and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].last(0)}&gt;0</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>The number of file systems has decreased on {HOST.NAME}</name>
@@ -877,7 +877,7 @@ or&#13;
             <tags/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | wc -l || echo 0&quot;].count(#2,0)}&gt;1</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;timeout 1.0 df -ah | tail -n +2 | awk '{print $2\&quot; \&quot;$1\&quot; \&quot;$6}' | grep -E -v '^(0|-)' | awk '{print $3}' | grep -v '^/run/user/' | grep -v '^/snap/core/' | wc -l || echo 0&quot;].count(#2,0)}&gt;1</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>Unresponsive file systems on {HOST.NAME}</name>
