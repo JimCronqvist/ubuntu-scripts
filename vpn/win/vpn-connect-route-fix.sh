@@ -8,19 +8,19 @@ VPN_ADAPTER_NAME="VPN"
 #
 
 die() {
-	echo "$*" >&2
-	exit 1
+    echo "$*" >&2
+    exit 1
 }
 
 [ "$VPN_ADAPTER_NAME" ] || die "VPN PPTP Adapter name not set!"
 
 if [ "$(uname -o)" != 'MS/Windows' ]; then
-	id -G | grep -qE '\<(114|544)\>' || die 'Not running with admin rights.'
+    id -G | grep -qE '\<(114|544)\>' || die 'Not running with admin rights.'
 fi
 
 if [ ! $(rasdial.exe | grep -q "No connections") ]; then 
-	echo "Disconnecting any existing connection that might exist."
-	rasdial.exe "$VPN_ADAPTER_NAME" /d
+    echo "Disconnecting any existing connection that might exist."
+    rasdial.exe "$VPN_ADAPTER_NAME" /d
 fi
 
 echo "Connecting to the VPN '$VPN_ADAPTER_NAME'"
@@ -58,7 +58,7 @@ for (( i=1; i <= 254; i++ ))
 do
     IP="$NETWORK.$i"
     if [ "$IP" != "$ROUTER" ] && [ "$IP" != "$VPN_LOCAL_IP" ] && [ "$IP" != "$LOCAL_IP" ]; then
-		echo ROUTE ADD "$IP/32" 0.0.0.0 IF "$IF"
+        echo ROUTE ADD "$IP/32" 0.0.0.0 IF "$IF"
         ROUTE.EXE ADD "$IP/32" 0.0.0.0 IF "$IF"
     else
         echo "Ignoring IP $IP"
