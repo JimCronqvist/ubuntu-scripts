@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VPN_ADAPTER_NAME="DIAKRIT"
+VPN_ADAPTER_NAME="VPN"
 
 #
 # This script is only useful if your home network AND the VPN network both uses a local class C network, and therefore collides.
