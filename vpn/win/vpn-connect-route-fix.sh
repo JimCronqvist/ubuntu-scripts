@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# Ensure this value matches the name of the VPN connection, it also requires you to have chosen "Remember Password" when setting it up.
 VPN_ADAPTER_NAME="VPN"
 
 #
