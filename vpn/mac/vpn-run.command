@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ ! -f "./vpn-route-fix.command" ]; then
-    curl -O https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/mac-osx/vpn-route-fix.command && chmod +x ./vpn-route-fix.command
+    curl -O https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/vpn/mac/vpn-route-fix.command && chmod +x ./vpn-route-fix.command
 fi
 
 function vpn-connect {
