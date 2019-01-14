@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #
 # Install script for Docker on Windows Subsystem for Linux (WSL)
 # Prerequisites: Enable "Expose daemon on tcp://localhost:2375 without TLS" in Docker for Windows -> Settings.
