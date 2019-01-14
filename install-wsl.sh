@@ -43,6 +43,7 @@ tee -a ~/.ssh/config <<EOF
 Host *
   ForwardAgent yes
 EOF
+chmod 0600 ~/.ssh/config
 echo 'eval `ssh-agent -s` && ssh-add ~/.ssh/id_rsa' >> ~/.bashrc && source ~/.bashrc
 
 
