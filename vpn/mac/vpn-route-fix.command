@@ -18,7 +18,7 @@ ROUTER=$(netstat -rn | grep -v ppp0 | awk '/^default/ {print $2}' | grep -v "$VP
 NETWORK=$(echo $ROUTER | cut -d'.' -f1-3)
 
 VPN_LOCAL_IP=$(netstat -rn -f inet | grep lo0 | grep "$NETWORK" | awk '{ print $1 }')
-if [ -x "$VPN_LOCAL_IP" ]; then
+if [ -z "$VPN_LOCAL_IP" ]; then
     VPN_LOCAL_IP=$(ifconfig ppp0 | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p')
 fi
 
