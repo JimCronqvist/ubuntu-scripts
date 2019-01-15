@@ -214,7 +214,7 @@ EOF
 	    AptGetUpdate
 	    
             # Install SNMP
-            if Confirm "Do you want to install snmpd (will be open for everyone as default)?" N; then
+            if Confirm "Do you want to install snmpd (will be open for everyone as default)?" Y; then
                 sudo apt-get install snmpd -y
                 sudo mv /etc/snmp/snmpd.conf /etc/snmp/snmpd.conf.org
                 sudo touch /etc/snmp/snmpd.conf
@@ -226,7 +226,7 @@ EOF
             fi
 	    
             # Install zabbix agent
-            if Confirm "Do you want to install zabbix agent (For monitoring)?" N; then
+            if Confirm "Do you want to install zabbix agent (For monitoring)?" Y; then
                 sudo apt-get install zabbix-agent -y
                 sudo adduser zabbix adm
                 sudo bash -c "echo 'Server=zabbix.'`dnsdomainname` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
