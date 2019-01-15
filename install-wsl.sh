@@ -39,6 +39,7 @@ rm awscli-bundle.zip -f && rm ./awscli-bundle/ -rf
 sudo apt-get install mysql-utilities -y
 
 # Set up SSH Agent Forwarding: Warning - using a wildcard for hosts, use with care, security risks exist.
+mkdir -p ~/.ssh && chmod 0600 ~/.ssh
 tee -a ~/.ssh/config <<EOF
 Host *
   ForwardAgent yes
