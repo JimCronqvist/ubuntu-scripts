@@ -1,0 +1,8 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\wslbash]
+@="Open Ubuntu Bash Here"
+"Icon"="%USERPROFILE%\\AppData\\Local\\lxss\\bash.ico"
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\wslbash\command]
+@="C:\\Windows\\System32\\bash.exe"
