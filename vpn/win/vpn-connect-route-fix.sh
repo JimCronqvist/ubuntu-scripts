@@ -73,7 +73,9 @@ echo "Network:       $NETWORK.0/24"
 echo "VPN local IP:  $VPN_LOCAL_IP"
 echo "VPN Interface: $IF"
 echo ""
-
+echo "If you want a specific IP routed through the VPN, please use the following command:"
+echo "route ADD x.x.x.x/32 0.0.0.0 IF $IF"
+echo ""
 
 echo "VPN should be up and ready to use now."
 read -r _
