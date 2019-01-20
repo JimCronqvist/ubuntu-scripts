@@ -418,7 +418,7 @@ EOF"
             
         "11") # Install a database (MySQL/Percona Server/Percona XtraDB Cluster)
             
-            if ! grep "repo.percona.com" /etc/apt/sources.list > /dev/null; then
+            if ! grep -sq "repo.percona.com" /etc/apt/sources.list /etc/apt/sources.list.d/percona-release.list; then
                 # Adding repositories from Percona.
                 sudo apt-get install lsb-release -y
                 if sudo apt-key adv --keyserver keys.gnupg.net --recv-keys 8507EFA5 | grep "key 8507EFA5 not found on keyserver" ; then
