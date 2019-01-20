@@ -211,7 +211,7 @@ EOF
             ;;
         "6") # Enable monitoring (SNMP & Zabbix)
             
-	    AptGetUpdate
+            AptGetUpdate
 	    
             # Install SNMP
             if Confirm "Do you want to install snmpd (will be open for everyone as default)?" Y; then
@@ -251,6 +251,19 @@ EOF
             APT_UPDATED=0
             AptGetUpdate
             sudo apt-get install docker-ce -y
+            sudo tee -a /etc/docker/daemon.json <<EOF
+{
+    "default-address-pools": [
+        {"base":"172.17.0.0/16","size":24},
+        {"base":"172.18.0.0/16","size":24},
+        {"base":"172.19.0.0/16","size":24},
+        {"base":"172.20.0.0/14","size":24},
+        {"base":"172.24.0.0/14","size":24},
+        {"base":"172.28.0.0/14","size":24}
+    ]
+}
+EOF
+            sudo service docker reload
             
             # Install docker-compose
             DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
@@ -260,8 +273,8 @@ EOF
             
             sudo adduser ubuntu docker
 	    
-	    # Add a cronjob to prune unused data for docker (excluding volumes)
-	    sudo bash -c "echo '0 0 * * * root /usr/bin/docker system prune -f' >> /etc/cron.d/docker-system-prune"
+            # Add a cronjob to prune unused data for docker (excluding volumes)
+            sudo bash -c "echo '0 0 * * * root /usr/bin/docker system prune -f' >> /etc/cron.d/docker-system-prune"
             
             ;;
 	"8") # Install AWS CLI
@@ -276,11 +289,11 @@ EOF
             ;;
         "9") # Install Buildkite
             
-	    # Ensure docker is installed first
-	    if [ ! -x "$(command -v docker)" ]; then
+            # Ensure docker is installed first
+            if [ ! -x "$(command -v docker)" ]; then
                 echo "Please install docker first, aborting."
                 exit
-	    fi
+            fi
 	    
             # https://buildkite.com/docs/agent/v3/ubuntu
             sudo sh -c 'echo deb https://apt.buildkite.com/buildkite-agent stable main > /etc/apt/sources.list.d/buildkite-agent.list'
