@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>4.0</version>
-    <date>2019-01-21T06:37:46Z</date>
+    <date>2019-01-23T12:20:25Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -38,7 +38,7 @@ sudo service zabbix-agent restart</description>
                     <type>0</type>
                     <snmp_community/>
                     <snmp_oid/>
-                    <key>system.run[&quot;docker ps | wc -l&quot;]</key>
+                    <key>system.run[&quot;docker ps --filter 'status=running' | wc -l&quot;]</key>
                     <delay>30s</delay>
                     <history>30d</history>
                     <trends>365d</trends>
@@ -373,7 +373,7 @@ sudo service zabbix-agent restart</description>
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template App Docker - Jim Cronqvist:system.run[&quot;docker ps | wc -l&quot;].last()}&lt;{Template App Docker - Jim Cronqvist:system.run[&quot;docker ps | wc -l&quot;].max(3d)}</expression>
+            <expression>{Template App Docker - Jim Cronqvist:system.run[&quot;docker ps --filter 'status=running' | wc -l&quot;].last()}&lt;{Template App Docker - Jim Cronqvist:system.run[&quot;docker ps --filter 'status=running' | wc -l&quot;].max(3d)}</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>The number of Docker containers running has decresed on {HOST.NAME}</name>
