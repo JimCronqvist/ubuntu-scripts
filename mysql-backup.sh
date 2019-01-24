@@ -5,7 +5,7 @@
 
 USER="root"
 PASS="password"
-BACKUP_DIR="/home/ubuntu/backups"
+BACKUP_DIR="/root/backups"
 KEEP_BACKUPS=30
 SOCKET="/var/lib/mysql/mysql.sock"
 COMPRESSION_LEVEL=6
@@ -35,6 +35,7 @@ timestamp() {
     date +"%Y-%m-%d %H:%M:%S"
 }
 
+mkdir -p "${BACKUP_DIR}"
 echo -e "${BLUE}$(timestamp): Run MySQL backup for the following databases:${NORMAL}"
 DBS="$(MYSQL_PWD="${PASS}" $MYSQL --socket=${SOCKET} -u $USER -Bse 'SHOW DATABASES;' | grep -Ev '^(information_schema|performance_schema|test|sys)$')"
 echo "$DBS" | sed -e 's/^/- /'
