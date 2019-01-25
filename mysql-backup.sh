@@ -5,7 +5,7 @@
 
 USER="root"
 PASS="password"
-BACKUP_DIR="/root/backups"
+BACKUP_DIR="/var/backups/mysql"
 KEEP_BACKUPS=30
 SOCKET="/var/lib/mysql/mysql.sock"
 COMPRESSION_LEVEL=6
