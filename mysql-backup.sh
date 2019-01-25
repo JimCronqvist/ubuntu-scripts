@@ -46,7 +46,7 @@ do
     FILE="${BACKUP_DIR}/${HOSTNAME}.${db}.`date +%Y-%m-%d_%H.%M.%S`.sql.gz"
 
     START=$(date +%s)
-    MYSQL_PWD="${PASS}" $MYSQLDUMP --no-defaults --no-tablespaces --single-transaction --quick --quote-names --max_allowed_packet=16M --set-gtid-purged=OFF --socket=${SOCKET} -u "${USER}" "${db}" | $GZIP -${COMPRESSION_LEVEL} > "${FILE}"
+    MYSQL_PWD="${PASS}" $MYSQLDUMP --no-defaults --no-tablespaces --single-transaction --quick --quote-names --max_allowed_packet=16M --set-gtid-purged=OFF --triggers --routines --events --socket=${SOCKET} -u "${USER}" "${db}" | $GZIP -${COMPRESSION_LEVEL} > "${FILE}"
     RESULT=$?
     END=$(date +%s)
     SECONDS=$((END-START))
