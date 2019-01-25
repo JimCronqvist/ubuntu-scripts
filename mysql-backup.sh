@@ -37,7 +37,7 @@ timestamp() {
 
 mkdir -p "${BACKUP_DIR}"
 echo -e "${BLUE}$(timestamp): Run MySQL backup for the following databases:${NORMAL}"
-DBS="$(MYSQL_PWD="${PASS}" $MYSQL --socket=${SOCKET} -u $USER -Bse 'SHOW DATABASES;' | grep -Ev '^(information_schema|performance_schema|test|sys)$')"
+DBS="$(MYSQL_PWD="${PASS}" $MYSQL --no-defaults --socket=${SOCKET} -u $USER -Bse 'SHOW DATABASES;' | grep -Ev '^(information_schema|performance_schema|test|sys)$')"
 echo "$DBS" | sed -e 's/^/- /'
 echo ""
 
@@ -46,7 +46,7 @@ do
     FILE="${BACKUP_DIR}/${HOSTNAME}.${db}.`date +%Y-%m-%d_%H.%M.%S`.sql.gz"
 
     START=$(date +%s)
-    MYSQL_PWD="${PASS}" $MYSQLDUMP --no-tablespaces --single-transaction --quick --quote-names --socket=${SOCKET} -u "${USER}" "${db}" | $GZIP -${COMPRESSION_LEVEL} > "${FILE}"
+    MYSQL_PWD="${PASS}" $MYSQLDUMP --no-defaults --no-tablespaces --single-transaction --quick --quote-names --set-gtid-purged=OFF --socket=${SOCKET} -u "${USER}" "${db}" | $GZIP -${COMPRESSION_LEVEL} > "${FILE}"
     RESULT=$?
     END=$(date +%s)
     SECONDS=$((END-START))
