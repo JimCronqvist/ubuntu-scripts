@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>4.0</version>
-    <date>2019-01-25T16:43:07Z</date>
+    <date>2019-01-26T15:54:07Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -97,7 +97,7 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template MySQL Backup - Jim Cronqvist:system.run[&quot;find {$BACKUP_PATH} -type f -maxdepth 1 -mtime -1 -size +1k | wc -l&quot;].nodata(10m)}=1</expression>
+            <expression>{Template MySQL Backup - Jim Cronqvist:system.run[&quot;find {$BACKUP_PATH} -type f -maxdepth 1 -mtime -1 -size +1k | wc -l&quot;].nodata(90m)}=1</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>Could not find out if a MySQL backup has been created the last 24 hours</name>
