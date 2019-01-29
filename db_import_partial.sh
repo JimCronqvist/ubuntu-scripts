@@ -25,7 +25,9 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-printf "\n${BLUE}There is a limit of ${DUMP_LIMIT} rows per table, except for:${NC} ${EXCLUDE_DATA_FOR[@]}\n"
+printf "\nThis script will create a MySQL partial clone of the database '${SOURCE_DB_DATABASE}' -> '${DEST_DB_DATABASE}'\n"
+printf "\n${BLUE}There is a limit of ${DUMP_LIMIT} rows per table, except for:${NC}\n"
+printf "%s\n" "${IGNORE_DUMP_LIMIT_FOR[@]}"
 printf "\n${RED}The following tables will be created but no data will be copied:${NC}\n"
 printf "%s\n" "${EXCLUDE_DATA_FOR[@]}"
 
@@ -51,7 +53,7 @@ do
     done
 
     # Create the database if it does not exist
-    mysql -u root -p${DEST_DB_ROOT_PASS} -h ${DEST_DB_HOST} --execute="CREATE SCHEMA IF NOT EXISTS '${DEST_DB_DATABASE}';"
+    mysql -u root -p${DEST_DB_ROOT_PASS} -h ${DEST_DB_HOST} --execute='CREATE SCHEMA IF NOT EXISTS `'${DEST_DB_DATABASE}'`;'
 
     # Dump the source database and import it to the destination database
     if [ "${primary_col}" == "NULL" ]; then
@@ -76,4 +78,6 @@ done
 
 # Grant user access
 mysql -u root -p${DEST_DB_ROOT_PASS} -h ${DEST_DB_HOST} \
-    --execute="GRANT ALL PRIVILEGES ON ${DEST_DB_DATABASE}.* TO ${DEST_DB_USER} IDENTIFIED BY '${DEST_DB_PASS}';"
+    --execute='GRANT ALL PRIVILEGES ON `'${DEST_DB_DATABASE}'`'".* TO '${DEST_DB_USER}' IDENTIFIED BY '${DEST_DB_PASS}';"
+
+echo "MySQL partial clone is complete"
