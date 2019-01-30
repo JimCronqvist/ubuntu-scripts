@@ -53,7 +53,8 @@ do
     done
 
     # Create the database if it does not exist
-    mysql -u root -p${DEST_DB_ROOT_PASS} -h ${DEST_DB_HOST} --execute='CREATE SCHEMA IF NOT EXISTS `'${DEST_DB_DATABASE}'`;'
+    mysql -u root -p${DEST_DB_ROOT_PASS} -h ${DEST_DB_HOST} \
+        --execute='CREATE DATABASE IF NOT EXISTS `'${DEST_DB_DATABASE}'` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
 
     # Dump the source database and import it to the destination database
     if [ "${primary_col}" == "NULL" ]; then
