@@ -7,7 +7,7 @@
 
 sudo apt-get update
 sudo apt-get dist-upgrade -y
-sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-commom
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-commom unzip
 
 # Install docker
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
@@ -48,4 +48,4 @@ chmod 0600 ~/.ssh/config
 echo 'eval `ssh-agent -s` && ssh-add ~/.ssh/id_rsa' >> ~/.bashrc && source ~/.bashrc
 
 
-echo "Install complete, please close and open a new session."
+echo "Install complete, please copy your 'id_rsa' file into '~/.ssh/' and restart your computer."
