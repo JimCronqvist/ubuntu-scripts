@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>4.0</version>
-    <date>2019-02-06T04:21:43Z</date>
+    <date>2019-02-10T19:16:02Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -677,7 +677,7 @@
                     <type>0</type>
                     <snmp_community/>
                     <snmp_oid/>
-                    <key>system.run[&quot;test -e /etc/sudoers.d/zabbix &amp;&amp; sudo -n lsof / | grep deleted | awk '{s+=$7/1024/1024/1024} END {print s}'&quot;]</key>
+                    <key>system.run[&quot;test -e /etc/sudoers.d/zabbix &amp;&amp; sudo lsof +L1 | awk '{s+=$7/1024/1024/1024} END {print s}'&quot;]</key>
                     <delay>1m</delay>
                     <history>1w</history>
                     <trends>365d</trends>
@@ -1017,10 +1017,10 @@ or&#13;
             <tags/>
         </trigger>
         <trigger>
-            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;test -e /etc/sudoers.d/zabbix &amp;&amp; sudo -n lsof / | grep deleted | awk '{s+=$7/1024/1024/1024} END {print s}'&quot;].last(0)}&gt;1</expression>
+            <expression>{Template OS Ubuntu - Jim Cronqvist:system.run[&quot;test -e /etc/sudoers.d/zabbix &amp;&amp; sudo lsof +L1 | awk '{s+=$7/1024/1024/1024} END {print s}'&quot;].last(0)}&gt;1</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
-            <name>More than 1 GB open deleted file descriptors on {HOST.NAME}</name>
+            <name>More than 1 GB open deleted file descriptors on {HOST.NAME} ({ITEM.LASTVALUE})</name>
             <correlation_mode>0</correlation_mode>
             <correlation_tag/>
             <url/>
