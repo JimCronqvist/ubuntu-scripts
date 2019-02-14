@@ -47,5 +47,9 @@ EOF
 chmod 0600 ~/.ssh/config
 echo 'eval `ssh-agent -s` && ssh-add ~/.ssh/id_rsa' >> ~/.bashrc && source ~/.bashrc
 
+# Install node 10
+curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt install nodejs -y
+
 
 echo "Install complete, please copy your 'id_rsa' file into '~/.ssh/' and restart your computer."
