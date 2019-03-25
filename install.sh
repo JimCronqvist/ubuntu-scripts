@@ -447,6 +447,7 @@ EOF"
                 sudo systemctl daemon-reload && sudo systemctl restart mysql.service
                 # To be able to connect to mysql remotely, add a "#" in /etc/mysql/my.cnf before "bind-address = 127.0.0.1".
                 # Make sure that the user that you connect with has the setting: host = %.
+		mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -h 127.0.0.1 -u root -p mysql
             fi
             
             if Confirm "Do you want to install Percona Server 5.6?" N; then
@@ -461,6 +462,7 @@ EOF"
                 sudo bash -c "echo 'LimitNOFILE=infinity' >> /etc/systemd/system/mysql.service"
                 sudo bash -c "echo 'LimitMEMLOCK=infinity' >> /etc/systemd/system/mysql.service"
                 sudo systemctl daemon-reload && sudo systemctl restart mysql.service
+		mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -h 127.0.0.1 -u root -p mysql
             fi
             
             if Confirm "Do you want to install Percona XtraDB Cluster 5.6?" N; then
@@ -471,6 +473,7 @@ EOF"
                 sudo bash -c "echo 'LimitNOFILE=infinity' >> /etc/systemd/system/mysql.service"
                 sudo bash -c "echo 'LimitMEMLOCK=infinity' >> /etc/systemd/system/mysql.service"
                 sudo systemctl daemon-reload && sudo systemctl restart mysql.service
+		mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -h 127.0.0.1 -u root -p mysql
             fi
             
             if Confirm "Do you want to install Galera arbitrator to be used with Percona XtraDB Cluster?" N; then
