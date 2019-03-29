@@ -28,7 +28,7 @@
                     <type>0</type>
                     <snmp_community/>
                     <snmp_oid/>
-                    <key>system.run[&quot;find {$BACKUP_PATH} -type f -maxdepth 1 -mtime -1 -size +1k | wc -l&quot;]</key>
+                    <key>system.run[&quot;find {$BACKUP_PATH} -maxdepth 1 -type f -mtime -1 -size +1k | wc -l&quot;]</key>
                     <delay>30m</delay>
                     <history>30d</history>
                     <trends>365d</trends>
@@ -97,7 +97,7 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template MySQL Backup - Jim Cronqvist:system.run[&quot;find {$BACKUP_PATH} -type f -maxdepth 1 -mtime -1 -size +1k | wc -l&quot;].nodata(90m)}=1</expression>
+            <expression>{Template MySQL Backup - Jim Cronqvist:system.run[&quot;find {$BACKUP_PATH} -maxdepth 1 -type f -mtime -1 -size +1k | wc -l&quot;].nodata(90m)}=1</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>Could not find out if a MySQL backup has been created the last 24 hours</name>
@@ -113,7 +113,7 @@
             <tags/>
         </trigger>
         <trigger>
-            <expression>{Template MySQL Backup - Jim Cronqvist:system.run[&quot;find {$BACKUP_PATH} -type f -maxdepth 1 -mtime -1 -size +1k | wc -l&quot;].last()}=0</expression>
+            <expression>{Template MySQL Backup - Jim Cronqvist:system.run[&quot;find {$BACKUP_PATH} -maxdepth 1 -type f -mtime -1 -size +1k | wc -l&quot;].last()}=0</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>No MySQL backup has been created the last 24 hours</name>
