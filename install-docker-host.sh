@@ -370,15 +370,15 @@ EOF
             # Install Percona Toolkit
             sudo apt-get install percona-toolkit -y
 
-            #
-            # @Todo: Install MySQL Database versions here
-            #
+
+            # Install Percona Server
             if Confirm "Do you want to install Percona Server 5.7?" N; then
                 sudo apt-get install dialog -y
                 sudo apt-get install percona-server-server-5.7 -y
                 DB_INSTALLED=1
             fi
-            
+
+
             # Apply generic MySQL operations if a DB has been installed
             if [ $DB_INSTALLED == 1 ]; then
                 sudo chmod 0755 /var/lib/mysql
