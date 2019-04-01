@@ -329,7 +329,7 @@ EOF
             if ! grep -sq "repo.percona.com" /etc/apt/sources.list.d/percona-release.list; then
                 wget https://repo.percona.com/apt/percona-release_latest.generic_all.deb
                 sudo dpkg -i percona-release_latest.generic_all.deb
-                sudo percona-release enable all release
+                sudo percona-release enable tools release
                 APT_UPDATED=0
                 AptGetUpdate
             fi
@@ -359,7 +359,7 @@ EOF
             if ! grep -sq "repo.percona.com" /etc/apt/sources.list.d/percona-release.list; then
                 wget https://repo.percona.com/apt/percona-release_latest.generic_all.deb
                 sudo dpkg -i percona-release_latest.generic_all.deb
-                sudo percona-release enable all release
+                sudo percona-release enable tools release
                 APT_UPDATED=0
                 AptGetUpdate
             fi
