@@ -84,6 +84,8 @@ do
 (8) Install AWS CLI
 (9) Install Buildkite
 (10) Install database utilities (Xtrabackup, mysqldump)
+(11) Install Node
+(12) Install Database
 (0) Quit
 ----------------------------------
 EOF
@@ -321,12 +323,67 @@ EOF
             #sudo journalctl -f -u "buildkite-agent@*"
             
             ;;
-        "10") # Install database utilities (Xtrabackup, mysqldump)
+        "10") # Install Database Utilities (Xtrabackup, mysqldump)
             
-            # Install Xtrabackup
-            sudo apt-get install percona-xtrabackup -y
-            # Install mysql-utilities
-            sudo apt-get install mysql-utilities -y
+            # Set up Percona apt repos
+            if ! grep -sq "repo.percona.com" /etc/apt/sources.list.d/percona-release.list; then
+                wget https://repo.percona.com/apt/percona-release_latest.generic_all.deb
+                sudo dpkg -i percona-release_latest.generic_all.deb
+                sudo percona-release enable all release
+                APT_UPDATED=0
+                AptGetUpdate
+            fi
+            
+            # Install Xtrabackup & mysql-utilities
+            sudo apt-get install percona-xtrabackup mysql-utilities -y
+            
+            ;;
+        "11") # Install Node
+            
+            # Install Node 10 LTS
+            curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+            sudo apt install nodejs -y
+            sudo npm install npm@latest -g
+            sudo npm install yarn@latest -g
+            sudo npm install pm2@latest -g
+            
+            # Correct permissions after install
+            sudo chown ubuntu:ubuntu /home/ubuntu/ -R
+            
+            ;;
+        "12") # Install Database
+            
+            DB_INSTALLED=0
+            
+            # Set up Percona apt repos
+            if ! grep -sq "repo.percona.com" /etc/apt/sources.list.d/percona-release.list; then
+                wget https://repo.percona.com/apt/percona-release_latest.generic_all.deb
+                sudo dpkg -i percona-release_latest.generic_all.deb
+                sudo percona-release enable all release
+                APT_UPDATED=0
+                AptGetUpdate
+            fi
+            
+            # Install Xtrabackup & mysql-utilities
+            sudo apt-get install percona-xtrabackup mysql-utilities -y
+            
+            # Install Percona Toolkit
+            sudo apt-get install percona-toolkit -y
+
+            #
+            # @Todo: Install MySQL Database versions here
+            #
+            
+            # Apply generic MySQL operations if a DB has been installed
+            if [ $DB_INSTALLED == 1 ]; then
+                sudo chmod 0755 /var/lib/mysql
+                sudo cp /lib/systemd/system/mysql.service /etc/systemd/system/
+                sudo bash -c "echo 'LimitNOFILE=infinity' >> /etc/systemd/system/mysql.service"
+                sudo bash -c "echo 'LimitMEMLOCK=infinity' >> /etc/systemd/system/mysql.service"
+                sudo systemctl daemon-reload && sudo systemctl restart mysql.service
+                # Import Timezones into MySQL
+                mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -h 127.0.0.1 -u root -p mysql
+            fi
             
             ;;
         "0")
