@@ -165,6 +165,9 @@ EOF
             # Install Git
             sudo apt-get install git -y
             
+            # Pre-save the Github host key
+            ssh-keyscan github.com | sudo tee -a /etc/ssh/ssh_known_hosts
+            
             # Guest tools - VMware tools
             if grep -s -q 'Vendor: VMware' /proc/scsi/scsi ; then
                 AptGetUpdate
