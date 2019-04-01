@@ -234,7 +234,7 @@ EOF
             if Confirm "Do you want to install zabbix agent (For monitoring)?" Y; then
                 sudo apt-get install zabbix-agent -y
                 sudo adduser zabbix adm
-		sudo bash -c "echo 'zabbix ALL=NOPASSWD: /usr/bin/lsof' | ( umask 337; cat >> /etc/sudoers.d/zabbix; )"
+                sudo bash -c "echo 'zabbix ALL=NOPASSWD: /usr/bin/lsof' | ( umask 337; cat >> /etc/sudoers.d/zabbix; )"
                 sudo bash -c "echo 'Server=zabbix.'`dnsdomainname` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
                 sudo bash -c "echo 'ServerActive=zabbix.'`dnsdomainname` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
                 sudo bash -c "echo 'Hostname='`hostname --fqdn` >> /etc/zabbix/zabbix_agentd.conf.d/zabbix.conf"
@@ -373,6 +373,11 @@ EOF
             #
             # @Todo: Install MySQL Database versions here
             #
+            if Confirm "Do you want to install Percona Server 5.7?" N; then
+                sudo apt-get install dialog -y
+                sudo apt-get install percona-server-server-5.7 -y
+                DB_INSTALLED=1
+            fi
             
             # Apply generic MySQL operations if a DB has been installed
             if [ $DB_INSTALLED == 1 ]; then
