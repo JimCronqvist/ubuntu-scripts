@@ -388,7 +388,9 @@ EOF
                 sudo bash -c "echo 'LimitNOFILE=infinity' >> /etc/systemd/system/mysql.service"
                 sudo bash -c "echo 'LimitMEMLOCK=infinity' >> /etc/systemd/system/mysql.service"
                 sudo systemctl daemon-reload && sudo systemctl restart mysql.service
-                # Import Timezones into MySQL
+		# Import Timezones into MySQL
+		echo ""
+		echo "Please enter your root password for MySQL in order for us to import timezones into MySQL."
                 mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -h 127.0.0.1 -u root -p mysql
             fi
             
