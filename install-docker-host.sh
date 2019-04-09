@@ -83,7 +83,7 @@ do
 (7) Install Docker
 (8) Install AWS CLI
 (9) Install Buildkite
-(10) Install database utilities (Xtrabackup, mysqldump)
+(10) Install database utilities (Xtrabackup, mysqldump, mysql-client)
 (11) Install Node
 (12) Install Database
 (0) Quit
@@ -323,7 +323,7 @@ EOF
             #sudo journalctl -f -u "buildkite-agent@*"
             
             ;;
-        "10") # Install Database Utilities (Xtrabackup, mysqldump)
+        "10") # Install Database Utilities (Xtrabackup, mysqldump, mysql-client)
             
             # Set up Percona apt repos
             if ! grep -sq "repo.percona.com" /etc/apt/sources.list.d/percona-tools-release.list; then
@@ -337,6 +337,9 @@ EOF
             
             # Install Xtrabackup & mysql-utilities
             sudo apt-get install percona-xtrabackup mysql-utilities -y
+            
+            # Install mysql client
+            sudo apt-get install mysql-client-core-5.7 -y
             
             ;;
         "11") # Install Node
