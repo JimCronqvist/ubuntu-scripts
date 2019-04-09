@@ -36,6 +36,16 @@ timestamp() {
     date +"%Y-%m-%d %H:%M:%S"
 }
 
+# Checks for required dependencies
+if [ -z "${MYSQL}" ]; then
+    echo "MySQL client is not installed, exiting."
+    exit 1
+fi
+if [ -z "${MYSQLDUMP}" ]; then
+    echo "Mysqldump is not installed, exiting."
+    exit 1
+fi
+
 # Create the $CON variable: Use $SOCKET if not empty, otherwise use $HOST
 CON="--socket=${SOCKET}"
 if [ -z "${SOCKET}" ]; then
@@ -53,6 +63,9 @@ do
     FILE="${BACKUP_DIR}/${HOSTNAME}.${db}.`date +%Y-%m-%d_%H.%M.%S`.sql.gz"
 
     START=$(date +%s)
+    echo "Running command:"
+    echo -e "${BLUE}$MYSQLDUMP --no-defaults --no-tablespaces --single-transaction --quick --quote-names --max_allowed_packet=16M --set-gtid-purged=OFF --triggers --routines --events $CON -u '${USER}' -p '${db}' | $GZIP -${COMPRESSION_LEVEL} > '${FILE}'${NORMAL}"
+    echo ""
     MYSQL_PWD="${PASS}" $MYSQLDUMP --no-defaults --no-tablespaces --single-transaction --quick --quote-names --max_allowed_packet=16M --set-gtid-purged=OFF --triggers --routines --events $CON -u "${USER}" "${db}" | $GZIP -${COMPRESSION_LEVEL} > "${FILE}"
     RESULT=$?
     END=$(date +%s)
