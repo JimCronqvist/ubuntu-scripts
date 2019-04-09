@@ -8,6 +8,7 @@ PASS="password"
 BACKUP_DIR="/var/backups/mysql"
 KEEP_BACKUPS=30
 SOCKET="/var/lib/mysql/mysql.sock"
+HOST="127.0.0.1"
 COMPRESSION_LEVEL=6
 
 
@@ -35,9 +36,15 @@ timestamp() {
     date +"%Y-%m-%d %H:%M:%S"
 }
 
+# Create the $CON variable: Use $SOCKET if not empty, otherwise use $HOST
+CON="--socket=${SOCKET}"
+if [ -z "${SOCKET}" ]; then
+    CON="--host=${HOST}"
+fi
+
 mkdir -p "${BACKUP_DIR}"
 echo -e "${BLUE}$(timestamp): Run MySQL backup for the following databases:${NORMAL}"
-DBS="$(MYSQL_PWD="${PASS}" $MYSQL --no-defaults --socket=${SOCKET} -u $USER -Bse 'SHOW DATABASES;' | grep -Ev '^(information_schema|performance_schema|test|sys)$')"
+DBS="$(MYSQL_PWD="${PASS}" $MYSQL --no-defaults $CON -u $USER -Bse 'SHOW DATABASES;' | grep -Ev '^(information_schema|performance_schema|test|sys)$')"
 echo "$DBS" | sed -e 's/^/- /'
 echo ""
 
@@ -46,7 +53,7 @@ do
     FILE="${BACKUP_DIR}/${HOSTNAME}.${db}.`date +%Y-%m-%d_%H.%M.%S`.sql.gz"
 
     START=$(date +%s)
-    MYSQL_PWD="${PASS}" $MYSQLDUMP --no-defaults --no-tablespaces --single-transaction --quick --quote-names --max_allowed_packet=16M --set-gtid-purged=OFF --triggers --routines --events --socket=${SOCKET} -u "${USER}" "${db}" | $GZIP -${COMPRESSION_LEVEL} > "${FILE}"
+    MYSQL_PWD="${PASS}" $MYSQLDUMP --no-defaults --no-tablespaces --single-transaction --quick --quote-names --max_allowed_packet=16M --set-gtid-purged=OFF --triggers --routines --events $CON -u "${USER}" "${db}" | $GZIP -${COMPRESSION_LEVEL} > "${FILE}"
     RESULT=$?
     END=$(date +%s)
     SECONDS=$((END-START))
