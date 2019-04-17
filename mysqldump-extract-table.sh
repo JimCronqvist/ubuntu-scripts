@@ -36,14 +36,17 @@ fi
 
 echo "Find positions for table \`${TABLE}\`..."
 
-START_POSITION=$(grep -m1 -n -E "^-- Table structure for table \`${TABLE}\`$" "${FILE}" | sed 's/:.*//g')
+# Find position range for the table. Results in "X:X"
+POSITIONS=$(grep -m2 -n -E "^-- Table structure for table \`${TABLE}\`$|^/\\*\!40000 ALTER TABLE \`${TABLE}\` ENABLE KEYS \\*/;$" "${FILE}" | sed 's/:.*//g' | tr '\n' ':' | sed 's/:$//g')
+
+START_POSITION=$(echo $POSITIONS | cut -f1 -d:)
 START_POSITION=$((START_POSITION - 1))
 
-END_POSITION=$(grep -n -E "^/\\*!40000 ALTER TABLE \`${TABLE}\` ENABLE KEYS \\*/;$" "${FILE}" | sed 's/:.*//g')
-
-if sed -n "$((${END_POSITION} + 1))p" "${FILE}" | grep -q -E "^UNLOCK TABLES;$"; then
+END_POSITION=$(echo $POSITIONS | cut -f2 -d:)
+# The check is too slow on big tables, ignore it for now and just add +1 to the end position
+#if sed -n "$((${END_POSITION} + 1))p" "${FILE}" | grep -q -E "^UNLOCK TABLES;$"; then
     END_POSITION=$((END_POSITION + 1))
-fi
+#fi
 
 echo "Start position: $START_POSITION"
 echo "End position: $END_POSITION"
