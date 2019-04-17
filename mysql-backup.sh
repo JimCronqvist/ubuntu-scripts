@@ -64,9 +64,9 @@ do
 
     START=$(date +%s)
     echo "Running command:"
-    echo -e "${BLUE}$MYSQLDUMP --no-defaults --no-tablespaces --single-transaction --quick --quote-names --max_allowed_packet=16M --set-gtid-purged=OFF --triggers --routines --events $CON -u '${USER}' -p '${db}' | $GZIP -${COMPRESSION_LEVEL} > '${FILE}'${NORMAL}"
+    echo -e "${BLUE}$MYSQLDUMP --no-defaults --no-tablespaces --single-transaction --max_allowed_packet=16M --set-gtid-purged=OFF --triggers --routines --events $CON -u '${USER}' -p '${db}' | $GZIP -${COMPRESSION_LEVEL} > '${FILE}'${NORMAL}"
     echo ""
-    MYSQL_PWD="${PASS}" $MYSQLDUMP --no-defaults --no-tablespaces --single-transaction --quick --quote-names --max_allowed_packet=16M --set-gtid-purged=OFF --triggers --routines --events $CON -u "${USER}" "${db}" | $GZIP -${COMPRESSION_LEVEL} > "${FILE}"
+    MYSQL_PWD="${PASS}" $MYSQLDUMP --no-defaults --no-tablespaces --single-transaction --max_allowed_packet=16M --set-gtid-purged=OFF --triggers --routines --events $CON -u "${USER}" "${db}" | $GZIP -${COMPRESSION_LEVEL} > "${FILE}"
     RESULT=$?
     END=$(date +%s)
     SECONDS=$((END-START))
