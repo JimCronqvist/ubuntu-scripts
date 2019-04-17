@@ -34,11 +34,9 @@ if [[ -f "${FILE_EXTRACT}"  ]]; then
     exit 1
 fi
 
-# @todo Handle scenarios when two tables matches
-
 echo "Find positions for table \`${TABLE}\`..."
 
-START_POSITION=$(grep -n -E "^-- Table structure for table \`${TABLE}\`$" "${FILE}" | sed 's/:.*//g')
+START_POSITION=$(grep -m1 -n -E "^-- Table structure for table \`${TABLE}\`$" "${FILE}" | sed 's/:.*//g')
 START_POSITION=$((START_POSITION - 1))
 
 END_POSITION=$(grep -n -E "^/\\*!40000 ALTER TABLE \`${TABLE}\` ENABLE KEYS \\*/;$" "${FILE}" | sed 's/:.*//g')
