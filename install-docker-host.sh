@@ -132,6 +132,9 @@ EOF
             
             # Set backspace character to ^H
             echo 'stty erase ^H' >> ~/.bashrc
+	    
+	    # Change prompt color for Ubuntu user
+	    sed -i 's/#force_color_prompt=yes/force_color_prompt=yes/g' /home/ubuntu/.bashrc
             
             # Turn off ec2 instances automatic renaming of the hostname at each reboot
             sudo sed -i 's/preserve_hostname: false/preserve_hostname: true/' /etc/cloud/cloud.cfg
