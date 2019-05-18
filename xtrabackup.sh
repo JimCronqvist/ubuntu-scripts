@@ -149,13 +149,25 @@ restore()
     requireInstalled "qpress"
     LOG_FILE="$(log_file)"
 
-    # @todo IMPLEMENT SOME KIND OF SWITCH HERE, TO CHOOSE FROM WHICH BACKUP TO RESTORE
-    # Find the last full backup dir
-    LAST_BACKUP_DIR=$(find "$BACKUP_DIR" -maxdepth 2 -type d -name full | grep -v "$RESTORE_DIR" | sort | tail -n 1 | sed 's/\/full$//g')
-    log "Xtrabackup Restore initialized - Last backup found: $LAST_BACKUP_DIR"
+    # Prompt to choose which backup we want to restore
+    echo "For more details about the backups available, please use the list option first."
+    echo ""
+    PS3='Please choose which backup to restore: '
+    FULL_BACKUPS=($(find "$BACKUP_DIR" -mindepth 2 -maxdepth 2 -type d | grep -v "$RESTORE_DIR" | sort | sed -r 's/(.*)\//\1|/'))
+    select opt in "${FULL_BACKUPS[@]}"
+    do
+        FULL_BACKUP_DIR=$(echo "$opt" | cut -d'|' -f1 | sed 's/\/full$//g')
+        INCREMENT=$(( $(echo "$opt" | cut -d'|' -f2 | sed -r 's/(incr|full)//') + 0 ))
 
-    log "Syncing the latest backup to the restore folder..."
-    rsync --quiet -ah --delete "$LAST_BACKUP_DIR/" "$RESTORE_DIR/" || die "Sync of the backup to the restore folder failed"
+        if [[ ! -z $FULL_BACKUP_DIR ]]; then
+            break
+        fi
+    done
+
+    log "Xtrabackup Restore initialized - Backup chosen to restore: $FULL_BACKUP_DIR (with $INCREMENT increments)"
+
+    log "Syncing the backup to the restore folder..."
+    rsync --quiet -ah --delete "$FULL_BACKUP_DIR/" "$RESTORE_DIR/" || die "Sync of the backup to the restore folder failed"
     log "Sync done!"
 
     log "Decompressing the Full backup..."
@@ -167,7 +179,7 @@ restore()
     log "Preparing done!"
 
     P=1
-    while [[ -d "$RESTORE_DIR/incr$P" ]]
+    while [[ -d "$RESTORE_DIR/incr$P" ]] && [[ ${P} -le ${INCREMENT} ]]
     do
         log "Decompressing incremental #$P"
         xtrabackup --decompress --remove-original --parallel=4 --target-dir="$RESTORE_DIR/incr$P" &>> "$LOG_FILE" || xtrabackup_fail
