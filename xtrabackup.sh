@@ -19,7 +19,6 @@ set -eu
 #
 
 
-
 ## Start of Config
 
 PASSWORD="password"
