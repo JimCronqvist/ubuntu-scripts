@@ -52,8 +52,8 @@ log() {
 }
 
 die() {
-	echo -e 1>&2 "${RED}[$(date +"%Y-%m-%d %H:%M:%S")]: $@ ${NORMAL}"
-	exit 1
+    echo -e 1>&2 "${RED}[$(date +"%Y-%m-%d %H:%M:%S")]: $@ ${NORMAL}"
+    exit 1
 }
 
 timestampFolder() {
