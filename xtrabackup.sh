@@ -35,10 +35,10 @@ DELETE_OLD_BACKUPS_AT="after" # Allows: before|after - use "after" in all cases 
 ## End of Config
 
 
-BLUE=$(tput setaf 6)
-GREEN=$(tput setaf 2)
-RED=$(tput setaf 1)
-NORMAL=$(tput sgr0)
+BLUE=$([ -t 1 ] && tput setaf 6 || echo '')
+GREEN=$([ -t 1 ] && tput setaf 2 || echo '')
+RED=$([ -t 1 ] && tput setaf 1 || echo '')
+NORMAL=$([ -t 1 ] && tput sgr0 || echo '')
 
 XTRABACKUP_CON_ARGS="--socket=$SOCKET --user=$USER --password=$PASSWORD"
 RESTORE_DIR="$BACKUP_DIR/restore"
