@@ -10,8 +10,14 @@ set -eu
 # GRANT RELOAD, LOCK TABLES, PROCESS, REPLICATION CLIENT, CREATE TABLESPACE, CREATE, INSERT, SELECT, Show Databases ON *.* TO 'xtrabackup'@'localhost';
 # FLUSH PRIVILEGES;
 #
+# Configure this script to run a full backup at 3am and incremental backups the others, daily by:
+# sudo bash -c "echo '0 3 * * * root ulimit -n 2000000 && /root/xtrabackup.sh full' >> /etc/cron.d/xtrabackup"
+# sudo bash -c "echo '0 0-2,4-23 * * * root ulimit -n 2000000 && /root/xtrabackup.sh incr' >> /etc/cron.d/xtrabackup"
+#
+#
 # Written by Jim Cronqvist <jim.cronqvist@gmail.com>
 #
+
 
 
 ## Start of Config
