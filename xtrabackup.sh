@@ -142,7 +142,7 @@ incremental_backup()
     rm -rf "$THIS_BACKUP_DIR/incr$NUMBER/"
 
     log "Performing Incremental backup #$NUMBER"
-    xtrabackup --backup ${XTRABACKUP_CON_ARGS} --check-privileges --history --slave-info --galera-info --compress --compress-threads=4 --incremental --target-dir="$THIS_BACKUP_DIR/incr$NUMBER" --incremental-basedir="$INCREMENTAL_BASEDIR" &>> "$LOG_FILE" || xtrabackup_fail
+    xtrabackup --backup ${XTRABACKUP_CON_ARGS} --check-privileges --history --slave-info --galera-info --compress --compress-threads=4 --target-dir="$THIS_BACKUP_DIR/incr$NUMBER" --incremental-basedir="$INCREMENTAL_BASEDIR" &>> "$LOG_FILE" || xtrabackup_fail
 
     echo "$NUMBER" > "$THIS_BACKUP_DIR/last_incremental_number"
     log "Incremental backup #$NUMBER done!"
