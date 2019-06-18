@@ -83,7 +83,7 @@ do
     PREFIX="${BACKUP_DIR}/${HOSTNAME}.${db}."
     NUM_BACKUPS=$(ls -l "${PREFIX}"* | wc -l)
     if [ $NUM_BACKUPS > $KEEP_BACKUPS ]; then
-        NUM_REMOVE=$[NUM_BACKUPS - KEEP_BACKUPS]
+        NUM_REMOVE=$[NUM_BACKUPS - $KEEP_BACKUPS]
         REMLIST=$(ls -ctr "${PREFIX}"* | head -n ${NUM_REMOVE})
         for i in $REMLIST
         do
