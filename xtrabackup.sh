@@ -85,6 +85,7 @@ delete_old_backups()
         log "Delete old backups $1 completion"
         find "$BACKUP_DIR" -maxdepth 2 -type d -name full | grep -v "$RESTORE_DIR" | sort | head -n -${MAX_FULL_BACKUPS} | sed 's/\/full$//g' | while read backup
         do
+            log "Deleting '$backup/'"
             rm -rf "$backup/"
         done
         log "Old backups has been deleted!"
@@ -100,7 +101,7 @@ log_file() {
 }
 
 xtrabackup_fail () {
-	die "Xtrabackup (${FUNCNAME[1]}) Failed! See $(echo "$LOG_FILE" | sed 's/\&>> //') for details, aborting.\n"
+    die "Xtrabackup (${FUNCNAME[1]}) Failed! See $(echo "$LOG_FILE" | sed 's/\&>> //') for details, aborting.\n"
 }
 
 full_backup()
