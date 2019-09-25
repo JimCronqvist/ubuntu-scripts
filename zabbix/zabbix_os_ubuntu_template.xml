@@ -500,7 +500,7 @@
                     <type>0</type>
                     <snmp_community/>
                     <snmp_oid/>
-                    <key>system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;]</key>
+                    <key>system.run[&quot;free | awk 'FNR == 2 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4+$6)*100}'&quot;]</key>
                     <delay>1m</delay>
                     <history>30d</history>
                     <trends>365d</trends>
