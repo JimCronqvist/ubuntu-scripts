@@ -63,14 +63,14 @@ echo "$(timestamp): $REMOTE_GZIP will be used for compression on the remote mach
 echo "$(timestamp): $LOCAL_GZIP will be used for decompression on this machine"
 
 echo "$(timestamp): Starting the MySQL dump, this might take a while..."
-ssh -i $SSH_CERT $SSH_USER@$SSH_HOST "mysqldump --single-transaction --set-gtid-purged=OFF --compress -u ${DB_SOURCE_USER} -p${DB_SOURCE_PASS} ${DATABASE} ${TABLE} | ${REMOTE_GZIP} -c --fast" | pv > latest.sql.gz
+ssh -i $SSH_CERT $SSH_USER@$SSH_HOST "mysqldump --single-transaction --set-gtid-purged=OFF --compress -u ${DB_SOURCE_USER} -p${DB_SOURCE_PASS} ${DATABASE} ${TABLE} | ${REMOTE_GZIP} -c --fast" | pv > "latest_${TABLE}.sql.gz"
 echo "$(timestamp): MySQL dump downloaded"
 
 echo "$(timestamp): Decompressing the dump"
-pv latest.sql.gz | $LOCAL_GZIP -dc > latest.sql && rm -f latest.sql.gz
+pv "latest_${TABLE}.sql.gz" | $LOCAL_GZIP -dc > "latest_${TABLE}.sql" && rm -f "latest_${TABLE}.sql.gz"
 
 echo "$(timestamp): Check the integrity of the dump"
-if tail -n 1 latest.sql | grep -v -q 'Dump completed on'; then
+if tail -n 1 "latest_${TABLE}.sql" | grep -v -q 'Dump completed on'; then
     echo "$(timestamp): MySQL dump is not complete, aborting."
     exit 1
 fi
@@ -81,7 +81,7 @@ drop_table "${TABLE}${TABLE_SUFFIX_OLD}"
 rename_table "${TABLE}" "${TABLE}${TABLE_SUFFIX_OLD}"
 
 echo "$(timestamp): Starting the MySQL import, this might take a while..."
-pv latest.sql | mysql -u ${DB_DEST_USER} -p"${DB_DEST_PASS}" -A -D${DATABASE}
+pv "latest_${TABLE}.sql" | mysql -u ${DB_DEST_USER} -p"${DB_DEST_PASS}" -A -D${DATABASE}
 
 STATUS=$?
 if [ "$STATUS" != 0 ]; then
