@@ -428,7 +428,7 @@ sudo service zabbix-agent restart</description>
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template App Docker - Jim Cronqvist:system.run[&quot;docker ps --filter 'status=running' | wc -l&quot;].last()}&lt;{Template App Docker - Jim Cronqvist:system.run[&quot;docker ps --filter 'status=running' | wc -l&quot;].max(3d)}</expression>
+            <expression>{Template App Docker - Jim Cronqvist:system.run[&quot;docker ps --filter 'status=running' | wc -l&quot;].last()}&lt;{Template App Docker - Jim Cronqvist:system.run[&quot;docker ps --filter 'status=running' | wc -l&quot;].last(,3d)}</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>The number of Docker containers running has decresed on {HOST.NAME}</name>
