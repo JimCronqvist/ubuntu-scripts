@@ -875,9 +875,9 @@
             <tags/>
         </trigger>
         <trigger>
-            <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;90)&#13;
+            <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 2 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4+$6)*100}'&quot;].last(0)}&gt;90)&#13;
 or&#13;
-({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;86)</expression>
+({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 2 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4+$6)*100}'&quot;].last(0)}&gt;86)</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>High memory usage ({ITEM.LASTVALUE}) on {HOST.NAME}</name>
@@ -892,18 +892,18 @@ or&#13;
             <dependencies>
                 <dependency>
                     <name>High memory usage ({ITEM.LASTVALUE}) on {HOST.NAME}</name>
-                    <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;95)&#13;
+                    <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 2 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4+$6)*100}'&quot;].last(0)}&gt;95)&#13;
 or&#13;
-({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;91)</expression>
+({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 2 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4+$6)*100}'&quot;].last(0)}&gt;91)</expression>
                     <recovery_expression/>
                 </dependency>
             </dependencies>
             <tags/>
         </trigger>
         <trigger>
-            <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;95)&#13;
+            <expression>({TRIGGER.VALUE}=0 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 2 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4+$6)*100}'&quot;].last(0)}&gt;95)&#13;
 or&#13;
-({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 3 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4)*100}'&quot;].last(0)}&gt;91)</expression>
+({TRIGGER.VALUE}=1 and {Template OS Ubuntu - Jim Cronqvist:system.run[&quot;free | awk 'FNR == 2 {printf \&quot;%.1f\n\&quot;,  $3/($3+$4+$6)*100}'&quot;].last(0)}&gt;91)</expression>
             <recovery_mode>0</recovery_mode>
             <recovery_expression/>
             <name>High memory usage ({ITEM.LASTVALUE}) on {HOST.NAME}</name>
