@@ -5,8 +5,8 @@ NAME="$2"
 TOKEN="$3"
 
 if [ $# -lt 2 ]; then
-	echo "Usage: ./github-backup.sh {orgs|users} {orgname|username} [token]"
-	exit 1
+    echo "Usage: ./github-backup.sh {orgs|users} {orgname|username} [token]"
+    exit 1
 fi
 
 if [ "$CONTEXT" != "users" ] && [ "$CONTEXT" != "orgs" ]; then
@@ -17,7 +17,7 @@ fi
 echo "Cloning all repos from '$CONTEXT/$NAME'"
 
 for page in {1..10} # 10 = Gives a max of 1000 repos
-do 
+do
     URL="https://api.github.com/$CONTEXT/$NAME/repos?page=$page&per_page=100"
     if [ -z "$TOKEN" ]; then
         echo -n "GET $URL (No authentication)"
