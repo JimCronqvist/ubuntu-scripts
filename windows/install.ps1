@@ -96,6 +96,7 @@ $Apps = @(
     "crystaldiskinfo.install",
     "hwinfo",
     "spotify",
+    "slack",
     
     #"docker-desktop",
     
