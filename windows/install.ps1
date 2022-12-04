@@ -93,6 +93,7 @@ $Apps = @(
     "authy-desktop",
     "openvpn-connect",
     "icue",
+    "crystaldiskinfo.install",
     "hwinfo",
     "spotify",
     
