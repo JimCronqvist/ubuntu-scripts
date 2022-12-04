@@ -97,6 +97,7 @@ $Apps = @(
     "hwinfo",
     "spotify",
     "slack",
+    "plexmediaserver",
     
     #"docker-desktop",
     
