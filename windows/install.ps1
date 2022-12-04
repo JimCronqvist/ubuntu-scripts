@@ -84,6 +84,7 @@ Write-Host "------------------------------------" -ForegroundColor Green
 $Apps = @(
     "7zip.install",
     "googlechrome",
+    "chromium",
     "firefox"
     "vlc",
     "notepadplusplus.install",
