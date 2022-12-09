@@ -254,12 +254,12 @@ EOF
             apt-get install git -y
             
             # Install docker & dependencies
-            sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y
-            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+            sudo apt-get install apt-transport-https ca-certificates curl software-properties-common gnupg lsb-release -y
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
             APT_UPDATED=0
             AptGetUpdate
-            sudo apt-get install docker-ce -y
+            sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
             sudo tee -a /etc/docker/daemon.json <<EOF
 {
     "default-address-pools": [
@@ -272,14 +272,7 @@ EOF
     ]
 }
 EOF
-            sudo service docker reload
-            
-            # Install docker-compose
-            DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
-            sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-            sudo curl -L "https://raw.githubusercontent.com/docker/compose/$DOCKER_COMPOSE_VERSION/contrib/completion/bash/docker-compose" -o /etc/bash_completion.d/docker-compose
-            
+            sudo service docker reload            
             sudo adduser ubuntu docker
 	    
             # Add a cronjob to prune unused data for docker (excluding volumes)
