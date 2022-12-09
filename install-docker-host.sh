@@ -272,8 +272,11 @@ EOF
     ]
 }
 EOF
-            sudo service docker reload            
+            sudo service docker reload
             sudo adduser ubuntu docker
+	    
+	    # Add an alias for 'docker-compose' v1 syntax
+	    echo 'docker compose --compatibility "$@"' | sudo tee /usr/local/bin/docker-compose > /dev/null && sudo chmod +x /usr/local/bin/docker-compose
 	    
             # Add a cronjob to prune unused data for docker (excluding volumes)
             sudo bash -c "echo '0 0 * * * root /usr/bin/docker system prune -f' >> /etc/cron.d/docker-system-prune"
