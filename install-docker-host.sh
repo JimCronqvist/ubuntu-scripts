@@ -133,14 +133,17 @@ EOF
             # Set backspace character to ^H
             echo 'stty erase ^H' >> ~/.bashrc
 	    
-	    # Change prompt color for Ubuntu user
-	    sudo sed -i 's/#force_color_prompt=yes/force_color_prompt=yes/g' /home/ubuntu/.bashrc
+            # Change prompt color for Ubuntu user
+            sudo sed -i 's/#force_color_prompt=yes/force_color_prompt=yes/g' /home/ubuntu/.bashrc
             
             # Turn off ec2 instances automatic renaming of the hostname at each reboot
             sudo sed -i 's/preserve_hostname: false/preserve_hostname: true/' /etc/cloud/cloud.cfg
             
             # Disable sudo password for user "ubuntu"
             sudo bash -c "echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' | ( umask 337; cat >> /etc/sudoers.d/ubuntu; )"
+            
+            # Prefer ipv4 over ipv6
+            sudo sed -i -e '/precedence ::ffff:0:0\/96\s\s100/s/^#*//g' /etc/gai.conf
             
             # Add the universe repo
             sudo add-apt-repository universe
