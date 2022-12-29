@@ -48,16 +48,12 @@ foreach ($uwp in $uwpRubbishApps) {
     Remove-UWP $uwp
 }
 
-# Windows Features
+# Enable Windows Features
 Write-Host ""
 Write-Host "Enabling Hyper-V (required for wsl2) and Telnet Client..." -ForegroundColor Green
 Write-Host "------------------------------------" -ForegroundColor Green
-Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All # Is VirtualMachinePlatform enought for wsl2?
-Enable-WindowsOptionalFeature -Online -FeatureName TelnetClient -All
-
-# Install WSL2
-# ...
-
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All -NoRestart # Required for WSL2
+Enable-WindowsOptionalFeature -Online -FeatureName TelnetClient -All -NoRestart
 
 # Enable Windows Developer Mode
 #Write-Host ""
@@ -132,6 +128,33 @@ Write-Host "------------------------------------" -ForegroundColor Green
 Install-Module -Name PSWindowsUpdate -Force
 Write-Host "Install Windows Updates..." -ForegroundColor Green
 Get-WindowsUpdate -AcceptAll -Install -ForceInstall -AutoReboot
+
+
+# Install WSL2 - after we have the latest windows updates
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All -NoRestart
+wsl --install -d Ubuntu
+wsl --version
+
+# Install Docker Desktop
+choco install -y docker-desktop
+#net localgroup "docker-users" "<your username>" /add # Run this to avoid a reboot?
+
+# Set up Ubuntu
+#wsl --cd ~ -e bash -c "sudo install -o 1000 -g 1000 -m 777 -d /var/www"
+#wsl --cd ~ -e bash -c "echo '' >> .bashrc && echo 'cd /var/www' >> .bashrc"
+#wsl --cd ~ -e bash -c "ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/id_rsa <<<n >/dev/null; echo 'Add your new SSH Key in GitHub:'; cat ~/.ssh/id_rsa.pub"
+#wsl --cd ~ -e bash -c "sudo apt update && sudo apt upgrade -y"
+
+# Prepare for bridge connection for WSL2
+New-VMSwitch -Name "WSL_External" -AllowManagement $True –NetAdapterName "Ethernet"
+$wslconfig = @"
+[wsl2]
+networkingMode=bridged
+vmSwitch=WSL_External
+"@
+Add-Content "$HOME\.wslconfig" $wslconfig
+wsl --shutdown
+wsl -d Ubuntu
 
 # Install complete
 Write-Host "------------------------------------" -ForegroundColor Green
