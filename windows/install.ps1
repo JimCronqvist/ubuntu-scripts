@@ -151,6 +151,8 @@ $wslconfig = @"
 [wsl2]
 networkingMode=bridged
 vmSwitch=WSL_External
+#dhcp=false
+ipv6=true
 "@
 Add-Content "$HOME\.wslconfig" $wslconfig
 wsl --shutdown
