@@ -96,6 +96,7 @@ $Apps = @(
     "slack",
     "plexmediaserver",
     "skype",
+    "mqtt-explorer",
     
     #"docker-desktop",
     
