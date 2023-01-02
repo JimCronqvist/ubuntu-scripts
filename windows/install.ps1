@@ -135,6 +135,9 @@ Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All -NoRes
 wsl --install -d Ubuntu
 wsl --version
 
+# Install WSL2 USB support using a third-party tool: https://github.com/dorssel/usbipd-win
+winget install usbipd --accept-package-agreements --accept-source-agreements
+
 # Install Docker Desktop
 choco install -y docker-desktop
 #net localgroup "docker-users" "<your username>" /add # Run this to avoid a reboot?
