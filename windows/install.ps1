@@ -115,6 +115,7 @@ PowerShell -Command "Set-ExecutionPolicy RemoteSigned -scope Process; [Net.Servi
 Write-Host "Apply Windows Explorer settings..." -ForegroundColor Green
 cmd.exe /c "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f"
 cmd.exe /c "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v Hidden /t REG_DWORD /d 1 /f"
+cmd.exe /c "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v Start_TrackDocs /t REG_DWORD /d 0 /f"
 
 Write-Host "Exclude repos from Windows Defender..." -ForegroundColor Green
 Add-MpPreference -ExclusionPath "$env:USERPROFILE\www"
