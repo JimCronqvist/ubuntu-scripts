@@ -81,11 +81,13 @@ do
 (5) Configure advanced settings
 (6) Install and enable monitoring (SNMP & Zabbix)
 (7) Install Docker
-(8) Install AWS CLI
-(9) Install Buildkite
-(10) Install database utilities (Xtrabackup, mysqldump, mysql-client)
+(8) Install AWS CLI v2
+(9) Install Terraform
+(10) Install Kubernetes (K3s)
 (11) Install Node
-(12) Install Database
+(12) Install database utilities (Xtrabackup, mysqldump, mysql-client)
+(13) Install Database
+
 (0) Quit
 ----------------------------------
 EOF
@@ -155,7 +157,7 @@ EOF
             apt-get install ssh policykit-1 lvm2 lrzsz vim ntp curl tree pv software-properties-common -y
             
             # Set vim as the default text-editor.
-            export EDITOR="vi"
+            export EDITOR="vim"
             
             # Install troubleshooting tools
             apt-get install htop iotop iftop traceroute sysstat sysdig ncdu -y
@@ -278,54 +280,62 @@ EOF
             sudo service docker reload
             sudo adduser ubuntu docker
 	    
-	    # Add an alias for 'docker-compose' v1 syntax
-	    echo 'docker compose --compatibility "$@"' | sudo tee /usr/local/bin/docker-compose > /dev/null && sudo chmod +x /usr/local/bin/docker-compose
+	        # Add an alias for 'docker-compose' v1 syntax
+	        echo 'docker compose --compatibility "$@"' | sudo tee /usr/local/bin/docker-compose > /dev/null && sudo chmod +x /usr/local/bin/docker-compose
 	    
             # Add a cronjob to prune unused data for docker (excluding volumes)
             sudo bash -c "echo '0 0 * * * root /usr/bin/docker system prune -f' >> /etc/cron.d/docker-system-prune"
             
             ;;
-	"8") # Install AWS CLI
+	    "8") # Install AWS CLI v2
             
             cd ~
-            curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
-            unzip awscli-bundle.zip
-            sudo ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
-            rm awscli-bundle.zip -f && rm ./awscli-bundle/ -rf
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+
+            sudo -u ubuntu aws configure set default.region eu-north-1
+            sudo -u ubuntu aws configure set default.output json
             #aws configure
             
             ;;
-        "9") # Install Buildkite
+
+        "9") # Install Terraform
             
-            # Ensure docker is installed first
-            if [ ! -x "$(command -v docker)" ]; then
-                echo "Please install docker first, aborting."
-                exit
-            fi
-	    
-            # https://buildkite.com/docs/agent/v3/ubuntu
-            sudo sh -c 'echo deb https://apt.buildkite.com/buildkite-agent stable main > /etc/apt/sources.list.d/buildkite-agent.list'
-            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 32A37959C2FA5C3C99EFBC32A79206696452D198
+            wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
             APT_UPDATED=0
             AptGetUpdate
-            sudo apt-get install -y buildkite-agent
-            read -e -i "" -p "Please enter your Buildkite Agent Token: " BUILDKITE_AGENT_TOKEN
-            sudo sed -i "s/xxx/${BUILDKITE_AGENT_TOKEN}/g" /etc/buildkite-agent/buildkite-agent.cfg
-            sudo adduser buildkite-agent docker
-            sudo systemctl enable buildkite-agent && sudo systemctl start buildkite-agent
-	    
-            # Enable multiple agents on the same host
-            sudo systemctl stop buildkite-agent && sudo systemctl disable buildkite-agent
-            # Create a systemd template
-            sudo cp /lib/systemd/system/buildkite-agent.service /etc/systemd/system/buildkite-agent@.service
-            # Now, as many times as you like, we will by default start 2 agents.
-            sudo systemctl enable --now buildkite-agent@1
-            sudo systemctl enable --now buildkite-agent@2
-            # Follow them all
-            #sudo journalctl -f -u "buildkite-agent@*"
+            sudo apt-get install terraform -y
             
             ;;
-        "10") # Install Database Utilities (Xtrabackup, mysqldump, mysql-client)
+        
+        "10") # Install Kubernetes (K3s)
+            
+            curl -sfL https://get.k3s.io | sh - 
+            
+            # Check for Ready node, takes ~30 seconds 
+            #sudo k3s kubectl get node 
+
+            # Install an optional dashboard?
+            # https://docs.k3s.io/installation/kube-dashboard
+
+            ;;
+        
+        "11") # Install Node
+            
+            # Install Node 16 LTS
+            curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+            sudo apt install nodejs -y
+            sudo npm install npm@latest -g
+            sudo npm install yarn@latest -g
+            
+            # Correct permissions after install
+            sudo chown ubuntu:ubuntu /home/ubuntu/ -R
+            
+            ;;
+
+        "12") # Install Database Utilities (Xtrabackup, mysqldump, mysql-client)
             
             # Set up Percona apt repos
             if ! grep -sq "repo.percona.com" /etc/apt/sources.list.d/percona-tools-release.list; then
@@ -344,20 +354,8 @@ EOF
             sudo apt-get install mysql-client-core-5.7 -y
             
             ;;
-        "11") # Install Node
-            
-            # Install Node 10 LTS
-            curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-            sudo apt install nodejs -y
-            sudo npm install npm@latest -g
-            sudo npm install yarn@latest -g
-            sudo npm install pm2@latest -g
-            
-            # Correct permissions after install
-            sudo chown ubuntu:ubuntu /home/ubuntu/ -R
-            
-            ;;
-        "12") # Install Database
+        
+        "13") # Install Database
             
             DB_INSTALLED=0
             
