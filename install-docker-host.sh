@@ -7,6 +7,7 @@
 #############################################
 
 export NEEDRESTART_MODE=a
+export DEBIAN_FRONTEND=noninteractive
 
 # Abort if not root.
 if [ "$(id -u)" -ne "0" ] ; then
