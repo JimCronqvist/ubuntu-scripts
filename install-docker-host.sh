@@ -148,7 +148,7 @@ EOF
             sudo sed -i -e '/precedence ::ffff:0:0\/96\s\s100/s/^#*//g' /etc/gai.conf
             
             # Add the universe repo
-            sudo add-apt-repository universe
+            sudo add-apt-repository universe -y
             
             # Get the latest package lists
             AptGetUpdate
