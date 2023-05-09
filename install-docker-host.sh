@@ -100,7 +100,7 @@ EOF
         "1") # Install updates
             
             AptGetUpdate 
-            sudo apt-get dist-upgrade -y
+            sudo NEEDRESTART_MODE=a apt-get dist-upgrade -y
 
             ;;
         "2") # Change hostname
