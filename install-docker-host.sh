@@ -136,7 +136,7 @@ EOF
         "4") # Install base tools & setup (recommended)
             
             # Set backspace character to ^H
-            echo 'stty erase ^H' >> ~/.bashrc
+            echo 'stty erase ^H' >> /home/ubuntu/.bashrc
 	    
             # Change prompt color for Ubuntu user
             sudo sed -i 's/#force_color_prompt=yes/force_color_prompt=yes/g' /home/ubuntu/.bashrc
