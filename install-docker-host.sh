@@ -316,17 +316,34 @@ EOF
         
         "10") # Install Kubernetes (K3s)
             
-	    	# Install k3s
+            # Install k3s
             curl -sfL https://get.k3s.io | sh - 
 	    
-	    	# Change permission to make it readable by for example the ubuntu user, use with care as it gives non-root users access to the cluster
+            # Change permission to make it readable by for example the ubuntu user, use with care as it gives non-root users access to the cluster
             sudo chmod 644 /etc/rancher/k3s/k3s.yaml
 	    
-            # Activate the traefik dashboard internally on the private network (i.e. not use an exposed port like 80 or 443, we use port 9000)
-            # ...
+            # Activate the traefik dashboard internally on the private network (i.e. not use an exposed port like 80 or 443, we use port 9000) - available after next restart
+            sudo tee -a /var/lib/rancher/k3s/server/manifests/traefik-config.yaml << EOF
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    dashboard:
+      enabled: true
+    ports:
+      traefik:
+        expose: true
+    logs:
+      access:
+        enabled: true
+EOF
             
-			# Display the kube config for remote usage
-			echo "" && echo "To connect remotely with kubectl, use this as your kube config (~/.kube/config): " && echo "" && sudo cat /etc/rancher/k3s/k3s.yaml | sed "s/127.0.0.1/$(hostname -I | cut -f1 -d' ')/g" && echo ""
+            
+            # Display the kube config for remote usage
+            echo "" && echo "To connect remotely with kubectl, use this as your kube config (~/.kube/config): " && echo "" && sudo cat /etc/rancher/k3s/k3s.yaml | sed "s/127.0.0.1/$(hostname -I | cut -f1 -d' ')/g" && echo ""
 	    
             # Check for Ready node, takes ~30 seconds before this command returns the 'correct' result.
             kubectl get node
