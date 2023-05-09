@@ -6,6 +6,8 @@
 ##             For Docker Host             ##
 #############################################
 
+export NEEDRESTART_MODE=a
+
 # Abort if not root.
 if [ "$(id -u)" -ne "0" ] ; then
     echo "This script needs to be ran from a user with root permissions.";
