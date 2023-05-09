@@ -284,7 +284,7 @@ EOF
 	        echo 'docker compose --compatibility "$@"' | sudo tee /usr/local/bin/docker-compose > /dev/null && sudo chmod +x /usr/local/bin/docker-compose
 	    
             # Add a cronjob to prune unused data for docker (excluding volumes)
-            sudo bash -c "echo '0 0 * * * root /usr/bin/docker system prune -a -f' >> /etc/cron.d/docker-system-prune"
+            sudo bash -c "echo '0 0 * * * root /usr/bin/docker system prune -a -f --filter \"until=48h\"' > /etc/cron.d/docker-system-prune"
             
             ;;
 	    "8") # Install AWS CLI v2
