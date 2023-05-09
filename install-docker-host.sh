@@ -87,9 +87,10 @@ do
 (8) Install AWS CLI v2
 (9) Install Terraform
 (10) Install Kubernetes (K3s)
-(11) Install Node
-(12) Install database utilities (Xtrabackup, mysqldump, mysql-client)
-(13) Install Database
+(11) Install kubectl, helm, eksctl
+(12) Install Node
+(13) Install database utilities (Xtrabackup, mysqldump, mysql-client)
+(14) Install Database
 
 (0) Quit
 ----------------------------------
@@ -315,17 +316,61 @@ EOF
         
         "10") # Install Kubernetes (K3s)
             
+	    	# Install k3s
             curl -sfL https://get.k3s.io | sh - 
+	    
+	    	# Change permission to make it readable by for example the ubuntu user, use with care as it gives non-root users access to the cluster
+            sudo chmod 644 /etc/rancher/k3s/k3s.yaml
+	    
+            # Activate the traefik dashboard internally on the private network (i.e. not use an exposed port like 80 or 443, we use port 9000)
+            # ...
             
-            # Check for Ready node, takes ~30 seconds 
-            #sudo k3s kubectl get node 
+			# Display the kube config for remote usage
+			echo "" && echo "To connect remotely with kubectl, use this as your kube config (~/.kube/config): " && echo "" && sudo cat /etc/rancher/k3s/k3s.yaml | sed "s/127.0.0.1/$(hostname -I | cut -f1 -d' ')/g" && echo ""
+	    
+            # Check for Ready node, takes ~30 seconds before this command returns the 'correct' result.
+            kubectl get node
+            
+            
 
             # Install an optional dashboard?
             # https://docs.k3s.io/installation/kube-dashboard
 
             ;;
         
-        "11") # Install Node
+        "11") # Install eksctl, kubectl, helm
+        
+            # Install kubectl if not previously installed
+            if ! command -v kubectl &> /dev/null; then
+                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+                echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+                sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+                kubectl version
+            fi
+            
+            # Install eksctl if not previously installed
+            if ! command -v eksctl &> /dev/null; then
+                echo "eksctl not found, installing..."
+                curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+                sudo mv /tmp/eksctl /usr/local/bin
+                eksctl version
+            fi
+            
+            # Install helm if not previously installed
+            if ! command -v helm &> /dev/null; then
+                echo "helm not found, installing..."
+                curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+                sudo apt install apt-transport-https --yes
+                echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+                sudo apt update
+                sudo apt install helm -y
+                helm version
+            fi
+            
+            ;;
+            
+        "12") # Install Node
             
             # Install Node 16 LTS
             curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
@@ -338,13 +383,13 @@ EOF
             
             ;;
 
-        "12") # Install Database Utilities (Xtrabackup, mysqldump, mysql-client)
+        "13") # Install Database Utilities (Xtrabackup, mysqldump, mysql-client)
             
             # Set up Percona apt repos
             if ! grep -sq "repo.percona.com" /etc/apt/sources.list.d/percona-tools-release.list; then
                 wget https://repo.percona.com/apt/percona-release_latest.generic_all.deb
                 sudo dpkg -i percona-release_latest.generic_all.deb
-		rm -f percona-release_latest.generic_all.deb
+				rm -f percona-release_latest.generic_all.deb
                 sudo percona-release enable tools release
                 APT_UPDATED=0
                 AptGetUpdate
@@ -358,7 +403,7 @@ EOF
             
             ;;
         
-        "13") # Install Database
+        "14") # Install Database
             
             DB_INSTALLED=0
             
@@ -366,7 +411,7 @@ EOF
             if ! grep -sq "repo.percona.com" /etc/apt/sources.list.d/percona-tools-release.list; then
                 wget https://repo.percona.com/apt/percona-release_latest.generic_all.deb
                 sudo dpkg -i percona-release_latest.generic_all.deb
-		rm -f percona-release_latest.generic_all.deb
+				rm -f percona-release_latest.generic_all.deb
                 sudo percona-release enable tools release
                 APT_UPDATED=0
                 AptGetUpdate
@@ -394,9 +439,9 @@ EOF
                 sudo bash -c "echo 'LimitNOFILE=infinity' >> /etc/systemd/system/mysql.service"
                 sudo bash -c "echo 'LimitMEMLOCK=infinity' >> /etc/systemd/system/mysql.service"
                 sudo systemctl daemon-reload && sudo systemctl restart mysql.service
-		# Import Timezones into MySQL
-		echo ""
-		echo "Please enter your root password for MySQL in order for us to import timezones into MySQL."
+				# Import Timezones into MySQL
+				echo ""
+				echo "Please enter your root password for MySQL in order for us to import timezones into MySQL."
                 mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -h 127.0.0.1 -u root -p mysql
             fi
             
