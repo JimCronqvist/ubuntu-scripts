@@ -323,6 +323,7 @@ EOF
             sudo chmod 644 /etc/rancher/k3s/k3s.yaml
 	    
             # Activate the traefik dashboard internally on the private network (i.e. not use an exposed port like 80 or 443, we use port 9000) - available after next restart
+	    # https://github.com/traefik/traefik-helm-chart/blob/v23.0.1/traefik/values.yaml
             sudo tee -a /var/lib/rancher/k3s/server/manifests/traefik-config.yaml << EOF
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
@@ -348,14 +349,34 @@ EOF
             # Check for Ready node, takes ~30 seconds before this command returns the 'correct' result.
             kubectl get node
             
+            # Install argoCD - install with a helm chart instead?
+            kubectl create namespace argocd
+            kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
             
-
-            # Install an optional dashboard?
-            # https://docs.k3s.io/installation/kube-dashboard
-
+            # For Traefik as the ingress controller, the ArgoCD API server must run with TLS disabled.
+            echo -e "$(kubectl -n argocd get configmap argocd-cmd-params-cm -o yaml)\ndata:\n  server.insecure: \"true\"" | kubectl -n argocd apply -f -
+            
+            kubectl apply -f - <<EOF
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: argocd-server
+  namespace: argocd
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: HostRegexp(\`argocd.{domain:[a-z0-9.]+}\`)
+      priority: 10
+      services:
+        - name: argocd-server
+          port: 80
+EOF
+            
             ;;
         
-        "11") # Install eksctl, kubectl, helm
+        "11") # Install eksctl, kubectl, helm, argocd cli
         
             # Install kubectl if not previously installed
             if ! command -v kubectl &> /dev/null; then
@@ -383,6 +404,15 @@ EOF
                 sudo apt update
                 sudo apt install helm -y
                 helm version
+            fi
+            
+            if ! command -v argocd &> /dev/null; then
+                echo "argocd not found, installing..."
+                curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+                sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+                rm argocd-linux-amd64
+                argocd version
+                
             fi
             
             ;;
