@@ -4,6 +4,17 @@
 # Install K3s and set up a sane base setup
 #
 
+
+# Environment variables ----------------------------- #
+
+# DNS Made Easy variables for letsencrypt dns challenge
+DNSMADEEASY_API_KEY=
+DNSMADEEASY_API_SECRET=
+
+
+# --------------------------------------------------- #
+
+
 # Abort if not root.
 if [ "$(id -u)" -ne "0" ] ; then
     echo "This script needs to be ran from a user with root permissions.";
@@ -17,7 +28,7 @@ curl -sfL https://get.k3s.io | sh - --write-kubeconfig-mode 644
 
 # Activate the traefik dashboard internally on the private network (i.e. not use an exposed port like 80 or 443, we use port 9000) - available after next restart
 # https://github.com/traefik/traefik-helm-chart/blob/v23.0.1/traefik/values.yaml
-sudo tee -a /var/lib/rancher/k3s/server/manifests/traefik-config.yaml << EOF
+sudo tee /var/lib/rancher/k3s/server/manifests/traefik-config.yaml << EOF
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
@@ -25,16 +36,48 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
-    dashboard:
-      enabled: true
+    # Enable dashboard
     ports:
       traefik:
         expose: true
+    dashboard:
+      enabled: true
+    
+    # Enable access logs
     logs:
+      general:
+        level: DEBUG
       access:
         enabled: true
+    
+    # Letsencrypt with DNSMadeEasy
+    deployment:
+      initContainers:
+        - name: volume-permissions
+          image: busybox:latest
+          command: ["sh", "-c", "chmod -Rv 600 /data/* || true"]
+          volumeMounts:
+          - name: data
+            mountPath: /data
+    certResolvers:
+      letsencrypt-dnsmadeeasy:
+        dnsChallenge:
+          provider: dnsmadeeasy
+          delaybeforecheck: 60
+        storage: /data/letsencrypt-dnsmadeeasy.json
+    env:
+      - name: DNSMADEEASY_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: dnsmadeeasy
+            key: apiKey
+      - name: DNSMADEEASY_API_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: dnsmadeeasy
+            key: apiSecret
 EOF
-            
+
 # Display the kube config for remote usage
 echo "" && echo "To connect remotely with kubectl, use this as your kube config (~/.kube/config): " && echo "" && sudo cat /etc/rancher/k3s/k3s.yaml | sed "s/127.0.0.1/$(hostname -I | cut -f1 -d' ')/g" && echo ""
 
@@ -42,7 +85,10 @@ sleep 30
 
 # Check for Ready node, takes ~30 seconds before this command returns the 'correct' result.
 kubectl get node
-            
+
+# Create the letsencrypt dnsmadeeasy secret
+kubectl -n kube-system create secret generic dnsmadeeasy --from-literal=apiKey=${DNSMADEEASY_API_KEY} --from-literal=apiSecret=${DNSMADEEASY_API_SECRET}
+
 # Install argoCD - install with a helm chart instead?
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
