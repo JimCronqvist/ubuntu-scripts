@@ -86,8 +86,8 @@ do
 (7) Install Docker
 (8) Install AWS CLI v2
 (9) Install Terraform
-(10) Install Kubernetes (K3s)
-(11) Install kubectl, helm, eksctl
+(10) 
+(11) Install kubectl, helm, eksctl, argocd cli, kompose
 (12) Install Node
 (13) Install database utilities (Xtrabackup, mysqldump, mysql-client)
 (14) Install Database
@@ -314,14 +314,13 @@ EOF
             
             ;;
         
-        "10") # Install Kubernetes (K3s)
+        "10") # Install ...
             
-            # Install k3s
-            # @see install-k3s.sh
+            echo "Nothing here"
             
             ;;
         
-        "11") # Install eksctl, kubectl, helm, argocd cli
+        "11") # Install eksctl, kubectl, helm, argocd cli, kompose
         
             # Install kubectl if not previously installed
             if ! command -v kubectl &> /dev/null; then
@@ -329,6 +328,7 @@ EOF
                 curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
                 echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
                 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+                sudo rm kubectl
                 kubectl version
             fi
             
@@ -356,8 +356,15 @@ EOF
                 curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
                 sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
                 rm argocd-linux-amd64
-                argocd version
-                
+                argocd version  
+            fi
+	    
+            if ! command -v kompose &> /dev/null; then
+                echo "argocd not found, installing..."
+                sudo curl -sSL https://github.com/kubernetes/kompose/releases/download/v1.28.0/kompose-linux-amd64 -o kompose
+                sudo install -o root -g root -m 0755 kompose /usr/local/bin/kompose
+                sudo rm kompose
+                kompose version
             fi
             
             ;;
