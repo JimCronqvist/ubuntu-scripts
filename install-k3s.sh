@@ -7,6 +7,7 @@
 
 # Environment variables ----------------------------- #
 
+DOMAIN=
 # DNS Made Easy variables for letsencrypt dns challenge
 DNSMADEEASY_API_KEY=
 DNSMADEEASY_API_SECRET=
@@ -28,7 +29,7 @@ curl -sfL https://get.k3s.io | sh - --write-kubeconfig-mode 644
 
 # Activate the traefik dashboard internally on the private network (i.e. not use an exposed port like 80 or 443, we use port 9000) - available after next restart
 # https://github.com/traefik/traefik-helm-chart/blob/v23.0.1/traefik/values.yaml
-sudo tee /var/lib/rancher/k3s/server/manifests/traefik-config.yaml << EOF
+cat << EOF | envsubst | sudo tee /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
@@ -38,6 +39,13 @@ spec:
   valuesContent: |-
     # Enable dashboard
     ports:
+      websecure:
+        tls:
+          certResolver: letsencrypt-dnsmadeeasy
+          domains:
+            - main: ${DOMAIN}
+              sans:
+                - "*.${DOMAIN}"
       traefik:
         expose: true
     dashboard:
@@ -46,7 +54,8 @@ spec:
     # Enable access logs
     logs:
       general:
-        level: DEBUG
+        # Set the debug level to debug temporarily to troubleshoot
+        #level: DEBUG
       access:
         enabled: true
     
@@ -91,8 +100,9 @@ kubectl -n kube-system create secret generic dnsmadeeasy --from-literal=apiKey=$
 
 # Install argoCD - install with a helm chart instead?
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-            
+kubectl -n argocd apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d | sed -r 's/^(.*)$/Login: admin\/\1/g'
+
 # For Traefik as the ingress controller, the ArgoCD API server must run with TLS disabled.
 echo -e "$(kubectl -n argocd get configmap argocd-cmd-params-cm -o yaml)\ndata:\n  server.insecure: \"true\"" | kubectl -n argocd apply -f -
             
