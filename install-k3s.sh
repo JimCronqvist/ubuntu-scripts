@@ -118,7 +118,7 @@ spec:
   routes:
     - kind: Rule
       match: HostRegexp(\`argocd.{domain:[a-z0-9.]+}\`)
-      priority: 10
+      priority: 999
       services:
         - name: argocd-server
           port: 80
