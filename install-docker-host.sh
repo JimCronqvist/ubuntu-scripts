@@ -87,7 +87,7 @@ do
 (8) Install AWS CLI v2
 (9) Install Terraform
 (10) 
-(11) Install kubectl, helm, eksctl, argocd cli, kompose
+(11) Install kubectl, helm, customize, eksctl, argocd cli, kompose
 (12) Install Node
 (13) Install database utilities (Xtrabackup, mysqldump, mysql-client)
 (14) Install Database
@@ -320,7 +320,7 @@ EOF
             
             ;;
         
-        "11") # Install eksctl, kubectl, helm, argocd cli, kompose
+        "11") # Install kubectl, helm, kustomize, eksctl, argocd cli, kompose
         
             # Install kubectl if not previously installed
             if ! command -v kubectl &> /dev/null; then
@@ -339,6 +339,14 @@ EOF
                 sudo mv /tmp/eksctl /usr/local/bin
                 eksctl version
             fi
+
+            # Install kustomize if not previously installed
+            if ! command -v kustomize &> /dev/null; then
+                curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+                sudo install -o root -g root -m 0755 kustomize /usr/local/bin/kustomize
+                sudo rm kustomize
+                kustomize version
+            fi
             
             # Install helm if not previously installed
             if ! command -v helm &> /dev/null; then
@@ -350,6 +358,8 @@ EOF
                 sudo apt install helm -y
                 helm version
             fi
+
+     
             
             if ! command -v argocd &> /dev/null; then
                 echo "argocd not found, installing..."
