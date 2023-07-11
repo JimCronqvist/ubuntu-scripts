@@ -176,8 +176,8 @@ EOF
             sudo apt-get install rkhunter chkrootkit acct -y
             #rkhunter --check
 			
-            # Install Git
-            sudo apt-get install git -y
+            # Install Git & jq
+            sudo apt-get install git jq -y
             
             # Pre-save the Github host key
             ssh-keyscan github.com | sudo tee -a /etc/ssh/ssh_known_hosts
@@ -190,20 +190,21 @@ EOF
             
             # If more than 4 GB ram, it is a "powerful" server, up the default open files limit in Ubuntu
             if [ $(free -m | awk '/^Mem:/{print $2}') -gt 4000 ]; then
-                sudo bash -c "echo '* soft nofile 8192' >> /etc/security/limits.conf"
-                sudo bash -c "echo '* hard nofile 8192' >> /etc/security/limits.conf"
+                sudo bash -c "echo '* soft nofile $(echo 8192 $(ulimit -Sn) | xargs -n1 | sort -g | tail -n1)' >> /etc/security/limits.conf"
+                sudo bash -c "echo '* hard nofile $(echo 8192 $(ulimit -Hn) | xargs -n1 | sort -g | tail -n1)' >> /etc/security/limits.conf"
             fi
             
             ;;
         "5") # Configure advanced settings
      
-            # Change default limits in Ubuntu.	
-            if Confirm "Do you want to change the open files limit to 100000 instead of 1024? (Needed for VERY powerful web servers)" N; then
-                sudo bash -c "echo '* soft nofile 100000' >> /etc/security/limits.conf"
-                sudo bash -c "echo '* hard nofile 100000' >> /etc/security/limits.conf"
+            # Change default open files limits in Ubuntu. Increase to 1048576, or the highest allowed system limit.
+            MIN=$(echo 1048576 $(cat /proc/sys/fs/file-max) | xargs -n1 | sort -g | head -n1)
+            if Confirm "Do you want to change the open files limit to ${MIN} instead of 1024? (Needed for VERY powerful servers)" N; then
+                sudo bash -c "echo '* soft nofile ${MIN}' >> /etc/security/limits.conf"
+                sudo bash -c "echo '* hard nofile ${MIN}' >> /etc/security/limits.conf"
             fi
 
-            if Confirm "Do you want to change the default TCP settings for a high-performance web-server?" N; then
+            if Confirm "Do you want to change the default TCP settings for a high-performance web server?" N; then
                 sudo bash -c "echo 'net.ipv4.ip_local_port_range = 1024 65535' >> /etc/sysctl.conf"
                 # Decrease TIME_WAIT seconds to 30 seconds instead of the default of 60 seconds.
                 sudo bash -c "echo 'net.ipv4.tcp_fin_timeout = 30' >> /etc/sysctl.conf"
