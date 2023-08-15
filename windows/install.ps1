@@ -99,6 +99,7 @@ $Apps = @(
     "mqtt-explorer",
     
     #"docker-desktop",
+    "aws-iam-authenticator",
     
     #"nodejs-lts",
     #"postman",
