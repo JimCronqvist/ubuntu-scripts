@@ -18,6 +18,10 @@ SECONDARY_BOOT_DISK=$(sudo fdisk -l | grep 'EFI System' | awk '{print $1}' | gre
 
 echo "Cloning the in-use boot partition $PRIMARY_BOOT_DISK to the secondary disk $SECONDARY_BOOT_DISK"
 echo "This will ensure we have a working ESP on both disks, the EFI partition will have the same UUID after this."
+if ! test -f "/root/${SECONDARY_BOOT_DISK}_eps.backup"; then
+    echo "Backing up original ${SECONDARY_BOOT_DISK}..."
+    sudo dd if="/dev/${SECONDARY_BOOT_DISK}" of="/root/${SECONDARY_BOOT_DISK}_eps.backup"
+fi
 echo "Cloning..."
 sudo dd if="/dev/${PRIMARY_BOOT_DISK}" of="/dev/${SECONDARY_BOOT_DISK}"
 
