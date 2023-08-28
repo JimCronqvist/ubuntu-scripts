@@ -18,12 +18,14 @@ SECONDARY_BOOT_DISK=$(sudo fdisk -l | grep 'EFI System' | awk '{print $1}' | gre
 
 echo "Cloning the in-use boot partition $PRIMARY_BOOT_DISK to the secondary disk $SECONDARY_BOOT_DISK"
 echo "This will ensure we have a working ESP on both disks, the EFI partition will have the same UUID after this."
+echo "Cloning..."
 sudo dd if="/dev/${PRIMARY_BOOT_DISK}" of="/dev/${SECONDARY_BOOT_DISK}"
 
 echo "Configure grub to update both disks on any future changes"
 EFI_DISKS_FOR_GRUB=$(ls -lah /dev/disk/by-id/ | grep -e "../${PRIMARY_BOOT_DISK}$" -e "../${SECONDARY_BOOT_DISK}$" | grep -o -e 'nvme-eui.*' | awk '{print " /dev/disk/by-id/"$1}' | paste -sd ',' | xargs)
 echo "Disks to be set for updates: $EFI_DISKS_FOR_GRUB"
 echo "grub-efi-amd64 grub-efi/install_devices multiselect $EFI_DISKS_FOR_GRUB" | sudo debconf-set-selections -v
+echo ""
 sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure grub-efi-amd64
 
 echo ""
