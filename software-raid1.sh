@@ -39,6 +39,12 @@ echo "grub-efi-amd64 grub-efi/install_devices multiselect $EFI_DISKS_FOR_GRUB" |
 echo ""
 sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure grub-efi-amd64
 
+echo "Print the current boot-list:"
+efibootmgr -v
+echo "Ensure there are two working ESPs with 'ubuntu' in the list, with the right UUIDs."
+# If not, add with:
+# sudo efibootmgr --create --disk /dev/sda --part 1 --label "ubuntu" --loader "\EFI\ubuntu\shimx64.efi"
+
 echo ""
 echo "Configuration completed."
 echo ""
