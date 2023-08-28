@@ -44,9 +44,14 @@ echo "Configuration completed."
 echo ""
 
 
-raid_prompt() { awk '/^md/ {printf "%s: ", $1}; /blocks/ {print $NF}'  /proc/mdstat | awk '/\[U+\]/ {print "\033[32m" $0 "\033[0m"}; /\[.*_.*\]/ {print "\033[31m" $0 "\033[0m"}'; }
+# Print information about the primary software raid
+echo ""
+sudo mdadm --detail --test /dev/md0
+echo ""
+
+# Check all raids overall view
 echo "Raid(s):"
-raid_prompt
+awk '/^md/ {printf "%s: ", $1}; /blocks/ {print $NF}'  /proc/mdstat | awk '/\[U+\]/ {print "\033[32m" $0 "\033[0m"}; /\[.*_.*\]/ {print "\033[31m" $0 "\033[0m"}'
 
 RAID_STATUS=$(sudo mdadm --detail --test --scan >/dev/null && echo OK || echo DEGRADED)
 echo "Raid status: $RAID_STATUS"
