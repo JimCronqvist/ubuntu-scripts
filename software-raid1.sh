@@ -8,8 +8,8 @@
 
 # Abort if not root.
 if [ "$(id -u)" -ne "0" ]; then
-    echo "This script needs to be run from a user with root permissions.";
-    exit 1;
+    echo "This script needs to be run from a user with root permissions."
+    exit 1
 fi
 
 
