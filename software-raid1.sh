@@ -6,6 +6,13 @@
 # This allows the server to boot with either disk left in a raid 1 configuration
 #
 
+# Abort if not root.
+if [ "$(id -u)" -ne "0" ]; then
+    echo "This script needs to be run from a user with root permissions.";
+    exit 1;
+fi
+
+
 NUM_BOOT_DISKS=$(sudo fdisk -l | grep 'EFI System' | wc -l)
 
 if [ "$NUM_BOOT_DISKS" -ne 2 ]; then
