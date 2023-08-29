@@ -146,49 +146,49 @@ kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/l
 if Confirm "Do you want to configure automatic updates for K3s? (Not recommended for production environments)" N; then
     # Configure server and agent plans for automated updates
     kubectl apply -f - <<EOF
-    # Server plan
-    apiVersion: upgrade.cattle.io/v1
-    kind: Plan
-    metadata:
-      name: server-plan
-      namespace: system-upgrade
-    spec:
-      concurrency: 1
-      cordon: true
-      nodeSelector:
-        matchExpressions:
-        - key: node-role.kubernetes.io/control-plane
-          operator: In
-          values:
-          - "true"
-      serviceAccountName: system-upgrade
-      upgrade:
-        image: rancher/k3s-upgrade
-      channel: https://update.k3s.io/v1-release/channels/stable
-    ---
-    # Agent plan
-    apiVersion: upgrade.cattle.io/v1
-    kind: Plan
-    metadata:
-      name: agent-plan
-      namespace: system-upgrade
-    spec:
-      concurrency: 1
-      cordon: true
-      nodeSelector:
-        matchExpressions:
-        - key: node-role.kubernetes.io/control-plane
-          operator: DoesNotExist
-      prepare:
-        args:
-        - prepare
-        - server-plan
-        image: rancher/k3s-upgrade
-      serviceAccountName: system-upgrade
-      upgrade:
-        image: rancher/k3s-upgrade
-      channel: https://update.k3s.io/v1-release/channels/stable
-    EOF
+# Server plan
+apiVersion: upgrade.cattle.io/v1
+kind: Plan
+metadata:
+  name: server-plan
+  namespace: system-upgrade
+spec:
+  concurrency: 1
+  cordon: true
+  nodeSelector:
+    matchExpressions:
+    - key: node-role.kubernetes.io/control-plane
+      operator: In
+      values:
+      - "true"
+  serviceAccountName: system-upgrade
+  upgrade:
+    image: rancher/k3s-upgrade
+  channel: https://update.k3s.io/v1-release/channels/stable
+---
+# Agent plan
+apiVersion: upgrade.cattle.io/v1
+kind: Plan
+metadata:
+  name: agent-plan
+  namespace: system-upgrade
+spec:
+  concurrency: 1
+  cordon: true
+  nodeSelector:
+    matchExpressions:
+    - key: node-role.kubernetes.io/control-plane
+      operator: DoesNotExist
+  prepare:
+    args:
+    - prepare
+    - server-plan
+    image: rancher/k3s-upgrade
+  serviceAccountName: system-upgrade
+  upgrade:
+    image: rancher/k3s-upgrade
+  channel: https://update.k3s.io/v1-release/channels/stable
+EOF
 fi
 
 echo "Completed. Please consider doing a reboot."
