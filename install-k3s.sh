@@ -21,8 +21,8 @@ if [ -z "$DOMAIN" ] || [ -z "$DNSMADEEASY_API_KEY" ] || [ -z "$DNSMADEEASY_API_S
 fi
 
 # Abort if not root.
-if [ "$(id -u)" -ne "0" ] ; then
-    echo "This script needs to be ran from a user with root permissions.";
+if [ "$(id -u)" -ne "0" ]; then
+    echo "This script needs to be run from a user with root permissions.";
     exit 1;
 fi
 
@@ -56,8 +56,14 @@ Confirm () {
 }
 
 
-# Install k3s - this makes the kubeconfig readable by for example the ubuntu user, use with care as it gives non-root users access to the cluster
-curl -sfL https://get.k3s.io | sh - --write-kubeconfig-mode 644
+# Create a configuration file for k3s
+cat << EOF | envsubst | sudo tee /etc/rancher/k3s/config.yaml
+# Warning: Setting the kubeconfig mode to 644 should be used with care, it is recommended to leave it as 600, that way no non-root users can access the cluster.
+write-kubeconfig-mode: "0644"
+EOF
+
+# Install k3s
+curl -sfL https://get.k3s.io | sh -
 
 
 # Activate the traefik dashboard internally on the private network (i.e. not use an exposed port like 80 or 443, we use port 9000) - available after the next restart
@@ -123,7 +129,7 @@ EOF
 # Display the kube config for remote usage
 echo "" && echo "To connect remotely with kubectl, use this as your kube config (~/.kube/config): " && echo "" && sudo cat /etc/rancher/k3s/k3s.yaml | sed "s/127.0.0.1/$(hostname -I | cut -f1 -d' ')/g" && echo ""
 
-sleep 30
+sleep 40
 
 # Check for Ready node, takes ~30 seconds before this command returns the 'correct' result.
 kubectl get node
@@ -132,10 +138,11 @@ kubectl get node
 kubectl -n kube-system create secret generic dnsmadeeasy --from-literal=apiKey=${DNSMADEEASY_API_KEY} --from-literal=apiSecret=${DNSMADEEASY_API_SECRET}
 
 
-# Set up automated upgrades for K3s - install system-upgrade-controller & configure plans
+# Set up automated upgrades for K3s - install system-upgrade-controller
 kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/latest/download/system-upgrade-controller.yaml
 
 if Confirm "Do you want to configure automatic updates for K3s? (Not recommended for production environments)" N; then
+    # Configure server and agent plans for automated updates
     kubectl apply -f - <<EOF
     # Server plan
     apiVersion: upgrade.cattle.io/v1
