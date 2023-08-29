@@ -57,6 +57,7 @@ Confirm () {
 
 
 # Create a configuration file for k3s
+sudo mkdir -p /etc/rancher/k3s
 cat << EOF | envsubst | sudo tee /etc/rancher/k3s/config.yaml
 # Warning: Setting the kubeconfig mode to 644 should be used with care, it is recommended to leave it as 600, that way no non-root users can access the cluster.
 write-kubeconfig-mode: "0644"
@@ -68,6 +69,7 @@ curl -sfL https://get.k3s.io | sh -
 
 # Activate the traefik dashboard internally on the private network (i.e. not use an exposed port like 80 or 443, we use port 9000) - available after the next restart
 # https://github.com/traefik/traefik-helm-chart/blob/v23.0.1/traefik/values.yaml
+sudo mkdir -p /var/lib/rancher/k3s/server/manifests/
 cat << EOF | envsubst | sudo tee /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
