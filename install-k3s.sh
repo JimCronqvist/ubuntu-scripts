@@ -95,6 +95,8 @@ spec:
     # Enable access logs
     logs:
       general:
+        # Format is required due to a bug in the helm chart for the specific version K3s is using at the time being.
+        format: common
         # Set the debug level to debug temporarily to troubleshoot
         #level: DEBUG
       access:
