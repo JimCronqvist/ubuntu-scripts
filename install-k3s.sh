@@ -7,14 +7,18 @@
 
 # Environment variables ----------------------------- #
 
-DOMAIN=
+DOMAIN=${DOMAIN:-}
 # DNS Made Easy variables for letsencrypt dns challenge
-DNSMADEEASY_API_KEY=
-DNSMADEEASY_API_SECRET=
-
+DNSMADEEASY_API_KEY=${DNSMADEEASY_API_KEY:-}
+DNSMADEEASY_API_SECRET=${DNSMADEEASY_API_SECRET:-}
 
 # --------------------------------------------------- #
 
+# Check that all mandatory variables exist
+if [ -z "$DOMAIN" ] || [ -z "$DNSMADEEASY_API_KEY" ] || [ -z "$DNSMADEEASY_API_SECRET" ]; then
+    echo "Variables not configured"
+    exit 1
+fi
 
 # Abort if not root.
 if [ "$(id -u)" -ne "0" ] ; then
