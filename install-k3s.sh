@@ -22,12 +22,41 @@ if [ "$(id -u)" -ne "0" ] ; then
     exit 1;
 fi
 
+# Confirm function that will be used later for yes and no questions.
+Confirm () {
+    while true; do
+        if [ "${2:-}" = "Y" ]; then
+            prompt="Y/n"
+            default=Y
+        elif [ "${2:-}" = "N" ]; then
+            prompt="y/N"
+            default=N
+        else
+            prompt="y/n"
+            default=N
+        fi
+            
+        if [ $INTERACTIVE == 1 ]; then
+            read -p "${1:-Are you sure?} [$prompt]: " reply
+            #Default?
+            if [ -z "$reply" ]; then
+                reply=$default
+            fi
+	    fi
+            
+        case ${reply:-$2} in
+            [Yy]* ) return 0;;
+            [Nn]* ) return 1;;
+        esac
+    done
+}
+
 
 # Install k3s - this makes the kubeconfig readable by for example the ubuntu user, use with care as it gives non-root users access to the cluster
 curl -sfL https://get.k3s.io | sh - --write-kubeconfig-mode 644
 
 
-# Activate the traefik dashboard internally on the private network (i.e. not use an exposed port like 80 or 443, we use port 9000) - available after next restart
+# Activate the traefik dashboard internally on the private network (i.e. not use an exposed port like 80 or 443, we use port 9000) - available after the next restart
 # https://github.com/traefik/traefik-helm-chart/blob/v23.0.1/traefik/values.yaml
 cat << EOF | envsubst | sudo tee /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
 apiVersion: helm.cattle.io/v1
@@ -98,77 +127,55 @@ kubectl get node
 # Create the letsencrypt dnsmadeeasy secret
 kubectl -n kube-system create secret generic dnsmadeeasy --from-literal=apiKey=${DNSMADEEASY_API_KEY} --from-literal=apiSecret=${DNSMADEEASY_API_SECRET}
 
-# Install argoCD - install with a helm chart instead?
-kubectl create namespace argocd
-kubectl -n argocd apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d | sed -r 's/^(.*)$/Login: admin\/\1/g'
-
-# For Traefik as the ingress controller, the ArgoCD API server must run with TLS disabled.
-echo -e "$(kubectl -n argocd get configmap argocd-cmd-params-cm -o yaml)\ndata:\n  server.insecure: \"true\"" | kubectl -n argocd apply -f -
-            
-kubectl apply -f - <<EOF
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
-metadata:
-  name: argocd-server
-  namespace: argocd
-spec:
-  entryPoints:
-    - websecure
-  routes:
-    - kind: Rule
-      match: HostRegexp(\`argocd.{domain:[a-z0-9.]+}\`)
-      priority: 999
-      services:
-        - name: argocd-server
-          port: 80
-EOF
 
 # Set up automated upgrades for K3s - install system-upgrade-controller & configure plans
 kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/latest/download/system-upgrade-controller.yaml
 
-kubectl apply -f - <<EOF
-# Server plan
-apiVersion: upgrade.cattle.io/v1
-kind: Plan
-metadata:
-  name: server-plan
-  namespace: system-upgrade
-spec:
-  concurrency: 1
-  cordon: true
-  nodeSelector:
-    matchExpressions:
-    - key: node-role.kubernetes.io/control-plane
-      operator: In
-      values:
-      - "true"
-  serviceAccountName: system-upgrade
-  upgrade:
-    image: rancher/k3s-upgrade
-  channel: https://update.k3s.io/v1-release/channels/stable
----
-# Agent plan
-apiVersion: upgrade.cattle.io/v1
-kind: Plan
-metadata:
-  name: agent-plan
-  namespace: system-upgrade
-spec:
-  concurrency: 1
-  cordon: true
-  nodeSelector:
-    matchExpressions:
-    - key: node-role.kubernetes.io/control-plane
-      operator: DoesNotExist
-  prepare:
-    args:
-    - prepare
-    - server-plan
-    image: rancher/k3s-upgrade
-  serviceAccountName: system-upgrade
-  upgrade:
-    image: rancher/k3s-upgrade
-  channel: https://update.k3s.io/v1-release/channels/stable
-EOF
+if Confirm "Do you want to configure automatic updates for K3s? (Not recommended for production environments)" N; then
+    kubectl apply -f - <<EOF
+    # Server plan
+    apiVersion: upgrade.cattle.io/v1
+    kind: Plan
+    metadata:
+      name: server-plan
+      namespace: system-upgrade
+    spec:
+      concurrency: 1
+      cordon: true
+      nodeSelector:
+        matchExpressions:
+        - key: node-role.kubernetes.io/control-plane
+          operator: In
+          values:
+          - "true"
+      serviceAccountName: system-upgrade
+      upgrade:
+        image: rancher/k3s-upgrade
+      channel: https://update.k3s.io/v1-release/channels/stable
+    ---
+    # Agent plan
+    apiVersion: upgrade.cattle.io/v1
+    kind: Plan
+    metadata:
+      name: agent-plan
+      namespace: system-upgrade
+    spec:
+      concurrency: 1
+      cordon: true
+      nodeSelector:
+        matchExpressions:
+        - key: node-role.kubernetes.io/control-plane
+          operator: DoesNotExist
+      prepare:
+        args:
+        - prepare
+        - server-plan
+        image: rancher/k3s-upgrade
+      serviceAccountName: system-upgrade
+      upgrade:
+        image: rancher/k3s-upgrade
+      channel: https://update.k3s.io/v1-release/channels/stable
+    EOF
+fi
 
+echo "Completed. Please consider doing a reboot."
