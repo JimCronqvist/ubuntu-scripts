@@ -39,11 +39,21 @@ echo "grub-efi-amd64 grub-efi/install_devices multiselect $EFI_DISKS_FOR_GRUB" |
 echo ""
 sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure grub-efi-amd64
 
-echo "Print the current boot-list:"
+
 efibootmgr -v
-echo "Ensure there are two working ESPs with 'ubuntu' in the list, with the right UUIDs."
-# If not, add with:
-# sudo efibootmgr --create --disk /dev/sda --part 1 --label "ubuntu" --loader "\EFI\ubuntu\shimx64.efi"
+NUM_BOOT_RECORDS=$(efibootmgr -v | grep 'ubuntu' | wc -l)
+echo "Found $NUM_BOOT_RECORDS ubuntu bootable ESPs in the UEFI Boot Manager. We expect to have 2 (or more) records."
+echo "Print the current boot-list:"
+if [ "$NUM_BOOT_RECORDS" -lt 2 ]; then
+    echo "We could not find 2 records, attempting to fix it."
+    # The easiest way to populate all the ESPs to the list is to just trigger a reconfiguration of the grub-efi-amd64 package.
+    sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure grub-efi-amd64
+    # If that does not work, you can do it manually with a command with this syntax (with the right disk):
+    # sudo efibootmgr --create --disk /dev/sda --part 1 --label "ubuntu" --loader "\EFI\ubuntu\shimx64.efi"
+    efibootmgr -v
+fi
+echo "Ensure there are two working ESPs with 'ubuntu' in the UEFI boot manager, with the right UUIDs."
+
 
 echo ""
 echo "Configuration completed."
