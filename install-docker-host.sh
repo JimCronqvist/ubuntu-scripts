@@ -86,7 +86,7 @@ do
 (7) Install Docker
 (8) Install AWS CLI v2
 (9) Install Terraform
-(10) 
+(10) Import keys from GitHub
 (11) Install kubectl, helm, customize, eksctl, argocd cli, kompose
 (12) Install Node
 (13) Install database utilities (Xtrabackup, mysqldump, mysql-client)
@@ -175,9 +175,9 @@ EOF
             # Install security tools: rkhunter to find any potential root kits and acct
             sudo apt-get install rkhunter chkrootkit acct -y
             #rkhunter --check
-			
-            # Install Git & jq
-            sudo apt-get install git jq -y
+
+            # Install Git & jq & yq
+            sudo apt-get install git jq yq -y
             
             # Pre-save the Github host key
             ssh-keyscan github.com | sudo tee -a /etc/ssh/ssh_known_hosts
@@ -244,7 +244,7 @@ EOF
             fi
 	    
             # Install zabbix agent
-            if Confirm "Do you want to install zabbix agent (For monitoring)?" Y; then
+            if Confirm "Do you want to install zabbix agent (For monitoring)?" N; then
                 sudo apt-get install zabbix-agent -y
                 sudo adduser zabbix adm
                 sudo bash -c "echo 'zabbix ALL=NOPASSWD: /usr/bin/lsof' | ( umask 337; cat >> /etc/sudoers.d/zabbix; )"
@@ -315,9 +315,12 @@ EOF
             
             ;;
         
-        "10") # Install ...
+        "10") # Import keys from GitHub
             
             echo "Nothing here"
+            DEFAULT_GH="JimCronqvist"
+            read -e -i "$DEFAULT_GH" -p "Please enter the usernames you want to import keys from (space separated if multiple): " IMPORT_GH
+            ssh-import-id-gh $IMPORT_GH
             
             ;;
         
