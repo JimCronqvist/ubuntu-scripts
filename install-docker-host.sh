@@ -91,6 +91,7 @@ do
 (12) Install Node
 (13) Install database utilities (Xtrabackup, mysqldump, mysql-client)
 (14) Install Database
+(15) Install Tailscale
 
 (0) Quit
 ----------------------------------
@@ -459,6 +460,24 @@ EOF
             fi
             
             ;;
+
+        "15") # Install Tailscale
+            
+            curl -fsSL https://tailscale.com/install.sh | sh
+
+            if Confirm "Do you intend to use Tailscale as a subnet router?" N; then
+                # The below is required for exposing it as a subnet router
+                echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+                echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+                sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
+                echo "Run the following command to start the VPN and to advertise one or more subnets."
+                echo "sudo tailscale up --advertise-routes=192.168.0.0/24,192.168.1.0/24"
+            else
+                echo "Run: 'sudo tailscale up' to start the VPN"
+            fi
+            
+            ;;
+            
         "0")
             exit
             ;;
