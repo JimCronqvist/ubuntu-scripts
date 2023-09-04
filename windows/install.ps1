@@ -128,7 +128,7 @@ Add-MpPreference -ExclusionPath "$env:USERPROFILE\www"
 Write-Host ""
 Write-Host "Check for Windows Updates..." -ForegroundColor Green
 Write-Host "------------------------------------" -ForegroundColor Green
-Install-Module -Name PSWindowsUpdate -Force
+Install-Module -Name PSWindowsUpdate -Force -Confirm:$False
 Write-Host "Install Windows Updates..." -ForegroundColor Green
 Get-WindowsUpdate -AcceptAll -Install -ForceInstall -AutoReboot
 
