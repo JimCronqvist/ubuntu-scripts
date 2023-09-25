@@ -45,6 +45,10 @@ sudo mkdir -p /etc/rancher/k3s
 cat << EOF | envsubst | sudo tee /etc/rancher/k3s/config.yaml
 # Warning: Setting the kubeconfig mode to 644 should be used with care, it is recommended to leave it as 600, that way no non-root users can access the cluster.
 write-kubeconfig-mode: "0644"
+# Disable via .skip files for new installations
+#disable:
+#- metrics-server
+#- traefik
 EOF
 
 # Create .skip files to prevent the installation of a few k3s addons
