@@ -4,12 +4,6 @@
 # Install K3s with optional automatic updates
 #
 
-# Check that all mandatory variables exist
-if [ -z "$DOMAIN" ] || [ -z "$DNSMADEEASY_API_KEY" ] || [ -z "$DNSMADEEASY_API_SECRET" ]; then
-    echo "Variables not configured"
-    exit 1
-fi
-
 # Abort if not root.
 if [ "$(id -u)" -ne "0" ]; then
     echo "This script needs to be run from a user with root permissions.";
