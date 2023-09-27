@@ -168,17 +168,18 @@ EOF
             apt-get install htop iotop iftop traceroute sysstat sysdig ncdu -y
 
             # Install tools for mounting a samba/cifs & nfs storage.
-            sudo apt-get install cifs-utils samba samba-common nfs-common -y
+            #sudo apt-get install cifs-utils samba samba-common nfs-common -y
             
             # Install an MTA
-            sudo apt-get install sendmail mailutils -y
+            #sudo apt-get install sendmail mailutils -y
             
             # Install security tools: rkhunter to find any potential root kits and acct
             sudo apt-get install rkhunter chkrootkit acct -y
             #rkhunter --check
 
             # Install Git & jq & yq
-            sudo apt-get install git jq yq -y
+            sudo apt-get install git jq -y
+            sudo snap install yq
             
             # Pre-save the Github host key
             ssh-keyscan github.com | sudo tee -a /etc/ssh/ssh_known_hosts
@@ -335,6 +336,12 @@ EOF
                 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
                 sudo rm kubectl
                 kubectl version
+
+                # Auto complete & alias (run as your user)
+                source <(kubectl completion bash)
+                echo "source <(kubectl completion bash)" >> ~/.bashrc
+                alias k=kubectl
+                complete -o default -F __start_kubectl k
             fi
             
             # Install eksctl if not previously installed
