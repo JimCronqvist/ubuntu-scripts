@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Add it as a global executable
-# curl https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/kubeswitch.sh | sudo tee /usr/local/bin/kubeswitch && sudo chmod +x /usr/local/bin/kubeswitch
+# curl -s https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/kubeswitch.sh | sudo tee /usr/local/bin/kubeswitch >/dev/null && sudo chmod +x /usr/local/bin/kubeswitch
 
 
 # 'select_option' from here: https://unix.stackexchange.com/a/415155
