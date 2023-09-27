@@ -60,7 +60,7 @@ sudo touch /var/lib/rancher/k3s/server/manifests/metrics-server.yaml.skip
 curl -sfL https://get.k3s.io | sh -
 
 # Display the kube config for remote usage
-echo "" && echo "To connect remotely with kubectl, use this as your kube config (~/.kube/config): " && echo "" && sudo cat /etc/rancher/k3s/k3s.yaml | sed "s/127.0.0.1/$(hostname -I | cut -f1 -d' ')/g" && echo ""
+echo "" && echo "To connect remotely with kubectl, use this as your kube config (~/.kube/config): " && echo "" && sudo cat /etc/rancher/k3s/k3s.yaml | sed "s/127.0.0.1/$(hostname -I | cut -f1 -d' ')/g" | sed "s/default/$(hostname)/g" && echo ""
 
 sleep 40
 
