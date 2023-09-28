@@ -469,10 +469,12 @@ EOF
             ;;
 
         "15") # Install Tailscale
-            
+
+            sudo apt-get remove tailscale -y
+            #rm -f /var/lib/tailscale/tailscaled.state
             curl -fsSL https://tailscale.com/install.sh | sh
 
-            if Confirm "Do you intend to use Tailscale as a subnet router?" N; then
+            if Confirm "Do you intend to use Tailscale as a subnet router? (only needed for first-time installs)" N; then
                 # The below is required for exposing it as a subnet router
                 echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
                 echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
@@ -482,7 +484,7 @@ EOF
                 echo "sudo tailscale up --advertise-routes=192.168.0.0/24,192.168.1.0/24"
             else
                 echo ""
-                echo "Run: 'sudo tailscale up' to start the VPN"
+                echo "Run: 'sudo tailscale up' to start the VPN, with any additional optional arguments."
             fi
             
             ;;
