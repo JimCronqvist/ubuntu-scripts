@@ -54,6 +54,7 @@ EOF
 # Create .skip files to prevent the installation of a few k3s addons
 sudo mkdir -p /var/lib/rancher/k3s/server/manifests
 sudo touch /var/lib/rancher/k3s/server/manifests/traefik.yaml.skip
+sudo touch /var/lib/rancher/k3s/server/manifests/traefik-config.yaml.skip
 sudo touch /var/lib/rancher/k3s/server/manifests/metrics-server.yaml.skip
 
 # Install k3s
