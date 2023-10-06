@@ -42,7 +42,7 @@ echo "${RESTART_DEPLOYMENTS[@]}" | xargs -n1 | sort -u | sed 's/:/\t/g'
 echo ""
 read -n 1 -r -s -p $'Press enter to continue...\n'
 
-for i in $(printf '%s\n' "${RESTART_DEPLOYMENTS[@]}" | xargs -n1 | sort -u); do
+for i in $(echo "${RESTART_DEPLOYMENTS[@]}" | xargs -n1 | sort -u); do
     namespace=$(echo "$i" | cut -f1 -d':')
     deployment=$(echo "$i" | cut -f2 -d':')
 
