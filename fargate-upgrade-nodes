@@ -31,9 +31,6 @@ for i in $(kubectl get pods --field-selector=status.phase=Running --all-namespac
         RESTART_DEPLOYMENTS+=("$namespace:$deployment")
         echo -e "${GREEN}The Fargate node for pod $pod will be upgraded!${NORMAL}"
     fi
-
-    #kubectl rollout restart deployment/$eks_deployment -n $eks_namepsace
-    #kubectl rollout status deployment/$eks_deployment -n $eks_namepsace
 done
 
 echo ""
