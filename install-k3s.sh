@@ -49,6 +49,8 @@ write-kubeconfig-mode: "0644"
 #disable:
 #- metrics-server
 #- traefik
+kubelet-arg:
+- "max-pods=250"
 EOF
 
 # Create .skip files to prevent the installation of a few k3s addons
