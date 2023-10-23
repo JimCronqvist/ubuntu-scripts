@@ -92,6 +92,7 @@ do
 (13) Install database utilities (Xtrabackup, mysqldump, mysql-client)
 (14) Install Database
 (15) Install Tailscale
+(16) Install Go
 
 (0) Quit
 ----------------------------------
@@ -486,6 +487,17 @@ EOF
                 echo ""
                 echo "Run: 'sudo tailscale up' to start the VPN, with any additional optional arguments."
             fi
+            
+            ;;
+        
+        "16") # Install Go
+
+            VERSION="1.21.3"
+            curl -O -L "https://golang.org/dl/go${VERSION}.linux-amd64.tar.gz"
+            sudo tar -xzf go${VERSION}.linux-amd64.tar.gz -C /usr/local/
+            echo 'export PATH=$PATH:/usr/local/go/bin' | sudo tee -a /etc/profile
+            source /etc/profile
+            go version
             
             ;;
             
