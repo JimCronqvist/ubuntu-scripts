@@ -96,10 +96,11 @@ $Apps = @(
     "slack",
     "plexmediaserver",
     "skype",
+    
     "mqtt-explorer",
+    "another-redis-desktop-manager"
     
     #"docker-desktop",
-    "aws-iam-authenticator",
     
     #"nodejs-lts",
     #"postman",
