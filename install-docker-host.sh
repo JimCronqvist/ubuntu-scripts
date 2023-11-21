@@ -327,7 +327,7 @@ EOF
             
             ;;
         
-        "11") # Install kubectl, helm, kustomize, eksctl, argocd cli, kompose
+        "11") # Install kubectl, helm, kustomize, eksctl, argocd cli, kompose, k9s
         
             # Install kubectl if not previously installed
             if ! command -v kubectl &> /dev/null; then
@@ -372,8 +372,7 @@ EOF
                 helm version
             fi
 
-     
-            
+            # Install argocd if not previously installed
             if ! command -v argocd &> /dev/null; then
                 echo "argocd not found, installing..."
                 curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
@@ -382,6 +381,7 @@ EOF
                 argocd version  
             fi
 	    
+            # Install kompose if not previously installed
             if ! command -v kompose &> /dev/null; then
                 echo "argocd not found, installing..."
                 sudo curl -sSL https://github.com/kubernetes/kompose/releases/download/v1.28.0/kompose-linux-amd64 -o kompose
@@ -390,6 +390,15 @@ EOF
                 kompose version
             fi
             
+            # Install k9s if not previously installed
+            if ! command -v k9s &> /dev/null; then
+                REPO="derailed/k9s"
+                VERSION=$(curl -s https://api.github.com/repos/${REPO}/releases/latest | grep 'tag_name' | cut -d\" -f4)
+                curl -o k9s.tar.gz -L "https://github.com/derailed/k9s/releases/download/${VERSION}/k9s_Linux_amd64.tar.gz"
+                sudo tar -C /usr/local/bin/ -zxvf k9s.tar.gz k9s 
+                sudo install -p -m 755 -o root -g root k9s /usr/local/bin/
+            fi
+
             ;;
             
         "12") # Install Node
