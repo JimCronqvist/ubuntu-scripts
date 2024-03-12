@@ -1,416 +1,385 @@
-#
-# Based on: https://github.com/mattiasgeniar/varnish-4.0-configuration-templates/blob/master/default.vcl
-#
-vcl 4.0;
+vcl 4.1;
 
 import std;
+import dynamic;
 
-# Default backend definition. Set this to point to your content server.
-backend default {
-    .host = "127.0.0.1";
-    .port = "8080";
-    .first_byte_timeout = 3600s;
-	
-    .probe = {
-        #.url = "/"; # short easy way (GET /)
-        # We prefer to only do a HEAD /
-        .request =
-            "HEAD / HTTP/1.1"
-            "Host: example.com:8080"
-            "Connection: close"
-            "User-Agent: Varnish Health Probe";
-
-        .interval  = 5s; # check the health of each backend every 5 seconds
-        .timeout   = 8s; # timing out after 2 second.
-        .window    = 5;  # If 3 out of the last 5 polls succeeded the backend is considered healthy, otherwise it will be marked as sick
-        .threshold = 3;
-    }
-}
-
-acl purgers {
-    # ACL we'll use later to allow purges
-    "localhost";
-    "127.0.0.1";
-    "::1";
+acl purge {
+  # ACL we'll use later to allow purges
+  "localhost";
+  "127.0.0.1";
+  "::1";
 }
 
 acl server_status {
-    "127.0.0.1";
+  "localhost";
+  "127.0.0.1";
+  "::1";
+}
+
+backend default none;
+
+probe healthcheck {
+  .request =
+    "HEAD ${BACKEND_HEALTH_ENDPOINT} HTTP/1.1"
+    "Host: localhost"
+    "Connection: close"
+    "User-Agent: Varnish Health Probe";
+
+  # If 3 out of the last 8 polls succeeded the backend is considered healthy, otherwise it will be marked as sick
+  .window = 8;      # (default 8); 
+  .threshold = 6;   # (default 3);
+  .initial = 5;     # (default one less than .threshold);
+  .interval = 5s;   # check the health of each backend every 5 seconds (default 5s).
+  .timeout = 10s;   # timing out after 10 seconds (default 2s).
+}
+
+sub vcl_init {
+  new d = dynamic.director(
+    probe = healthcheck,
+    # max_connections       = 300,    # Maximum number of concurrent connections to the backend
+    # first_byte_timeout    = 300s,   # How long to wait before we receive a first byte from our backend?
+    # connect_timeout       = 5s,     # How long to wait for a backend connection?
+    # between_bytes_timeout = 2s,     # How long to wait between bytes received from our backend?
+    ttl = 30s                         # How long to cache the backend lookup
+  );
 }
 
 sub vcl_recv {
-    # Happens before we check if we have this in cache already.
-    #
-    # Typically you clean up the request here, removing cookies you don't need,
-    # rewriting the request, etc.
-    
-    
-    # Normalize the header, remove the port (in case you're testing this on various TCP ports)
-    #set req.http.Host = regsub(req.http.Host, ":[0-9]+", "");
+  set req.http.host = "${BACKEND_HOST}";
+  set req.backend_hint = d.backend(req.http.host, "${BACKEND_PORT}");
 
-    # Normalize the query arguments
-    #set req.url = std.querysort(req.url);
-	
-    # Allow purging
-    if (req.method == "PURGE") {
-        if (!client.ip ~ purgers) { # purgers is the ACL defined at the beginning
-            # Not from an allowed IP? Then die with an error.
-            return (synth(405, "This IP is not allowed to send PURGE requests."));
-        }
-        # If you got this stage (and didn't error out above), purge the cached result
-        return (purge);
-    }
-    
-    # Allow visiting the server-status page
-    if (req.url ~ "^/server-status" && !client.ip ~ server_status) {
-        return (synth(405, "This IP is not allowed to visit the server-status page."));
-    }
+  # Remove the proxy header (see https://httpoxy.org/#mitigate-varnish)
+  unset req.http.proxy;
 
-    # Only deal with "normal" types
-    if (req.method != "GET" && 
-        req.method != "HEAD" &&
-        req.method != "PUT" &&
-        req.method != "POST" &&
-        req.method != "TRACE" &&
-        req.method != "OPTIONS" &&
-        req.method != "PATCH" &&
-        req.method != "DELETE") {
-        /* Non-RFC2616 or CONNECT which is weird. */
-        return (pipe);
+  # Remove the x-cache header we will set later
+  unset req.http.x-cache;
+
+  # Normalize the query arguments
+  set req.url = std.querysort(req.url);
+
+  # Allow purging
+  if (req.method == "PURGE") {
+    if (!client.ip ~ purge) {
+	    return (synth(405, "This IP is not allowed to send PURGE requests."));
     }
+    return (purge);
+  }
   
-    # Implementing websocket support (https://www.varnish-cache.org/docs/4.0/users-guide/vcl-example-websockets.html)
-    if (req.http.Upgrade ~ "(?i)websocket") {
-        return (pipe);
+  # Allow banning
+  if (req.method == "BAN") {
+    if (!client.ip ~ purge) {
+      return (synth(405, "This IP is not allowed to send BAN requests."));
     }
+    ban(req.http.x-ban);
+    return(synth(200, "Ban added"));
+  }
+  
+  # Allow visiting the server-status page
+  if (req.url ~ "^/server-status" && !client.ip ~ server_status) {
+    return (synth(405, "This IP is not allowed to visit the server-status page."));
+  }
 
-    # Only cache GET or HEAD requests. This makes sure the POST requests are always passed.
-    if (req.method != "GET" && req.method != "HEAD") {
-        return (pass);
-    }
-	
-    # Some generic URL manipulation, useful for all templates that follow
-    # First remove the Google Analytics added parameters, useless for our backend
-    if (req.url ~ "(\?|&)(utm_source|utm_medium|utm_campaign|utm_content|gclid|cx|ie|cof|siteurl)=") {
-        set req.url = regsuball(req.url, "&(utm_source|utm_medium|utm_campaign|utm_content|gclid|cx|ie|cof|siteurl)=([A-z0-9_\-\.%25]+)", "");
-        set req.url = regsuball(req.url, "\?(utm_source|utm_medium|utm_campaign|utm_content|gclid|cx|ie|cof|siteurl)=([A-z0-9_\-\.%25]+)", "?");
-        set req.url = regsub(req.url, "\?&", "?");
-        set req.url = regsub(req.url, "\?$", "");
-    }
+  if (req.url ~ "/varnish/health"){
+    set req.http.Connection = "close";
+    return (synth(200, "OK"));
+  }
 
-    # Strip hash, server doesn't need it.
-    if (req.url ~ "\#") {
-        set req.url = regsub(req.url, "\#.*$", "");
-    }
+  call vcl_req_host;   # Host presence check for http/1.1 requests and lower casing the host header
+  call vcl_req_method; # Pipe unknown http methods and only allow cache for GET and HEAD requests.
 
-    # Strip a trailing ? if it exists
-    if (req.url ~ "\?$") {
-        set req.url = regsub(req.url, "\?$", "");
-    }
-    
-    # Check if there is any forbidden cookies - Not cacheable
-    if (req.http.Cookie ~ "(jc_debug)=") {
-        return (pass);
-    }
-    
-    # Unset the entire cookie
-    #unset req.http.cookie;
-    
-    # For all domains called cdn.*, assets.* and files.*, remove all cookies.
-    if (req.http.cookie && req.http.host ~ "^(cdn|assets|files)\.") {
-        unset req.http.cookie;
-    }
-    
-    # Remove cookies for cookie free URLs
-    if (req.http.cookie && req.url ~ "^/(images)") {
-        unset req.http.cookie;
-    }
-    
-    # Remove cookies for some extensions on URLs except for the URL exceptions matched.
-    if (req.http.cookie && req.url ~ "\.(css|js)(\?(.*))?$" && req.url !~ "^/(admin)") {
-        unset req.http.cookie;
-    }
-    
-    # Cookie manipulation/sanitiation
-    if (req.http.cookie) {
-    
-        # Remove the "has_js" cookie
-        set req.http.Cookie = regsuball(req.http.Cookie, "has_js=[^;]+(; )?", "");
+  # Implementing websocket support
+  if (req.method == "GET" && req.http.Upgrade ~ "(?i)websocket") {
+    return (pipe);
+  }
 
-        # Remove any Google Analytics based cookies
-        set req.http.Cookie = regsuball(req.http.Cookie, "__utm.=[^;]+(; )?", "");
-        set req.http.Cookie = regsuball(req.http.Cookie, "_ga=[^;]+(; )?", "");
-        set req.http.Cookie = regsuball(req.http.Cookie, "_gat=[^;]+(; )?", "");
-        set req.http.Cookie = regsuball(req.http.Cookie, "_gat_newTracker=[^;]+(; )?", "");
-        set req.http.Cookie = regsuball(req.http.Cookie, "utmctr=[^;]+(; )?", "");
-        set req.http.Cookie = regsuball(req.http.Cookie, "utmcmd.=[^;]+(; )?", "");
-        set req.http.Cookie = regsuball(req.http.Cookie, "utmccn.=[^;]+(; )?", "");
+  # Some generic URL manipulation
+  # First remove the Google Analytics added parameters, useless for our backend
+  if (req.url ~ "(\?|&)(utm_source|utm_medium|utm_campaign|utm_content|gclid|cx|ie|cof|siteurl)=") {
+    set req.url = regsuball(req.url, "&(utm_source|utm_medium|utm_campaign|utm_content|gclid|cx|ie|cof|siteurl)=([A-z0-9_\-\.%25]+)", "");
+    set req.url = regsuball(req.url, "\?(utm_source|utm_medium|utm_campaign|utm_content|gclid|cx|ie|cof|siteurl)=([A-z0-9_\-\.%25]+)", "?");
+    set req.url = regsub(req.url, "\?&", "?");
+    set req.url = regsub(req.url, "\?$", "");
+  }
 
-        # Remove DoubleClick offensive cookies
-        set req.http.Cookie = regsuball(req.http.Cookie, "__gads=[^;]+(; )?", "");
+  # Strip hash, server doesn't need it.
+  if (req.url ~ "\#") {
+    set req.url = regsub(req.url, "\#.*$", "");
+  }
 
-        # Remove the Quant Capital cookies (added by some plugin, all __qca)
-        set req.http.Cookie = regsuball(req.http.Cookie, "__qc.=[^;]+(; )?", "");
+  # Strip a trailing ? if it exists
+  if (req.url ~ "\?$") {
+    set req.url = regsub(req.url, "\?$", "");
+  }
 
-        # Remove the AddThis cookies
-        set req.http.Cookie = regsuball(req.http.Cookie, "__atuv.=[^;]+(; )?", "");
-    
-        # Remove the Hotjar cookies
-        set req.http.Cookie = regsuball(req.http.Cookie, "mp_mixpanel__c.?=[^;]+(; )?", "");
+  # For all domains called cdn.*, assets.* and files.*, remove all cookies.
+  if (req.http.cookie && req.http.host ~ "^(cdn|assets|files)\.") {
+    unset req.http.cookie;
+  }
 
-        # Remove the Zopim cookie
-        set req.http.Cookie = regsuball(req.http.Cookie, "__zlcmid=[^;]+(; )?", "");
-        
-        # Remove the xdebug cookie
-        set req.http.Cookie = regsuball(req.http.Cookie, "XDEBUG_SESSION=[^;]+(; )?", "");
-        
-        # Remove the cookie accepted cookie
-        set req.http.Cookie = regsuball(req.http.Cookie, "jc_cookie=[^;]+(; )?", "");
+  # Remove cookies for some extensions on URLs except for the URL exceptions matched.
+  if (req.http.cookie && req.url ~ "\.(css|js)(\?(.*))?$") {
+    unset req.http.cookie;
+  }
 
-        # Remove a ";" prefix in the cookie if present
-        set req.http.Cookie = regsuball(req.http.Cookie, "^;\s*", "");
+  # Remove cookies for cookie free URLs
+  if (req.http.cookie && req.url ~ "^/(images|assets|vendor)/") {
+    unset req.http.cookie;
+  }
 
-        # Are there cookies left with only spaces or that are empty?
-        if (req.http.cookie ~ "^\s*$") {
-            unset req.http.cookie;
-        }
-    }
-    
-    # Normalize the Accept-Encoding header
-    if (req.http.Accept-Encoding) {
-        if (req.url ~ "\.(jpg|png|gif|gz|tgz|bz2|tbz|mp3|ogg)$") {
-            # No point in compressing these
-            unset req.http.Accept-Encoding;
-        } elsif (req.http.Accept-Encoding ~ "gzip") {
-            set req.http.Accept-Encoding = "gzip";
-        } elsif (req.http.Accept-Encoding ~ "deflate" && req.http.user-agent !~ "MSIE") {
-            set req.http.Accept-Encoding = "deflate";
-        } else {
-            # unkown algorithm
-            unset req.http.Accept-Encoding;
-        }
-    }
-	
-    # Send Surrogate-Capability headers to announce ESI support to backend
-    set req.http.Surrogate-Capability = "key=ESI/1.0";
-	
-	if (req.http.Authorization) {
-        # Not cacheable by default
-        return (pass);
-    }
+  # Unset the entire cookie
+  #unset req.http.cookie;
 
-    return (hash);
+  # Some generic cookie manipulation, don't manipulate empty cookies
+  if (req.http.Cookie !~ "^\s*$") {
+    # Remove the "has_js" cookie
+    set req.http.Cookie = regsuball(req.http.Cookie, "has_js=[^;]+(; )?", "");
+
+    # Remove any Google Analytics based cookies
+    set req.http.Cookie = regsuball(req.http.Cookie, "__utm.=[^;]+(; )?", "");
+    set req.http.Cookie = regsuball(req.http.Cookie, "_ga=[^;]+(; )?", "");
+    set req.http.Cookie = regsuball(req.http.Cookie, "_gat=[^;]+(; )?", "");
+    set req.http.Cookie = regsuball(req.http.Cookie, "utmctr=[^;]+(; )?", "");
+    set req.http.Cookie = regsuball(req.http.Cookie, "utmcmd.=[^;]+(; )?", "");
+    set req.http.Cookie = regsuball(req.http.Cookie, "utmccn.=[^;]+(; )?", "");
+
+    # Remove DoubleClick offensive cookies
+    set req.http.Cookie = regsuball(req.http.Cookie, "__gads=[^;]+(; )?", "");
+
+    # Remove a ";" prefix in the cookie if present
+    set req.http.Cookie = regsuball(req.http.Cookie, "^;\s*", "");
+  }
+
+  # Are there cookies left with only spaces or that are empty?
+  if (req.http.cookie ~ "^\s*$") {
+    unset req.http.cookie;
+  }
+
+  # Large static files are delivered directly to the end-user without waiting for Varnish to fully read the file first.
+  # Varnish 4 fully supports Streaming, so set do_stream in vcl_backend_response()
+  if (req.http.cookie && req.url ~ "^[^?]*\.(7z|avi|bz2|flac|flv|gz|mka|mkv|mov|mp3|mp4|mpeg|mpg|ogg|ogm|opus|rar|tar|tgz|tbz|txz|wav|webm|xz|zip)(\?.*)?$") {
+    unset req.http.Cookie;
+  }
+
+  # Remove all cookies for static files
+  if (req.http.cookie && req.url ~ "^[^?]*\.(7z|avi|bmp|bz2|css|csv|doc|docx|eot|flac|flv|gif|gz|ico|jpeg|jpg|js|less|mka|mkv|mov|mp3|mp4|mpeg|mpg|odt|otf|ogg|ogm|opus|pdf|png|ppt|pptx|rar|rtf|svg|svgz|swf|tar|tbz|tgz|ttf|txt|txz|wav|webm|webp|woff|woff2|xls|xlsx|xml|xz|zip)(\?.*)?$") {
+    unset req.http.Cookie;
+  }
+
+  # Send Surrogate-Capability headers to announce ESI support to backend
+  set req.http.Surrogate-Capability = "key=ESI/1.0";
+
+  call vcl_req_authorization; # Do not cache if we have any Authorization or X-Api-Key headers
+  call vcl_req_cookie;        # Do not cache if we have Cookies left
+
+  # Ignore built-in by returning here, as we have already checked for every check that is included as built-in.
+  return (hash); 
+}
+
+sub vcl_req_authorization {
+  if (req.http.X-Api-Key) {
+    return (pass); # Not cacheable by default
+  }
+}
+
+sub vcl_hash {
+  if (req.http.Cookie) {
+    hash_data(req.http.Cookie);
+  }
+  if (req.http.X-Forwarded-Proto) {
+    hash_data(req.http.X-Forwarded-Proto);
+  }
 }
 
 sub vcl_pipe {
-    # Called upon entering pipe mode.
-    # In this mode, the request is passed on to the backend, and any further data from both the client
-    # and backend is passed on unaltered until either end closes the connection. Basically, Varnish will
-    # degrade into a simple TCP proxy, shuffling bytes back and forth. For a connection in pipe mode,
-    # no other VCL subroutine will ever get called after vcl_pipe.
-
-    # Note that only the first request to the backend will have
-    # X-Forwarded-For set.  If you use X-Forwarded-For and want to
-    # have it set for all requests, make sure to have:
-    # set bereq.http.connection = "close";
-    # here. It is not set by default as it might break some broken web
-    # applications, like IIS with NTLM authentication.
-
-    # set bereq.http.Connection = "Close";
-
-    # Implementing websocket support (https://www.varnish-cache.org/docs/4.0/users-guide/vcl-example-websockets.html)
-    if (req.http.upgrade) {
-        set bereq.http.upgrade = req.http.upgrade;
-    }
-
-    return (pipe);
-}
-
-sub vcl_pass {
-    # Called upon entering pass mode. In this mode, the request is passed on to the backend, and the
-    # backend's response is passed on to the client, but is not entered into the cache. Subsequent
-    # requests submitted over the same client connection are handled normally.
-
-    if (req.method == "PURGE") {
-        return (synth(502, "PURGE on a passed object"));
-    }
-	
-    #return (pass);
-}
-
-# The data on which the hashing will take place
-sub vcl_hash {
-    # Called after vcl_recv to create a hash value for the request. This is used as a key
-    # to look up the object in Varnish.
-
-    hash_data(req.proto);
-    if (req.http.X-Forwarded-Proto) {
-        hash_data(req.http.X-Forwarded-Proto);
-    }
-    hash_data(req.url);
-
-    if (req.http.host) {
-        hash_data(req.http.host);
-    } else {
-        hash_data(server.ip);
-    }
-
-    # hash cookies for requests that have them
-    if (req.http.Cookie) {
-        hash_data(req.http.Cookie);
-    }
-}
-
-sub vcl_hit {
-    # Called when a cache lookup is successful.
-	
-    if (req.method == "PURGE") {
-        return (synth(200, "Purged"));
-    }
-    
-    # Set to use as a debug header later
-    set req.http.X-Cache-Ttl-Remaining = obj.ttl;
-
-    if (obj.ttl >= 0s) {
-        # A pure unadultered hit, deliver it
-        return (deliver);
-    }
-
-    # https://www.varnish-cache.org/docs/trunk/users-guide/vcl-grace.html
-    # When several clients are requesting the same page Varnish will send one request to the backend and place the others on hold while fetching one copy from the backend. In some products this is called request coalescing and Varnish does this automatically.
-    # If you are serving thousands of hits per second the queue of waiting requests can get huge. There are two potential problems - one is a thundering herd problem - suddenly releasing a thousand threads to serve content might send the load sky high. Secondly - nobody likes to wait. To deal with this we can instruct Varnish to keep the objects in cache beyond their TTL and to serve the waiting requests somewhat stale content.
-
-    # We have no fresh fish. Lets look at the stale ones.
-    if (std.healthy(req.backend_hint)) {
-        # Backend is healthy. Limit age to 10s.
-        if (obj.ttl + 10s > 0s) {
-            #set req.http.grace = "normal(limited)";
-            return (deliver);
-        } else {
-            # No candidate for grace. Fetch a fresh object.
-            return(fetch);
-        }
-    } else {
-        # backend is sick - use full grace
-        if (obj.ttl + obj.grace > 0s) {
-            #set req.http.grace = "full";
-            return (deliver);
-        } else {
-            # no graced object.
-            return (fetch);
-        }
-    }
-
-    # fetch & deliver once we get the result
-    return (fetch); # Dead code, keep as a safeguard
+  set req.http.X-Cache = "pipe uncacheable";
+  
+  # Implementing websocket support
+  if (req.method == "GET" && req.http.upgrade) {
+    set bereq.http.upgrade = req.http.upgrade;
+    set bereq.http.connection = req.http.connection;
+  }
 }
 
 sub vcl_miss {
-    # Called after a cache lookup if the requested document was not found in the cache. Its purpose
-    # is to decide whether or not to attempt to retrieve the document from the backend, and which
-    # backend to use.
+  set req.http.X-Cache = "miss";
+}
 
-    if (req.method == "PURGE") {
-        return (synth(404, "Not in cache"));
-    }
-	
-    return (fetch);
+sub vcl_pass {
+  set req.http.x-cache = "pass";
+}
+
+# Called when a cache lookup is successful.
+sub vcl_hit {
+  set req.http.X-Cache = "hit";
+  set req.http.X-Cache-Ttl-Remaining = obj.ttl;
+
+  # If a pure hit, deliver it
+  if (obj.ttl >= 0s) {
+    return (deliver);
+  }
+  
+  # Varnish does request coalescing, give a grace period of 10s for pending requests in the wait queue, and serve 
+  # stale content immediately for faster responses, and avoid releasing thousands of requests at the same time. 
+  # Read about grace mode here: https://www.varnish-cache.org/docs/trunk/users-guide/vcl-grace.html 
+  if (std.healthy(req.backend_hint) && (obj.ttl + 10s > 0s)) {
+    # Reduce the thundering herd problem
+    set req.http.X-Cache = "hit grace healthy";
+    return (deliver);
+  } else if (obj.ttl + obj.grace > 0s) {
+    # Backend is not healthy, serve stale content
+    set req.http.X-Cache = "hit grace unhealthy";
+    return (deliver);
+  }
 }
 
 # Handle the HTTP request coming from our backend
 sub vcl_backend_response {
-    # Happens after we have read the response headers from the backend.
-    #
-    # Here you clean the response headers, removing silly Set-Cookie headers
-    # and other mistakes your backend does.
-	
-    # Pause ESI request and remove Surrogate-Control header
-    if (beresp.http.Surrogate-Control ~ "ESI/1.0") {
-        unset beresp.http.Surrogate-Control;
-        set beresp.do_esi = true;
-    }
-    
-    # Varnish determined the object was not cacheable
-    if (beresp.ttl <= 0s) {
-        set beresp.http.X-Cacheable = "NO:Not Cacheable";
-    }
-    # Don't cache requests with "Set-Cookie" headers
-    elsif (beresp.http.Set-Cookie) {
-        set beresp.http.X-Cacheable = "NO:Set-Cookie";
-        set beresp.uncacheable = true;
-        return (deliver);
-    }
-    # Don't cache requests with cache-control header that explicitly states that we should not cache.
-    elsif (beresp.http.Cache-Control ~ "(private|no-cache|no-store)") {
-        set beresp.http.X-Cacheable = "NO:Cache-Control=(private|no-cache|no-store)";
-        set beresp.uncacheable = true;
-        return (deliver);
-    }
-    # Don't cache requests with no cache headers defined (Cache-Control, Expires, ETag or Last-Modified), should fall back on "no-cache"
-    elsif (!beresp.http.Cache-Control && !beresp.http.Expires && !beresp.http.ETag && !beresp.http.Last-Modified) {
-        set beresp.http.X-Cacheable = "NO:No cache headers present";
-        set beresp.uncacheable = true;
-        return (deliver);
-    } 
-    # Varnish determined the object was cacheable
-    else {
-        set beresp.http.X-Cacheable = "YES";
-    }
+  # Called after the response headers has been successfully retrieved from the backend.
 
-    # Allow stale content, in case the backend goes down.
-    # make Varnish keep all objects for 6 hours beyond their TTL
-    set beresp.grace = 6h;
+  # Pause ESI request and remove Surrogate-Control header
+  if (beresp.http.Surrogate-Control ~ "ESI/1.0") {
+    unset beresp.http.Surrogate-Control;
+    set beresp.do_esi = true;
+  }
 
-    return (deliver);
+  # Don't cache common 50x responses, don't erase it from the cache if we have a stale version
+  if (beresp.status == 500 || beresp.status == 502 || beresp.status == 503 || beresp.status == 504) {
+    if (bereq.is_bgfetch) {
+      return (abandon);
+    }
+    set beresp.http.X-Uncacheable-Reason = "50x error";
+    set beresp.uncacheable = true;
+  }
+  
+  # Enable cache for all static files
+  if (bereq.url ~ "^[^?]*\.(7z|avi|bmp|bz2|css|csv|doc|docx|eot|flac|flv|gif|gz|ico|jpeg|jpg|js|less|mka|mkv|mov|mp3|mp4|mpeg|mpg|odt|otf|ogg|ogm|opus|pdf|png|ppt|pptx|rar|rtf|svg|svgz|swf|tar|tbz|tgz|ttf|txt|txz|wav|webm|webp|woff|woff2|xls|xlsx|xml|xz|zip)(\?.*)?$") {
+    unset beresp.http.set-cookie;
+  }
+  
+  # Large static files are delivered directly to the end-user without waiting for Varnish to fully read the file first.
+  # Varnish 4 fully supports Streaming, so use streaming here to avoid locking.
+  if (bereq.url ~ "^[^?]*\.(7z|avi|bz2|flac|flv|gz|mka|mkv|mov|mp3|mp4|mpeg|mpg|ogg|ogm|opus|rar|tar|tgz|tbz|txz|wav|webm|xz|zip)(\?.*)?$") {
+    unset beresp.http.set-cookie;
+    set beresp.do_stream = true;  # Check memory usage it'll grow in fetch_chunksize blocks (128k by default) if the backend doesn't send a Content-Length header, so only enable it for big objects
+  }
+  
+  
+  # Custom checks to determine if the object is uncacheable - marked as Hit-for-Miss and returns
+  
+  ## Don't cache requests with no cache headers defined (Cache-Control, Expires, ETag or Last-Modified), should fall back on "no-cache"
+  if (!beresp.http.Cache-Control && !beresp.http.Expires && !beresp.http.ETag && !beresp.http.Last-Modified) {
+    set beresp.http.X-Uncacheable-Reason = "no cache headers";
+    call vcl_beresp_hitmiss;
+  }
+  
+  # Built-in Varnish checks to determine if the object is uncacheable - marked as Hit-for-Miss and returns
+  call vcl_builtin_backend_response;
+
+  # Passed all checks, the object is determined as cacheable
+  set beresp.http.X-Cacheable = "yes";
+  
+  # Allow stale content, in case the backend goes down. Make Varnish keep all objects for 6 hours beyond their TTL.
+  set beresp.grace = 6h;
+  
+  return (deliver);
 }
 
-# The routine when we deliver the HTTP request to the user
-# Last chance to modify headers that are sent to the client
+sub vcl_builtin_backend_response {
+  if (bereq.uncacheable) {
+    set beresp.http.X-Uncacheable-Reason = "uncacheable";
+  }
+}
+
+sub vcl_beresp_stale {
+  if (beresp.ttl <= 0s) {
+    set beresp.http.X-Uncacheable-Reason = "ttl <= 0s";
+  }
+}
+
+sub vcl_beresp_cookie {
+  if (beresp.http.Set-Cookie) {
+    set beresp.http.X-Uncacheable-Reason = "set-cookie";
+  }
+}
+
+sub vcl_beresp_control {
+  if (beresp.http.Cache-Control ~ "(?i:no-cache|no-store|private)") {
+    set beresp.http.X-Uncacheable-Reason = "cache-control";
+  }
+}
+
+sub vcl_beresp_vary {
+  if (beresp.http.Vary == "*") {
+    set beresp.http.X-Uncacheable-Reason = "vary";
+  }
+}
+
+sub vcl_beresp_hitmiss {
+  set beresp.http.X-Cacheable = "no";
+}
+
+# The routine when we deliver the HTTP request to the client
 sub vcl_deliver {
-    # Happens when we have all the pieces we need, and are about to send the
-    # response to the client.
-    #
-    # You can do accounting or modifying the final object here.
-	
-    # Called before a cached object is delivered to the client.
+  if (obj.uncacheable) {
+    set req.http.X-Cache = req.http.X-Cache + " uncacheable";
+  } else {
+    set req.http.X-Cache = req.http.X-Cache + " cached";
+  }
+  set resp.http.X-Cache = req.http.X-Cache;
 
-    # Add debug header to see if it's a HIT/MISS and the number of hits
-    if (obj.hits > 0) { 
-        set resp.http.X-Cache = "HIT";
-    } else {
-        set resp.http.X-Cache = "MISS";
-    }
-    
-    # Add debug header to see the remaining cookies after filtering.
+  # Please note that obj.hits is not 100% accurate but works for debug purposes, see bug 1492 for details.
+  set resp.http.X-Cache-Hits = obj.hits;
+
+  # Add a debug header to see the remaining TTL for the cached object
+  if (req.http.X-Cache-Ttl-Remaining) {
+    set resp.http.X-Cache-Ttl-Remaining = req.http.X-Cache-Ttl-Remaining;
+  }
+  
+  # Add a debug header to see the remaining cookies after filtering.
+  if (req.http.Cookie) {
     set resp.http.X-Cookie-Debug = req.http.Cookie;
-    
-    # Add debug header to see the remaining TTL for the cached object
-    if (req.http.X-Cache-Ttl-Remaining) {
-        set resp.http.X-Cache-Ttl-Remaining = req.http.X-Cache-Ttl-Remaining;
-    }
+  }
 
-    # Please note that obj.hits behaviour changed in 4.0, now it counts per objecthead, not per object
-    # and obj.hits may not be reset in some cases where bans are in use. See bug 1492 for details.
-    # So take hits with a grain of salt
-    set resp.http.X-Cache-Hits = obj.hits;
-
-    # Remove some headers: PHP version
-    #unset resp.http.X-Powered-By;
-
-    # Remove some headers: Apache version & OS
-    unset resp.http.Server;
-    unset resp.http.X-Varnish;
-    unset resp.http.Via;
-    unset resp.http.Link;
-
-    return (deliver);
+  # Remove some headers added by Varnish
+  unset resp.http.Via;
+  unset resp.http.X-Varnish;
+  
+  # Remove some debug headers added in this vcl
+  #unset resp.http.X-Cache;
+  #unset resp.http.X-Cache-Hits;
+  #unset resp.http.X-Cache-Ttl-Remaining;
+  #unset resp.http.X-Cacheable;
+  #unset resp.http.X-Uncacheable-Reason;
+  
+  return (deliver);
 }
 
-sub vcl_purge {
-    # Only handle actual PURGE HTTP methods, everything else is discarded
-    if (req.method != "PURGE") {
-        # restart request
-        set req.http.X-Purge = "Yes";
-        return(restart);
-    }
+sub vcl_synth {
+  set req.http.X-Cache = "synth synth";
+  set resp.http.X-Cache = req.http.X-Cache;
+}
+
+sub vcl_backend_error {
+  std.log("built-in rule: generating synthetic response");
+  set beresp.http.Content-Type = "text/html; charset=utf-8";
+  set beresp.http.Retry-After = "5";
+  set beresp.body = {"<!DOCTYPE html>
+  <html>
+    <head>
+	    <meta name="viewport" content="width=device-width"/>
+	    <title>"} + beresp.status + " " + beresp.reason + {"</title>
+	    <style type="text/css">
+		    html  { height: 100%; }
+		    body  { font-family: -apple-system, BlinkMacSystemFont, Roboto, 'Segoe UI'; margin: 0; display: flex;  width: 100%; height: 100vh; align-items: center; justify-content: center; font-size: 14px; }
+		    h1    { display: inline-block; padding-right: 14px; margin-right: 14px; border-right: 1px solid rgba(0, 0, 0, 0.3); font-size: 24px; font-weight: 500; padding-left: 8px; }
+		    small { font-size: x-small; }
+	    </style>
+	  </head>
+	  <body>
+  	  <h1>"} + beresp.status + {"</h1>
+	    <p>"} + beresp.reason + " <small>(xid " + bereq.xid + ")</small>" + {"</p>
+	  </body>
+  </html>
+  "};
+  return (deliver);
 }
