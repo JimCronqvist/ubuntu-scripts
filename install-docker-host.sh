@@ -206,6 +206,12 @@ EOF
                 sudo bash -c "echo '* soft nofile ${MIN}' >> /etc/security/limits.conf"
                 sudo bash -c "echo '* hard nofile ${MIN}' >> /etc/security/limits.conf"
             fi
+            # Change default inotify limits in Ubuntu.
+            if Confirm "Do you want to increase the inotify limits? (Needed for VERY powerful servers)" N; then
+                sudo bash -c "echo 'fs.inotify.max_user_watches = 524288' >> /etc/sysctl.conf"
+                sudo bash -c "echo 'fs.inotify.max_user_instances = 512' >> /etc/sysctl.conf"
+                sudo sysctl -p
+            fi
 
             if Confirm "Do you want to change the default TCP settings for a high-performance web server?" N; then
                 sudo bash -c "echo 'net.ipv4.ip_local_port_range = 1024 65535' >> /etc/sysctl.conf"
