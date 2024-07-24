@@ -10,6 +10,7 @@ if [ "$(id -u)" -ne "0" ]; then
     exit 1;
 fi
 
+INTERACTIVE=1
 # Confirm function that will be used later for yes and no questions.
 Confirm () {
     while true; do
