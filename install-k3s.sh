@@ -73,6 +73,7 @@ kubectl get node
 
 # Set up automated upgrades for K3s - install system-upgrade-controller
 kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/latest/download/system-upgrade-controller.yaml
+kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/latest/download/crd.yaml
 
 if Confirm "Do you want to configure automatic updates for K3s? (Not recommended for production environments)" N; then
     # Configure server and agent plans for automated updates
