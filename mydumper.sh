@@ -29,11 +29,11 @@ set -euo pipefail
 #   table-limits:
 #     app.logs: 0
 
-if ! dpkg-query --show --showformat='${db:Status-Status}\n' 'libatomic1' | grep -q 'installed' || ! hash mydumper mysql zstd yq pv &>/dev/null; then
+if ! dpkg-query --show --showformat='${db:Status-Status}\n' 'libatomic1' | grep -q 'installed' || ! hash mydumper mysql zstd yq pv envsubst &>/dev/null; then
     echo "Missing dependencies and/or mydumper is not installed"
     #exit 1
 
-    sudo apt-get install mysql-client libatomic1 zstd pv -y
+    sudo apt-get install mysql-client libatomic1 libglib2.0-0 libpcre3 zstd pv gettext-base -y
     sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/local/bin/yq
 
     MYDUMPER_VERSION="$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/mydumper/mydumper/releases/latest | cut -d'/' -f8)"
