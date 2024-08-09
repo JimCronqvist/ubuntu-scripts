@@ -62,6 +62,13 @@ timestamp() {
     date +"%Y-%m-%d %H:%M:%S"
 }
 
+confirm_aws_profile() {
+    if aws configure --profile "${1}" list | grep -q "could not be found"; then
+        echo "The AWS profile ${1} has not been established. You need to set this up prior to running this script."
+        exit 1
+    fi
+}
+
 mysql_query() {
     local QUERY="$1"
     local FIRST_ROW_FIRST_COL_ONLY="${2:-false}"
@@ -309,6 +316,7 @@ function sync_to_s3() {
         S3_PROFILE=$(echo "${INTERNAL_PARAMS['s3profile']}" | envsubst)
         echo ""
         echo "Upload files to S3, path: ${S3_PATH}"
+        confirm_aws_profile "${S3_PROFILE}"
 
         local attempts=1
         while true; do
