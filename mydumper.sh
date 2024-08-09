@@ -42,16 +42,16 @@ if ! dpkg-query --show --showformat='${db:Status-Status}\n' 'libatomic1' | grep 
     rm -f "mydumper_${MYDUMPER_VERSION:1}.$(lsb_release -cs)_amd64.deb"
 fi
 
-if [ -z "$1" ]; then
-    echo "# Usage: script.sh <config-key>"
-    exit 1
-fi
-
 YAML_FILE="mydumper.yaml" # Path to your YAML file
 
 if [ ! -f "$YAML_FILE" ]; then
     echo "The config YAML file does not exist: $YAML_FILE"
     exit 1
+fi
+
+if [ "$#" -ne 1 ]; then
+    echo "# Usage: script.sh <config-key>"
+    exit 2
 fi
 
 # Export two variables to be used in the script with 'envsubst'
