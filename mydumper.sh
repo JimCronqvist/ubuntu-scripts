@@ -318,17 +318,19 @@ function sync_to_s3() {
         echo "Upload files to S3, path: ${S3_PATH}"
         confirm_aws_profile "${S3_PROFILE}"
 
+        if [[ "$TYPE" == "file" ]]; then
+            local CMD=(aws s3 cp "${BACKUP_DIR}" "s3://${S3_PATH}" --region "${S3_REGION}" --profile "${S3_PROFILE}")
+        else
+            local CMD=(aws s3 sync "${BACKUP_DIR}" "s3://${S3_PATH}" --region "${S3_REGION}" --profile "${S3_PROFILE}")
+        fi
+        echo "Executing command: ${CMD[*]}"
+        
         local attempts=1
         while true; do
-            # Execute the command, capture the exit code
-            if [[ "$TYPE" == "file" ]]; then
-                echo aws s3 cp "${BACKUP_DIR}" "s3://${S3_PATH}" --region "${S3_REGION}" --profile "${S3_PROFILE}"
-                     aws s3 cp "${BACKUP_DIR}" "s3://${S3_PATH}" --region "${S3_REGION}" --profile "${S3_PROFILE}" || true
-            else
-                echo aws s3 sync "${BACKUP_DIR}" "s3://${S3_PATH}" --region "${S3_REGION}" --profile "${S3_PROFILE}"
-                     aws s3 sync "${BACKUP_DIR}" "s3://${S3_PATH}" --region "${S3_REGION}" --profile "${S3_PROFILE}" || true
-            fi
-            local RESULT=$?
+            set +e           # Temporarily disable exit on error
+            "${CMD[@]}"      # Run the S3 command
+            local RESULT=$?  # Store the exit code
+            set -e           # Re-enable exit on error
 
             # Check if the last command was successful
             if [ $RESULT -eq 0 ]; then
