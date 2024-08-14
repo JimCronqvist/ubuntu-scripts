@@ -212,6 +212,12 @@ EOF
                 sudo bash -c "echo 'fs.inotify.max_user_instances = 512' >> /etc/sysctl.conf"
                 sudo sysctl -p
             fi
+	    # Change default aio-max-nr limit in Ubuntu. By default too low for a machine that runs multiple instances of MySQL or lots of things.
+            if Confirm "Do you want to increase the aio-max-nr limit? (Needed for machines running a lot of things in parallel, such as multiple MySQL instances)" N; then
+                sudo bash -c "echo 'fs.aio-max-nr=524288' >> /etc/sysctl.conf"
+                sudo bash -c "echo '#fs.aio-max-nr=1048576' >> /etc/sysctl.conf"
+                sudo sysctl -p
+            fi
 
             if Confirm "Do you want to change the default TCP settings for a high-performance web server?" N; then
                 sudo bash -c "echo 'net.ipv4.ip_local_port_range = 1024 65535' >> /etc/sysctl.conf"
