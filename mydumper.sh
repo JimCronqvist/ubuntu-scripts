@@ -162,7 +162,7 @@ declare -A INTERNAL_PARAMS=(
     ["config"]=""
     ["password"]=""
     ["s3region"]=eu-north-1
-    ["s3profile"]=default
+    ["s3profile"]=""
     ["s3tar"]=false # Requires 'tar' to be set to true as well
 )
 INTERNAL_KEYS=("s3path" "password" "tar" "s3tar" "keep-backups" "s3region" "s3profile" "config" "table-limits")
