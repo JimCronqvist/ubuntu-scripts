@@ -163,7 +163,7 @@ declare -A INTERNAL_PARAMS=(
     ["password"]=""
     ["s3region"]=eu-north-1
     ["s3profile"]=default
-    ["s3tar"]=false
+    ["s3tar"]=false # Requires 'tar' to be set to true as well
 )
 INTERNAL_KEYS=("s3path" "password" "tar" "s3tar" "keep-backups" "s3region" "s3profile" "config" "table-limits")
 
@@ -320,13 +320,19 @@ function sync_to_s3() {
         S3_PROFILE=$(echo "${INTERNAL_PARAMS['s3profile']}" | envsubst)
         echo ""
         echo "Upload files to S3, path: ${S3_PATH}"
-        confirm_aws_profile "${S3_PROFILE}"
 
         if [[ "$TYPE" == "file" ]]; then
-            local CMD=(aws s3 cp "${BACKUP_DIR}" "s3://${S3_PATH}" --region "${S3_REGION}" --profile "${S3_PROFILE}")
+            local CMD=(aws s3 cp "${BACKUP_DIR}" "s3://${S3_PATH}" --region "${S3_REGION}")
         else
-            local CMD=(aws s3 sync "${BACKUP_DIR}" "s3://${S3_PATH}" --region "${S3_REGION}" --profile "${S3_PROFILE}")
+            local CMD=(aws s3 sync "${BACKUP_DIR}" "s3://${S3_PATH}" --region "${S3_REGION}")
         fi
+
+        # Append the S3 profile if it is set
+        if [[ -n "${S3_PROFILE}" ]]; then
+            confirm_aws_profile "${S3_PROFILE}"
+            CMD+=("--profile" "${S3_PROFILE}")
+        fi
+
         echo "Executing command: ${CMD[*]}"
         
         local attempts=1
@@ -379,7 +385,7 @@ function create_tar() {
 
 # Check if the 's3path' parameter is set, if so, move the files to the specified S3 path.
 if [[ -v INTERNAL_PARAMS["s3path"] ]]; then
-    if [[ -v INTERNAL_PARAMS["tar"] ]] && [[ -v INTERNAL_PARAMS["s3tar"] ]]; then
+    if [[ -n "${INTERNAL_PARAMS['tar']+set}" && "${INTERNAL_PARAMS['tar']}" != "false" ]] && [[ -n "${INTERNAL_PARAMS['s3tar']+set}" && "${INTERNAL_PARAMS['s3tar']}" != "false" ]]; then
         create_tar
         sync_to_s3 "${BACKUP_DIR}.tar" "file"
     else
@@ -387,8 +393,8 @@ if [[ -v INTERNAL_PARAMS["s3path"] ]]; then
     fi
 fi
 
-# Check if the 'tar' parameter is set, if so, we will tar the directory and remove the original directory.
-if [[ -v INTERNAL_PARAMS["tar"] ]] && ! [[ -v INTERNAL_PARAMS["s3tar"] ]]; then
+# Check if only the 'tar' parameter is set, if so, we will tar the directory and remove the original directory.
+if [[ -n "${INTERNAL_PARAMS['tar']+set}" && "${INTERNAL_PARAMS['tar']}" != "false" ]] && ! [[ -n "${INTERNAL_PARAMS['s3tar']+set}" && "${INTERNAL_PARAMS['s3tar']}" != "false" ]]; then
     create_tar
 fi
 
@@ -426,13 +432,13 @@ echo ""
 
 
 cat << EOF
-# Sync the backup from S3 to the local machine
-aws s3 sync s3://$(echo "${INTERNAL_PARAMS['s3path']%/}/${CONFIG}/" | envsubst)<backup> ~/mysql-restore/ --region ${S3_REGION} --profile ${S3_PROFILE}
+# 1) Sync the backup from S3 to the local machine
+aws s3 sync s3://$(echo "${INTERNAL_PARAMS['s3path']%/}/${CONFIG}/" | envsubst)<backup> ~/mysql-restore/ --region ${S3_REGION} --profile <optional-profile>
 
-# If a tarball, decompress the file
+# 1a) If a tarball, decompress the file
 tar -xvf ~/mysql-restore/${TIMESTAMP}.tar
 
-# Restore the backup
+# 2) Restore the backup
 myloader --host=<new-host> --user=root --ask-password --ssl --compress-protocol=ZSTD \\
          --directory="~/mysql-restore/" \\
          --threads=4 --verbose=3 \\
