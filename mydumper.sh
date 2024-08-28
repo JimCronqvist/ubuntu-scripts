@@ -168,7 +168,11 @@ declare -A INTERNAL_PARAMS=(
 INTERNAL_KEYS=("s3path" "password" "tar" "s3tar" "keep-backups" "s3region" "s3profile" "config" "table-limits")
 
 # Extract all keys under the specified database configuration
-KEYS=$(yq eval ".${CONFIG} | keys | .[]" "$YAML_FILE")
+KEYS=$(yq eval ".${CONFIG} | keys | .[]" "$YAML_FILE" 2>/dev/null || echo "")
+if [[ -z "$KEYS" ]]; then
+    echo "The config key '${CONFIG}' does not exist in the YAML file: ${YAML_FILE}"
+    exit 2
+fi
 
 # Loop through each key and append it to the command array
 for KEY in $KEYS; do
@@ -242,7 +246,7 @@ if [[ -v INTERNAL_PARAMS["table-limits"] ]]; then
         # Escape the key so we can use it with grep and get the variable content interpreted as a string, not a regex, as yq struggles with this.
         ESCAPED_KEY="$(printf '%s' "${KEY}" | sed 's/[.[\*^$()+?{}|]/\\&/g')"
 
-        LIMIT=$(yq eval ".${CONFIG}.table-limits" "$YAML_FILE" | grep -e "^${ESCAPED_KEY}" | awk '{print $2}')
+        LIMIT=$(yq eval ".${CONFIG}.table-limits" "$YAML_FILE" | grep -E "^${ESCAPED_KEY}:" | awk '{print $2}')
         echo "Generating config for: ${KEY}: ${LIMIT}"
 
         # Split the KEY into database and table
