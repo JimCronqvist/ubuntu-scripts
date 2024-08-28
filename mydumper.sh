@@ -424,6 +424,7 @@ fi
 
 echo ""
 echo ""
+echo "The dump runtime was ${SECONDS} seconds. Total dump size: ${SIZE}."
 echo "Backup completed at: $(timestamp)."
 echo ""
 echo "To restore the backup, use a variation of the following commands:"
@@ -443,7 +444,7 @@ myloader --host=<new-host> --user=root --ask-password --ssl --compress-protocol=
          --directory="~/mysql-restore/" \\
          --threads=4 --verbose=3 \\
          --disable-redo-log --show-warnings --skip-definer \\
-         --source-db="${DATABASE}" --database="restored-${DATABASE}" --overwrite-tables \\
-         --regex="^${DATABASE}\.(table1|table2)$"
+         --source-db="${DATABASE:-app}" --database="restored-${DATABASE:-app}" --overwrite-tables \\
+         --regex="^${DATABASE:-app}\.(table1|table2)$"
 
 EOF
