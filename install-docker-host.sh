@@ -497,6 +497,22 @@ EOF
             #rm -f /var/lib/tailscale/tailscaled.state
             curl -fsSL https://tailscale.com/install.sh | sh
 
+            echo ""
+            echo "If for some reason you need a specific older version you can do this:"
+            echo ""
+
+            cat << EOF
+            # Add Tailscale GPG key and Repository
+            sudo mkdir -p --mode=0755 /usr/share/keyrings
+            curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/$(lsb_release -cs).noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+            curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/$(lsb_release -cs).tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+
+            # Install a specific version of Tailscale
+            sudo apt-get update
+            sudo apt list -a tailscale
+            sudo apt-get install tailscale=1.72.1
+EOF
+
             if Confirm "Do you intend to use Tailscale as a subnet router? (only needed for first-time installs)" N; then
                 # The below is required for exposing it as a subnet router
                 echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
