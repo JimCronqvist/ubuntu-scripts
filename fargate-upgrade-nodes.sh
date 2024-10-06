@@ -1,13 +1,7 @@
 #!/bin/bash
 
-AWS_ACCOUNT_ID=$(aws sts get-caller-identity --output text --query 'Account')
-AWS_REGION=$(aws ec2 describe-availability-zones --output text --query 'AvailabilityZones[0].[RegionName]')
 CLUSTER_NAME=$(kubectl config view --minify -o jsonpath="{.contexts[?(@.name == '$(kubectl config current-context)')].context.cluster}" | cut -d / -f 2)
-
-echo "AWS Account ID: $AWS_ACCOUNT_ID"
-echo "AWS Region: $AWS_REGION"
 echo "Cluster Name: $CLUSTER_NAME"
-
 
 if [[ $# -ne 1 ]]; then
     echo "Usage: $0 <kubernetes version>"
