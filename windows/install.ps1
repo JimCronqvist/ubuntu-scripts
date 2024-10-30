@@ -41,7 +41,7 @@ Write-Host "Removing UWP bloatwares..." -ForegroundColor Green
 Write-Host "------------------------------------" -ForegroundColor Green
 $uwpRubbishApps = @(
     "Microsoft.GetHelp"
-    "Microsoft.YourPhone"
+    #"Microsoft.YourPhone"
     "Microsoft.Getstarted"
 )
 foreach ($uwp in $uwpRubbishApps) {
@@ -50,9 +50,8 @@ foreach ($uwp in $uwpRubbishApps) {
 
 # Enable Windows Features
 Write-Host ""
-Write-Host "Enabling Hyper-V (required for wsl2) and Telnet Client..." -ForegroundColor Green
+Write-Host "Enabling Telnet Client..." -ForegroundColor Green
 Write-Host "------------------------------------" -ForegroundColor Green
-Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All -NoRestart # Required for WSL2
 Enable-WindowsOptionalFeature -Online -FeatureName TelnetClient -All -NoRestart
 
 # Enable Windows Developer Mode
@@ -87,17 +86,16 @@ $Apps = @(
     "lightshot.install",
     "dropbox",
     "jetbrainstoolbox",
-    "authy-desktop",
-    "openvpn-connect",
-    "icue",
+    #"openvpn-connect",
+    #"icue",
     "crystaldiskinfo.install",
     "hwinfo",
     "spotify",
-    "slack",
-    "plexmediaserver",
+    #"slack",
+    #"plexmediaserver",
     "skype",
     
-    "mqtt-explorer",
+    #"mqtt-explorer",
     "another-redis-desktop-manager"
     
     #"docker-desktop",
@@ -135,7 +133,6 @@ Get-WindowsUpdate -AcceptAll -Install -ForceInstall -AutoReboot
 
 
 # Install WSL2 - after we have the latest windows updates
-Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All -NoRestart
 wsl --install -d Ubuntu
 wsl --version
 
@@ -153,17 +150,17 @@ choco install -y docker-desktop
 #wsl --cd ~ -e bash -c "sudo apt update && sudo apt upgrade -y"
 
 # Prepare for bridge connection for WSL2
-New-VMSwitch -Name "WSL_External" -AllowManagement $True –NetAdapterName "Ethernet"
-$wslconfig = @"
-[wsl2]
-networkingMode=bridged
-vmSwitch=WSL_External
-#dhcp=false
-ipv6=true
-"@
-Add-Content "$HOME\.wslconfig" $wslconfig
-wsl --shutdown
-wsl -d Ubuntu
+#New-VMSwitch -Name "WSL_External" -AllowManagement $True –NetAdapterName "Ethernet"
+#$wslconfig = @"
+#[wsl2]
+#networkingMode=bridged
+#vmSwitch=WSL_External
+##dhcp=false
+#ipv6=true
+#"@
+#Add-Content "$HOME\.wslconfig" $wslconfig
+#wsl --shutdown
+#wsl -d Ubuntu
 
 # Install complete
 Write-Host "------------------------------------" -ForegroundColor Green
