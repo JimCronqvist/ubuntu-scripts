@@ -440,11 +440,18 @@ aws s3 sync s3://$(echo "${INTERNAL_PARAMS['s3path']%/}/${CONFIG}/" | envsubst)<
 tar -xvf ~/mysql-restore/${TIMESTAMP}.tar
 
 # 2) Restore the backup
-myloader --host=<new-host> --user=root --ask-password --ssl --compress-protocol=ZSTD \\
+myloader --host="<new-host>" --user=root --ask-password --ssl --compress-protocol=ZSTD \\
          --directory="~/mysql-restore/" \\
-         --threads=4 --verbose=3 \\
-         --disable-redo-log --show-warnings --skip-definer \\
+         --show-warnings --verbose=3 \\
+         --threads=4 --queries-per-transaction=1000 \\
+         --enable-binlog \\
+         --skip-definer \\
+         --logfile="~/myloader.log" \\
          --source-db="${DATABASE:-app}" --database="restored-${DATABASE:-app}" --overwrite-tables \\
          --regex="^${DATABASE:-app}\.(table1|table2)$"
+
+Notes:
+- Consider using --disable-redo-log to speed up the restore time on test environments.
+- If you are using GTID replication (gtid_mode), you want to pay attention to --set-gtid-purged, if not you should ignore it.
 
 EOF
