@@ -452,6 +452,7 @@ myloader --host="<new-host>" --user=root --ask-password --ssl --compress-protoco
 
 Notes:
 - Consider using --disable-redo-log to speed up the restore time on test environments.
-- If you are using GTID replication (gtid_mode), you want to pay attention to --set-gtid-purged, if not you should ignore it.
+- Consider skipping --enable-binlog to speed up the restore time on test environments.
+- For restoring in GTID-enabled setups (e.g., GTID replication), pay attention to --set-gtid-purged, only use it if you know you need it.
 
 EOF
