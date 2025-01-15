@@ -72,13 +72,40 @@ confirm_aws_profile() {
 mysql_query() {
     local QUERY="$1"
     local FIRST_ROW_FIRST_COL_ONLY="${2:-false}"
-    local RESULT="$(mysql --defaults-extra-file="${MYSQL_DEFAULTS_EXTRA_FILE}" -N -B -e "$QUERY")"
 
-    if [[ "$FIRST_ROW_FIRST_COL_ONLY" == "true" || "$FIRST_ROW_FIRST_COL_ONLY" == "1" ]]; then
-        echo "$RESULT" | head -n 1 | cut -f1
-    else
-        echo "$RESULT"
+    #echo "Running query: $QUERY" >&2
+
+    # Capture both stdout and stderr into 'OUTPUT'
+    local OUTPUT
+    OUTPUT="$(mysql --defaults-extra-file="${MYSQL_DEFAULTS_EXTRA_FILE}" -N -B -e "$QUERY" 2>&1)"
+    local EXIT_CODE=$?
+
+    # If mysql command actually failed (e.g., bad syntax in command line args, no server, etc.).
+    if [[ $EXIT_CODE -ne 0 ]]; then
+        echo "Error running MySQL command (exit code $EXIT_CODE):" >&2
+        echo "$OUTPUT" >&2
+        # Abort this function. You can also do 'exit' if you want to exit the entire script.
+        return $EXIT_CODE
     fi
+
+    # If MySQL ran but returned an SQL error (it often says 'ERROR ...'). MySQL may still return 0 exit code. We grep for 'ERROR'.
+    if echo "$OUTPUT" | grep -qi "ERROR"; then
+        echo "MySQL query returned an error:" >&2
+        echo "$OUTPUT" >&2
+        return 1
+    fi
+
+    # If there's no error, proceed to parse the output.
+    if [[ "$FIRST_ROW_FIRST_COL_ONLY" == "true" || "$FIRST_ROW_FIRST_COL_ONLY" == "1" ]]; then
+        # Print only the first column of the first row
+        echo "$OUTPUT" | head -n 1 | cut -f1
+    else
+        # Print entire output
+        echo "$OUTPUT"
+    fi
+
+    # Print the number of rows returned
+    echo "The query returned $(echo -n "$OUTPUT" | wc -l) rows." >&2
 
     # Example usage of the function, loop out the result.
     #RESULT="$(mysql_query "SELECT col1, col2 FROM table")"
@@ -89,9 +116,16 @@ mysql_query() {
 
 function get_tables_with_primary_col() {
     local DATABASE="$1"
-    local TABLE="$2"
-    local FLAG="$3"
+    local TABLE="${2:-}"
+    local FLAG="${3:-}"
+    local RESULT
 
+    local WHERE_DATABASE=""
+    local WHERE_DATABASE_JOIN=""
+    if [ -n "$DATABASE" ]; then
+        WHERE_DATABASE="AND information_schema.TABLES.table_schema = '${DATABASE}'"
+        WHERE_DATABASE_JOIN="AND information_schema.columns.table_schema = '${DATABASE}'"
+    fi
     local WHERE_TABLES=""
     if [ -n "$TABLE" ]; then
         WHERE_TABLES="AND information_schema.TABLES.table_name LIKE '${TABLE//\*/%}'"
@@ -99,32 +133,42 @@ function get_tables_with_primary_col() {
     if [[ "$FLAG" == "only-missing-primary-key" ]]; then
         WHERE_TABLES="${WHERE_TABLES} AND info_columns.column_name IS NULL"
     fi
+    if [[ "$FLAG" == "no-missing-primary-key" ]]; then
+        WHERE_TABLES="${WHERE_TABLES} AND info_columns.column_name IS NOT NULL"
+    fi
 
     local QUERY=$(cat <<-EOF
         SELECT
-            information_schema.TABLES.table_name as name,
-            info_columns.column_name as primary_col
+            information_schema.TABLES.TABLE_SCHEMA as 'database_name',
+            information_schema.TABLES.table_name as 'table_name',
+            info_columns.column_name as 'primary_key_column'
         FROM
             information_schema.TABLES
         LEFT JOIN (
             SELECT *
             FROM information_schema.columns
-            WHERE information_schema.columns.table_schema = '${DATABASE}'
+            WHERE 1
+            ${WHERE_DATABASE_JOIN}
             AND information_schema.columns.column_key = 'PRI'
             ORDER BY
             information_schema.columns.table_name,
             CASE WHEN information_schema.columns.extra LIKE '%auto_increment%' THEN 1 ELSE 2 END ASC,
             information_schema.columns.ordinal_position ASC
         ) as info_columns ON info_columns.table_name = information_schema.TABLES.table_name AND info_columns.table_schema = information_schema.TABLES.table_schema
-        WHERE
-            information_schema.TABLES.table_schema = '${DATABASE}'
+        WHERE information_schema.TABLES.table_schema NOT IN ('information_schema', 'performance_schema', 'mysql', 'sys')
+            ${WHERE_DATABASE}
             ${WHERE_TABLES}
         GROUP BY
             information_schema.TABLES.table_name
+        #HAVING primary_key_column IS NOT NULL
 EOF
     )
 
-    local RESULT="$(mysql_query "$QUERY")"
+    if ! RESULT="$(mysql_query "$QUERY")"; then
+        echo "Error fetching tables with primary column, query: $QUERY" >&2
+        return 1
+    fi
+
     echo "$RESULT"
 }
 
@@ -191,29 +235,6 @@ for KEY in $KEYS; do
     fi
 done
 
-# Override the default output directory to append the config and timestamp
-PARAMS["outputdir"]="${PARAMS["outputdir"]%/}/${CONFIG}/${TIMESTAMP}"
-
-# Build the command using the parameters in the array
-CMD=("mydumper")
-for KEY in "${!PARAMS[@]}"; do
-    VALUE=$(echo "${PARAMS[$KEY]}" | envsubst)
-    if [[ "${VALUE}" == "true" ]]; then
-        # Check if the key is a single character
-        if [[ "${#KEY}" -eq 1 ]]; then
-            CMD+=("-${KEY}")
-        else
-            CMD+=("--$KEY")
-        fi
-    elif [[ "${VALUE}" != "false" ]]; then
-        # Check if the key is a single character
-        if [[ "${#KEY}" -eq 1 ]]; then
-            CMD+=("-${KEY} ${VALUE}")  # Use single-character flag with space
-        else
-            CMD+=("--${KEY}=${VALUE}")
-        fi
-    fi
-done
 
 # Create the default-extra-file for the mydumper command
 MYSQL_DEFAULTS_EXTRA_FILE=$(echo "${PARAMS['defaults-extra-file']}" | envsubst)
@@ -235,9 +256,52 @@ password=${MYSQL_PASSWORD}
 [\`test\`.\`<table>\`]
 rows = -1                         # Disable chunks when using limit, to only get 1*limit rows.
 limit = 0                         # Effectively 'no-data' mode
-where = 1 ORDER BY \`id\` DESC    # Get the limit from the latest rows
+where = 1 ORDER BY \`id\` DESC      # Get the limit from the latest rows
 
 EOF
+
+
+# Check if we need to apply special logic to fix the issue that mydumper does not handle missing primary keys properly when using --order-by-primary
+if [[ -n "${PARAMS[order-by-primary]}" && "${PARAMS[order-by-primary]}" == "true" ]]; then
+    db_filter="${PARAMS['database']:-}"
+
+    echo "Order by primary set as default. Check if we have any tables with a missing primary key to avoid errors."
+    if ! RESULT=$(get_tables_with_primary_col "$db_filter" "" "only-missing-primary-key"); then
+        echo "Error fetching tables with missing primary key."
+        exit 1
+    fi
+
+    ROW_COUNT="$(echo -n "$RESULT" | wc -l)"
+    echo "Found $ROW_COUNT tables with missing primary key."
+    if [[ $ROW_COUNT -gt 0 ]]; then
+        echo "Setting order-by-primary to false for all tables and add a per table config to sort by the primary col."
+        PARAMS["order-by-primary"]=false
+        if ! RESULT=$(get_tables_with_primary_col "$db_filter"); then
+            echo "Error fetching tables with primary key column."
+            exit 1
+        fi
+        # Unfortunately mydumper does not support setting the order-by-primary flag per table yet, so we have to set the 'order by' manually instead.
+        echo "# order-by-primary fix for tables that has a primary key to avoid errors on tables that are missing it" >> "${MYSQL_DEFAULTS_EXTRA_FILE}"
+            while read -r db table col; do
+                if [[ -z "$table" ]]; then
+                    echo "Could not find any primary key tables"
+                    continue
+                fi
+                if [[ $col == "NULL" ]]; then
+                    echo "Skipping to set a ORDER BY clause due to no primary key column on table: '${db}.${table}'"
+                    continue
+                fi
+                #echo "Set ORDER BY for '${db}.${table}' to '${col}'"
+                ROW_ORDER_BY="where = 1 ORDER BY \`$col\` ASC"
+                cat << EOF | envsubst | tee -a "${MYSQL_DEFAULTS_EXTRA_FILE}" >/dev/null
+[\`${db}\`.\`${table}\`]
+${ROW_ORDER_BY}
+EOF
+            done <<< "${RESULT}"
+            echo "" >> "${MYSQL_DEFAULTS_EXTRA_FILE}"
+    fi
+fi
+
 
 # Generate the default-extra-file content for the 'table-limits' parameter
 if [[ -v INTERNAL_PARAMS["table-limits"] ]]; then
@@ -259,7 +323,8 @@ if [[ -v INTERNAL_PARAMS["table-limits"] ]]; then
         TABLE="${ADDR[1]}"
 
         RESULT="$(get_tables_with_primary_col "${DATABASE}" "${TABLE}")"
-        while read -r table col; do
+        # shellcheck disable=SC2034
+        while read -r db table col; do
             if [[ -z "$table" ]]; then
                 echo "Could not find any tables matching the key: ${KEY}"
                 continue
@@ -285,6 +350,32 @@ EOF
 fi
 
 echo "${CUSTOM_CONFIG}" >> "${MYSQL_DEFAULTS_EXTRA_FILE}"
+
+
+# Override the default output directory to append the config and timestamp
+PARAMS["outputdir"]="${PARAMS["outputdir"]%/}/${CONFIG}/${TIMESTAMP}"
+
+# Build the command using the parameters in the array
+CMD=("mydumper")
+for KEY in "${!PARAMS[@]}"; do
+    VALUE=$(echo "${PARAMS[$KEY]}" | envsubst)
+    if [[ "${VALUE}" == "true" ]]; then
+        # Check if the key is a single character
+        if [[ "${#KEY}" -eq 1 ]]; then
+            CMD+=("-${KEY}")
+        else
+            CMD+=("--$KEY")
+        fi
+    elif [[ "${VALUE}" != "false" ]]; then
+        # Check if the key is a single character
+        if [[ "${#KEY}" -eq 1 ]]; then
+            CMD+=("-${KEY} ${VALUE}")  # Use single-character flag with space
+        else
+            CMD+=("--${KEY}=${VALUE}")
+        fi
+    fi
+done
+
 
 # Backup preparation
 BACKUP_DIR=$(echo "${PARAMS['outputdir']}" | envsubst)
@@ -338,7 +429,7 @@ function sync_to_s3() {
         fi
 
         echo "Executing command: ${CMD[*]}"
-        
+
         local attempts=1
         while true; do
             set +e           # Temporarily disable exit on error
@@ -444,13 +535,12 @@ aws s3 sync s3://$(echo "${INTERNAL_PARAMS['s3path']%/}/${CONFIG}/" | envsubst)<
 tar -xvf ~/mysql-restore/${TIMESTAMP}.tar
 
 # 2) Restore the backup
-./myloader.sh --host="<new-host>" --directory="~/mysql-restore/" 
-              --logfile="~/myloader.log" \\
+./myloader.sh --host="<new-host>" --directory="~/mysql-restore/" --logfile="~/myloader.log" \\
               --source-db="${DATABASE:-app}" --database="restored-${DATABASE:-app}"
               --table="${DATABASE:-app}.table1"
 
 Notes:
-- Consider using --disable-redo-log to speed up the restore time on test environments.
+- Consider using --disable-redo-log to speed up the restore time on test environments, but only if it isn't already disabled.
 - For restoring in GTID-enabled setups (e.g., GTID replication), pay attention to --set-gtid-purged, only use it if you know you need it.
 
 EOF
