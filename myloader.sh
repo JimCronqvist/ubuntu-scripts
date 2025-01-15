@@ -130,6 +130,7 @@ For more options, see:
 
 For development or test servers (does not work on RDS):
 - Consider disabling redo logs with --disable-redo-log, only do this if they are not already disabled.
+- Consider disabling binlogs with --enable-binlog=false if that is not required. Typically, it's not that big of a performance gain, but it might help if the disk is limited.
 
 For RDS
 - For a ~25% faster restore, consider disabling automatic backups during the restore.
