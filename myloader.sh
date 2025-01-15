@@ -12,7 +12,7 @@ set -euo pipefail
 ###############################################################################
 
 # Which parameters remain on the myloader command line?
-CMD_LINE_PARAMS=("disable-redo-log" "threads")
+CMD_LINE_PARAMS=("verbose" "debug")
 
 # Parameters that go under the [client] section
 CLIENT_PARAMS=("host" "port" "user" "password" "protocol" "ssl" "compress-protocol")
@@ -186,24 +186,29 @@ apply_environment_overrides() {
 # 2) Parse CLI arguments, overriding environment & defaults
 ###############################################################################
 parse_cli_params() {
-    local pair key value
-    for pair in "$@"; do
-        if [[ "$pair" == "--dry-run" ]]; then
+    local arg key value
+    for arg in "$@"; do
+        if [[ "$arg" == "--dry-run" ]]; then
             DRY_RUN="true"
             continue
         fi
 
         # Our multiple --table= approach, which we'll unify into tables-list
-        if [[ "$pair" =~ ^--table=(.*)$ ]]; then
-            local table_val="${pair#--table=}"
+        if [[ "$arg" =~ ^--table=(.*)$ ]]; then
+            local table_val="${arg#--table=}"
             TABLES+=("$table_val")
             continue
         fi
 
-        # Expect format: --key=value
-        IFS='=' read -r key value <<< "$pair"
-        key="${key#--}"  # remove leading '--'
-        PARAMS["$key"]="$value"
+        # Expect format: --key=value or --key
+        if [[ "$arg" =~ ^--([^=]+)(=(.*))?$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[3]:-true}"
+            PARAMS["$key"]="$value"
+        else
+            echo "Error: unrecognized argument: $arg"
+            exit 1
+        fi
     done
 }
 
