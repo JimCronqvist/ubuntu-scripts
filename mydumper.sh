@@ -90,10 +90,14 @@ mysql_query() {
 function get_tables_with_primary_col() {
     local DATABASE="$1"
     local TABLE="$2"
+    local FLAG="$3"
 
     local WHERE_TABLES=""
     if [ -n "$TABLE" ]; then
         WHERE_TABLES="AND information_schema.TABLES.table_name LIKE '${TABLE//\*/%}'"
+    fi
+    if [[ "$FLAG" == "only-missing-primary-key" ]]; then
+        WHERE_TABLES="${WHERE_TABLES} AND info_columns.column_name IS NULL"
     fi
 
     local QUERY=$(cat <<-EOF
@@ -440,19 +444,13 @@ aws s3 sync s3://$(echo "${INTERNAL_PARAMS['s3path']%/}/${CONFIG}/" | envsubst)<
 tar -xvf ~/mysql-restore/${TIMESTAMP}.tar
 
 # 2) Restore the backup
-myloader --host="<new-host>" --user=root --ask-password --ssl --compress-protocol=ZSTD \\
-         --directory="~/mysql-restore/" \\
-         --show-warnings --verbose=3 \\
-         --threads=4 --queries-per-transaction=1000 \\
-         --enable-binlog \\
-         --skip-definer \\
-         --logfile="~/myloader.log" \\
-         --source-db="${DATABASE:-app}" --database="restored-${DATABASE:-app}" --overwrite-tables \\
-         --regex="^${DATABASE:-app}\.(table1|table2)$"
+./myloader.sh --host="<new-host>" --directory="~/mysql-restore/" 
+              --logfile="~/myloader.log" \\
+              --source-db="${DATABASE:-app}" --database="restored-${DATABASE:-app}"
+              --table="${DATABASE:-app}.table1"
 
 Notes:
 - Consider using --disable-redo-log to speed up the restore time on test environments.
-- Consider skipping --enable-binlog to speed up the restore time on test environments.
 - For restoring in GTID-enabled setups (e.g., GTID replication), pay attention to --set-gtid-purged, only use it if you know you need it.
 
 EOF
