@@ -47,6 +47,8 @@ SELECTED_PATH=""          # Final selection (file or folder)
 SELECTED_ITEM_TYPE=""     # "file" or "folder"
 
 FLAG_DOWNLOAD=false       # If --download was passed
+FLAG_LIST=false           # If --list was passed
+FLAG_LATEST=false         # If --latest was passed
 
 INTERACTIVE_MODE=true     # Will be set to false if --download and s3://... was provided
 
@@ -63,13 +65,16 @@ Usage:
   ${0##*/}                            # Fully interactive
   ${0##*/} --profile <aws-profile>    # Interactive, but sets profile to <PROF>
   ${0##*/} s3://bucket/prefix         # Interactive, but pre-select bucket+prefix
-  ${0##*/} s3://bucket/prefix ./dst  # Interactive, but pre-select bucket+prefix and download to <download-path>
+  ${0##*/} s3://bucket/prefix ./dst   # Interactive, but pre-select bucket+prefix and download to <download-path>
   ${0##*/} --download s3://...        # Immediately downloads the file or folder
+  ${0##*/} --list --latest s3://...   # Immediately print the latest folder or file path, can be used with --download
   ${0##*/} --profile <aws-profile> --download s3://... /tmp/dst # Immediately downloads the file or folder with the specified profile and download path
 
 Options:
   --profile <PROF>   Use that AWS profile (only within this script)
-  --download         Immediately print cp/sync command (no menus)
+  --download         Immediately download the file or folder (no menus)
+  --list             Immediately print a list of content in the path provided (no menus)
+  --latest           Print the current path to the latest file or folder in the path provided, can be used with --download, otherwise print (no menus)
   -h, --help         Show this help
 EOF
 }
@@ -390,6 +395,16 @@ while [[ $# -gt 0 ]]; do
             INTERACTIVE_MODE=false # Skip interactive mode and proceed to download
             shift
             ;;
+        --list)
+            FLAG_LIST=true
+            INTERACTIVE_MODE=false # Skip interactive mode and proceed to list
+            shift
+            ;;
+        --latest)
+            FLAG_LATEST=true
+            INTERACTIVE_MODE=false # Skip interactive mode and proceed to latest list/download
+            shift
+            ;;
         s3://*)
             parse_s3_path "$1"
             shift
@@ -413,15 +428,34 @@ while [[ $# -gt 0 ]]; do
 done
 
 ################################################################################
-# Main flow - If --download and we have a known bucket, skip interactive mode
+# Main flow - Non-interactive mode (s3://... must be provided)
 ################################################################################
 
-if [ "$FLAG_DOWNLOAD" = true ] && [ -n "$SELECTED_BUCKET" ]; then
+if [ "$INTERACTIVE_MODE" = false ] && [ -n "$SELECTED_BUCKET" ]; then
     configure_aws_cmd
 
     SELECTED_PATH="s3://${SELECTED_BUCKET}/${PRESET_PREFIX}"
     if [[ -z "$PRESET_PREFIX" || "$PRESET_PREFIX" == */ ]]; then
         SELECTED_ITEM_TYPE="folder"
+
+        if [ "$FLAG_LIST" = true ] || [ "$FLAG_LATEST" = true ]; then
+            echo "Running command: ${AWS_CMD[*]} s3 ls $SELECTED_PATH | awk '\$3 != \"0\"' | awk '{print \$4}' | sort "
+            FILES="$("${AWS_CMD[@]}" s3 ls "$SELECTED_PATH" | awk '$3 != "0"' | awk '{print $2}' | sort)"
+
+            if [ "$FLAG_LATEST" = true ] && [ "$SELECTED_ITEM_TYPE" = "folder" ]; then
+                # Get the latest file in the folder, if it is a folder
+                FILES="$(echo "${FILES[@]}" | tail -n 1)"
+                SELECTED_PATH="s3://${SELECTED_BUCKET}/${PRESET_PREFIX}${FILES}"
+                if [[ -z "$FILES" || "$FILES" != */ ]]; then
+                    SELECTED_ITEM_TYPE="file"
+                fi
+            fi
+
+            if [ "$FLAG_DOWNLOAD" = false ]; then
+                echo "$FILES"
+                exit 0
+            fi
+        fi
     else
         SELECTED_ITEM_TYPE="file"
     fi
@@ -512,11 +546,11 @@ START=$(date +%s)
 if [ "$SELECTED_ITEM_TYPE" = "file" ]; then
     echo "Downloading the file at '$SELECTED_PATH' to '$DOWNLOAD_PATH'..."
     echo "Running command: ${AWS_CMD[*]}" s3 cp "$SELECTED_PATH" "$DOWNLOAD_PATH"
-    "${AWS_CMD[@]}" s3 cp "$SELECTED_PATH" .
+    "${AWS_CMD[@]}" s3 cp "$SELECTED_PATH" "$DOWNLOAD_PATH"
 else
     echo "Downloading the folder at '$SELECTED_PATH' to '$DOWNLOAD_PATH'..."
     echo "Running command: ${AWS_CMD[*]}" s3 sync "$SELECTED_PATH" "$DOWNLOAD_PATH"
-    "${AWS_CMD[@]}" s3 sync "$SELECTED_PATH" .
+    "${AWS_CMD[@]}" s3 sync "$SELECTED_PATH" "$DOWNLOAD_PATH"
 fi
 END=$(date +%s)
 SECONDS=$((END-START))
