@@ -148,19 +148,20 @@ function get_tables_with_primary_col() {
             SELECT *
             FROM information_schema.columns
             WHERE 1
-            ${WHERE_DATABASE_JOIN}
-            AND information_schema.columns.column_key = 'PRI'
+                ${WHERE_DATABASE_JOIN}
+                AND information_schema.columns.column_key = 'PRI'
             ORDER BY
-            information_schema.columns.table_name,
-            CASE WHEN information_schema.columns.extra LIKE '%auto_increment%' THEN 1 ELSE 2 END ASC,
-            information_schema.columns.ordinal_position ASC
+                information_schema.columns.table_name,
+                CASE WHEN information_schema.columns.extra LIKE '%auto_increment%' THEN 1 ELSE 2 END ASC,
+                information_schema.columns.ordinal_position ASC
         ) as info_columns ON info_columns.table_name = information_schema.TABLES.table_name AND info_columns.table_schema = information_schema.TABLES.table_schema
-        WHERE information_schema.TABLES.table_schema NOT IN ('information_schema', 'performance_schema', 'mysql', 'sys')
+        WHERE 1
+            AND information_schema.TABLES.TABLE_TYPE = 'BASE TABLE'
+            AND information_schema.TABLES.table_schema NOT IN ('information_schema', 'performance_schema', 'mysql', 'sys')
             ${WHERE_DATABASE}
             ${WHERE_TABLES}
         GROUP BY
             information_schema.TABLES.table_name
-        #HAVING primary_key_column IS NOT NULL
 EOF
     )
 
