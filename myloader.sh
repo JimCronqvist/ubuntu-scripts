@@ -32,7 +32,7 @@ declare -A PARAMS=(
     # [myloader] defaults
     ["verbose"]="3"
     ["show-warnings"]="true"
-    ["threads"]="8"
+    ["threads"]="12"
     ["skip-definer"]="true"
     ["overwrite-tables"]="true"
     ["queries-per-transaction"]="1"
@@ -77,55 +77,68 @@ timestamp() {
 
 usage() {
     cat <<EOF
-Usage: $0 [--key=value ...] [--table=some_db.table ...] [--dry-run]
+Usage: $0 [--key=value ...] [--table=db1.table1 ...] [--dry-run]
 
 Mandatory field:
   --directory=/path/to/dump   (the folder where the dump is located)
 
-Optional fields:
-  --source-db=some_db
-  --database=some_other_name
-  --regex='^(some_db\\.table1)$'
-  --tables-list=foo.table1,foo.table2,...
-  --table=foo.table1
-     (multiple --table arguments are combined into --tables-list=foo.table1,foo.table2)
+Optional fields to control what should be restored, see examples below for usage:
+  --source-db=db1
+  --database=restored-db1
+  --regex='^(db1\.table1)$'
+  --tables-list=db1.table1,db2.table2,...
+  --table=db1.table1 --table=db2.table2 ...
 
-NOTE: We now enforce that if you specify --database, you must also provide --source-db.
+NOTE: If you use --database to restore a db to a different name, you must also provide the --source-db option.
 
 Priority of parameters (highest -> lowest):
   1) CLI arguments (e.g. --user=alice)
   2) Environment variables (MYLOADER_MYSQL_... or MYLOADER_...)
   3) Default values (in script, plus dynamic checks)
 
-Special logic:
-  - If "host" is "localhost", we replace it with "127.0.0.1"
-    (myloader bug: https://github.com/mydumper/mydumper/issues/547)
-  - If host ends with ".rds.amazonaws.com" and the user is empty,
-    default user becomes "admin". Otherwise, "root".
+## Examples:
 
-Examples:
+1) Import a full backup (the dump metadata has the DBs):
+   $0 --directory=~/mysql-restore/
 
-1) Import a full database (the dump metadata has the DB):
-   $0 --directory=/path/to/dump
+2) Import a single database "db1":
+   $0 --directory=~/mysql-restore/ --source-db=db1
 
-2) Import a full database "foo" to a different name "restored-foo":
-   $0 --directory=/path/to/dump --source-db=foo --database=restored-foo
+3) Import a single database "db1" to a different name "restored-db1":
+   $0 --directory=~/mysql-restore/ --source-db=db1 --database=restored-db1
 
-3) Import a single table:
-   # Option A (regex)
-   $0 --directory=/path/to/dump --regex='^(foo\\.table1)$'
+4) Import a specific table(s):
+   # Option A (--table)
+   $0 --directory=~/mysql-restore/ --table=db1.table1 --table=db2.table2
 
-   # Option B (tables-list)
-   $0 --directory=/path/to/dump --tables-list=foo.table1
+   # Option B (--tables-list)
+   $0 --directory=~/mysql-restore/ --tables-list=db1.table1,db2.table2
 
-   # Option C (multiple --table arguments -> combined into tables-list)
-   $0 --directory=/path/to/dump --table=foo.table1
+   # Option C (--regex)
+   $0 --directory=~/mysql-restore/ --regex='^(db1\.table1|db2\.table2)$'
 
-4) Import two tables with multiple --table:
-   $0 --directory=/path/to/dump --table=foo.table1 --table=foo.table2
+6) Other options you might want to tweak
+   $0 --directory=~/mysql-restore/ --disable-redo-log --threads=12 --logfile=restore.log
 
-5) Using --disable-redo-log and adjusting threads to 8:
-   $0 --directory=/path/to/dump --disable-redo-log=true --threads=8
+7) Dry-run mode (no changes will be made)
+    $0 --directory=~/mysql-restore/ --dry-run
+
+For more options, see:
+    https://mydumper.github.io/mydumper/docs/html/myloader_usage.html
+
+## Performance tips:
+
+For development or test servers (does not work on RDS):
+- Consider disabling redo logs with --disable-redo-log, only do this if they are not already disabled.
+
+For RDS
+- For a ~25% faster restore, consider disabling automatic backups during the restore.
+  Warning: Be aware of the implications such as point-in-time recovery. Do by:
+  1) Disable backups: aws rds modify-db-instance --apply-immediately --backup-retention-period 0 --db-instance-identifier <instance-name>
+  2) Do the restore
+  3) Re-enable backups: aws rds modify-db-instance --apply-immediately --backup-retention-period 14 --db-instance-identifier <instance-name>
+- Consider temporarily using a faster instance type during the restore, if you see CPU bottlenecks.
+- Consider temporarily increasing the iops of the RDS instance during the restore, if you see io/disk bottlenecks.
 
 EOF
     exit 1
@@ -299,9 +312,6 @@ build_command() {
     defaults_file="$(envsubst <<< "${PARAMS["defaults-extra-file"]}")"
     CMD+=("--defaults-extra-file=${defaults_file}")
 
-    # directory is mandatory, add to CLI
-    CMD+=("--directory=${PARAMS[directory]}")
-
     # Add those parameters specifically designated for the command line
     for keep_key in "${CMD_LINE_PARAMS[@]}"; do
         local val="${PARAMS[$keep_key]:-}"
@@ -331,7 +341,6 @@ create_defaults_file() {
     for key in "${!PARAMS[@]}"; do
         # Skip certain keys that are strictly CLI parameters
         [[ "$key" == "defaults-extra-file" ]] && continue
-        [[ "$key" == "directory" ]] && continue
         if [[ " ${CMD_LINE_PARAMS[*]} " =~ " ${key} " ]]; then
             continue
         fi
@@ -385,7 +394,7 @@ run_command() {
     echo ""
 
     echo "---- Defaults file content ----"
-    sed 's/^password=.*/#password=\*\*\*\*\*/g' "${defaults_file}"
+    sed 's/^password=.+/password=\*\*\*\*\*/g' "${defaults_file}"
     echo "--------------------------------"
     echo ""
 
