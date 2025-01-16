@@ -395,7 +395,7 @@ run_command() {
     echo ""
 
     echo "---- Defaults file content ----"
-    sed 's/^password=.+/password=\*\*\*\*\*/g' "${defaults_file}"
+    sed -E 's/^password=.+/password=\*\*\*\*\*/g' "${defaults_file}"
     echo "--------------------------------"
     echo ""
 
