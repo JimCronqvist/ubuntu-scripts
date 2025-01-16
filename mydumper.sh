@@ -161,6 +161,7 @@ function get_tables_with_primary_col() {
             ${WHERE_DATABASE}
             ${WHERE_TABLES}
         GROUP BY
+            information_schema.TABLES.table_schema,
             information_schema.TABLES.table_name
 EOF
     )
@@ -283,23 +284,23 @@ if [[ -n "${PARAMS[order-by-primary]}" && "${PARAMS[order-by-primary]}" == "true
         fi
         # Unfortunately mydumper does not support setting the order-by-primary flag per table yet, so we have to set the 'order by' manually instead.
         echo "# order-by-primary fix for tables that has a primary key to avoid errors on tables that are missing it" >> "${MYSQL_DEFAULTS_EXTRA_FILE}"
-            while read -r db table col; do
-                if [[ -z "$table" ]]; then
-                    echo "Could not find any primary key tables"
-                    continue
-                fi
-                if [[ $col == "NULL" ]]; then
-                    echo "Skipping to set a ORDER BY clause due to no primary key column on table: '${db}.${table}'"
-                    continue
-                fi
-                #echo "Set ORDER BY for '${db}.${table}' to '${col}'"
-                ROW_ORDER_BY="where = 1 ORDER BY \`$col\` ASC"
-                cat << EOF | envsubst | tee -a "${MYSQL_DEFAULTS_EXTRA_FILE}" >/dev/null
+        while read -r db table col; do
+            if [[ -z "$table" ]]; then
+                echo "Could not find any primary key tables"
+                continue
+            fi
+            if [[ $col == "NULL" ]]; then
+                echo "Skipping to set a ORDER BY clause due to no primary key column on table: '${db}.${table}'"
+                continue
+            fi
+            #echo "Set ORDER BY for '${db}.${table}' to '${col}'"
+            ROW_ORDER_BY="where = 1 ORDER BY \`$col\` ASC"
+            cat << EOF | envsubst | tee -a "${MYSQL_DEFAULTS_EXTRA_FILE}" >/dev/null
 [\`${db}\`.\`${table}\`]
 ${ROW_ORDER_BY}
 EOF
-            done <<< "${RESULT}"
-            echo "" >> "${MYSQL_DEFAULTS_EXTRA_FILE}"
+        done <<< "${RESULT}"
+        echo "" >> "${MYSQL_DEFAULTS_EXTRA_FILE}"
     fi
 fi
 
