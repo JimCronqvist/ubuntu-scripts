@@ -190,7 +190,7 @@ declare -A PARAMS=(
     #["no-locks"]=true
     #["less-locking"]=true
     ["rows"]=250000 # Splitting tables into chunks of this many rows. It can be MIN:START_AT:MAX. MAX can be 0 which means that there is no limit. It will double the chunk size if query takes less than 1 second and half of the size if it is more than 2 seconds
-    ["order-by-primary"]=false
+    ["order-by-primary"]=true
     ["threads"]=8
     ["user"]="mydumper"
     ["defaults-extra-file"]='mydumper.${CONFIG}.cnf'
@@ -198,9 +198,10 @@ declare -A PARAMS=(
     ["ssl"]=true
     #["checksum-all"]=true
     #["check-row-count"]=true
-    ["triggers"]=false
-    ["events"]=false
-    ["routines"]=false
+    ["triggers"]=true
+    ["events"]=true
+    ["routines"]=true
+
     #["all-tablespaces"]=true # To backup all
     #["database"]=mysql       # To backup only the specified database
 )
@@ -538,8 +539,9 @@ tar -xvf ~/mysql-restore/${TIMESTAMP}.tar
 
 # 2) Restore the backup
 ./myloader.sh --host="<new-host>" --directory="~/mysql-restore/" --logfile="~/myloader.log" \\
-              --source-db="${DATABASE:-app}" --database="restored-${DATABASE:-app}"
-              --table="${DATABASE:-app}.table1"
+              --source-db="${DATABASE:-app}" --database="restored-${DATABASE:-app}" \\
+              --table="${DATABASE:-app}.table1" \\
+              --skip-post=false --skip-triggers=false # If you want to restore triggers, procedures/functions, events. By default skipped.
 
 Notes:
 - Consider using --disable-redo-log to speed up the restore time on test environments, but only if it isn't already disabled.

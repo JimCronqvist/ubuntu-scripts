@@ -52,6 +52,10 @@ declare -A PARAMS=(
     ["database"]=""
     ["regex"]=""
     ["tables-list"]=""
+
+    # Import triggers, events, stored procedures, functions?
+    ["skip-triggers"]="true"
+    ["skip-post"]="true"
 )
 
 # The myloader command
@@ -120,7 +124,10 @@ Priority of parameters (highest -> lowest):
 6) Other options you might want to tweak
    $0 --directory=~/mysql-restore/ --disable-redo-log --threads=12 --logfile=restore.log
 
-7) Dry-run mode (no changes will be made)
+7) Restore triggers, events, stored procedures, functions
+   $0 --directory=~/mysql-restore/ --skip-triggers=false --skip-post=false
+
+8) Dry-run mode (no changes will be made)
     $0 --directory=~/mysql-restore/ --dry-run
 
 For more options, see:
