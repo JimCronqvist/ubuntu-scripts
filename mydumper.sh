@@ -89,7 +89,7 @@ mysql_query() {
     fi
 
     # If MySQL ran but returned an SQL error (it often says 'ERROR ...'). MySQL may still return 0 exit code. We grep for 'ERROR'.
-    if echo "$OUTPUT" | grep -qi "ERROR"; then
+    if echo "$OUTPUT" | grep -qi "^ERROR"; then
         echo "MySQL query returned an error:" >&2
         echo "$OUTPUT" >&2
         return 1
@@ -273,12 +273,14 @@ if [[ -n "${PARAMS[order-by-primary]}" && "${PARAMS[order-by-primary]}" == "true
         echo "Error fetching tables with missing primary key."
         exit 1
     fi
-
     ROW_COUNT="$(echo -n "$RESULT" | wc -l)"
     echo "Found $ROW_COUNT tables with missing primary key."
-    if [[ $ROW_COUNT -gt 0 ]]; then
+
+    # If we have any tables with missing primary keys, or if table-limits is used, we need to disable the global order-by-primary flag, and generate per table configs instead.
+    if [[ $ROW_COUNT -gt 0 || -v INTERNAL_PARAMS["table-limits"] ]]; then
         echo "Setting order-by-primary to false for all tables and add a per table config to sort by the primary col."
         PARAMS["order-by-primary"]=false
+
         if ! RESULT=$(get_tables_with_primary_col "$db_filter"); then
             echo "Error fetching tables with primary key column."
             exit 1
