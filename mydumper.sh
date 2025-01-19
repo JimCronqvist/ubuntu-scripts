@@ -535,6 +535,8 @@ echo ""
 cat << EOF
 # 1) Sync the backup from S3 to the local machine
 aws s3 sync s3://$(echo "${INTERNAL_PARAMS['s3path']%/}/${CONFIG}/" | envsubst)<backup> ~/mysql-restore/ --region ${S3_REGION} --profile <optional-profile>
+or
+./s3-browser.sh s3://$(echo "${INTERNAL_PARAMS['s3path']%/}/${CONFIG}/" | envsubst) ~/mysql-restore/ --latest --download
 
 # 1a) If a tarball, decompress the file
 tar -xvf ~/mysql-restore/${TIMESTAMP}.tar
@@ -546,7 +548,9 @@ tar -xvf ~/mysql-restore/${TIMESTAMP}.tar
               --skip-post=false --skip-triggers=false # If you want to restore triggers, procedures/functions, events. By default skipped.
 
 Notes:
-- Consider using --disable-redo-log to speed up the restore time on test environments, but only if it isn't already disabled.
+- Consider using --disable-redo-log to significantly speed up the restore time on test environments, but only if it isn't already disabled.
 - For restoring in GTID-enabled setups (e.g., GTID replication), pay attention to --set-gtid-purged, only use it if you know you need it.
+- For better performance, the likely bottlenecks are disk I/O and CPU.
+- Try to adjust the --threads parameter to find the optimal value for your setup. It should never be more than the number of cores available.
 
 EOF
