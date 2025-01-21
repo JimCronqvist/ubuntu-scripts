@@ -202,7 +202,7 @@ pick_profile() {
         return 0
     fi
     # Kubernetes when 'eks.amazonaws.com/role-arn' is set, skip.
-    if [ -n "$AWS_ROLE_ARN" ] && [ -n "$AWS_WEB_IDENTITY_TOKEN_FILE" ]; then
+    if [ -n "${AWS_ROLE_ARN:-}" ] && [ -n "${AWS_WEB_IDENTITY_TOKEN_FILE:-}" ]; then
         return 0
     fi
 
