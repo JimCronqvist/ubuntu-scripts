@@ -201,6 +201,11 @@ pick_profile() {
     if [ -n "$AWS_PROFILE" ]; then
         return 0
     fi
+    # Kubernetes when 'eks.amazonaws.com/role-arn' is set, skip.
+    if [ -n "$AWS_ROLE_ARN" ] && [ -n "$AWS_WEB_IDENTITY_TOKEN_FILE" ]; then
+        return 0
+    fi
+
     local local_profiles=()
     mapfile -t local_profiles < <(aws configure list-profiles 2>/dev/null)
     if [ ${#local_profiles[@]} -eq 0 ]; then
@@ -251,7 +256,7 @@ pick_bucket() {
     local buckets=()
     mapfile -t buckets < <("${AWS_CMD[@]}" s3 ls 2>/dev/null | awk '{print $3}')
     if [ ${#buckets[@]} -eq 0 ]; then
-        whiptail --title "ERROR (Profile: $AWS_PROFILE)" \
+        whiptail --title "ERROR (Profile: ${AWS_PROFILE:-NONE})" \
                  --msgbox "No S3 buckets found or accessible. Run 'aws configure' first." \
                  8 40
         return 1

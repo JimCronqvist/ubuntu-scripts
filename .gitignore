@@ -1,2 +1,3 @@
 mydumper.yaml
 mydumper.*.cnf
+myloader.*.cnf
