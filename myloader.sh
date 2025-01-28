@@ -434,6 +434,24 @@ run_command() {
 }
 
 ###############################################################################
+# 8) Check if the 'mysql_user_grants' file exists and inform the user
+###############################################################################
+
+function check_for_mysql_user_grants() {
+    local dir="${PARAMS[directory]}"
+    [ -z "$dir" ] && return
+    local mysql_user_grants_file="mysql_user_grants.sql"
+
+    if [ -f "${dir}/${mysql_user_grants_file}" ]; then
+        echo ""
+        echo "Important note:"
+        echo "The file '${mysql_user_grants_file}' was found in the backup directory: ${dir}${mysql_user_grants_file}"
+        echo "Please manually execute if you want to re-import the user grants."
+        echo ""
+    fi
+}
+
+###############################################################################
 # MAIN SCRIPT FLOW
 ###############################################################################
 
@@ -467,6 +485,9 @@ main() {
 
     # 7) Run or skip if --dry-run
     run_command
+
+    # 8) Check if the 'mysql_user_grants' file exists and inform the user
+    check_for_mysql_user_grants
 }
 
 main "$@"

@@ -174,6 +174,272 @@ EOF
     echo "$RESULT"
 }
 
+function sql_user_grants {
+    local query
+
+    query=$(cat <<-"EOF"
+        SET SESSION group_concat_max_len = 4294967295;
+        SELECT
+          GROUP_CONCAT(
+            sub.stmt
+            ORDER BY
+              -- Sort first by user, then host,
+              sub.user_sort,
+              sub.host_sort,
+              -- then by statement type (create=1, global=2, db=3, table=4),
+              sub.ordering,
+              -- then by database, table, etc.
+              sub.db_sort,
+              sub.table_sort
+            SEPARATOR '\n\n'  -- two line breaks between statements
+          ) AS full_script
+        FROM
+        (
+          --
+          -- 1) CREATE USER statements
+          --
+          SELECT CONCAT(
+            '-- CREATE USER for: ', user, '@', host, '\n',
+            'CREATE USER IF NOT EXISTS `', user, '`@`', host, '` ',
+
+            /* Authentication plugin (e.g., mysql_native_password) */
+            CASE
+              WHEN plugin IS NOT NULL AND plugin <> ''
+                THEN CONCAT('IDENTIFIED WITH \'', plugin, '\' ')
+              ELSE ''
+            END,
+
+            /* Password hash (authentication_string) */
+            CASE
+              WHEN authentication_string IS NOT NULL
+                   AND authentication_string <> ''
+                THEN CONCAT('AS \'', REPLACE(authentication_string, '\'', '\\\''), '\' ')
+              ELSE ''
+            END,
+
+            /* SSL requirements */
+            CASE
+              WHEN ssl_type = '' OR ssl_type IS NULL THEN ''
+              WHEN ssl_type = 'ANY'    THEN 'REQUIRE SSL '
+              WHEN ssl_type = 'X509'   THEN 'REQUIRE X509 '
+              WHEN ssl_type = 'SPECIFIED' THEN
+                CONCAT(
+                  'REQUIRE',
+                  CASE
+                    WHEN (ssl_cipher IS NOT NULL AND ssl_cipher <> '')
+                      THEN CONCAT(' CIPHER \'', REPLACE(ssl_cipher, '\'', '\\\''), '\'')
+                    ELSE ''
+                  END,
+                  CASE
+                    WHEN (x509_issuer IS NOT NULL AND x509_issuer <> '')
+                      THEN CONCAT(
+                        CASE
+                          WHEN (ssl_cipher IS NOT NULL AND ssl_cipher <> '') THEN ' AND'
+                          ELSE ''
+                        END,
+                        ' ISSUER \'', REPLACE(x509_issuer, '\'', '\\\''), '\''
+                      )
+                    ELSE ''
+                  END,
+                  CASE
+                    WHEN (x509_subject IS NOT NULL AND x509_subject <> '')
+                      THEN CONCAT(
+                        CASE
+                          WHEN (
+                            (ssl_cipher IS NOT NULL AND ssl_cipher <> '')
+                            OR (x509_issuer IS NOT NULL AND x509_issuer <> '')
+                          ) THEN ' AND'
+                          ELSE ''
+                        END,
+                        ' SUBJECT \'', REPLACE(x509_subject, '\'', '\\\''), '\''
+                      )
+                    ELSE ''
+                  END,
+                  ' '
+                )
+              ELSE ''
+            END,
+
+            /* Resource limits (MAX_*) */
+            'WITH ',
+              'MAX_QUERIES_PER_HOUR ', max_questions, ' ',
+              'MAX_UPDATES_PER_HOUR ', max_updates, ' ',
+              'MAX_CONNECTIONS_PER_HOUR ', max_connections, ' ',
+              'MAX_USER_CONNECTIONS ', max_user_connections, ' ',
+
+            /* Unlock account */
+            'ACCOUNT UNLOCK;'
+          ) AS stmt,
+          1 AS ordering,
+          user AS user_sort,
+          host AS host_sort,
+          ''   AS db_sort,
+          ''   AS table_sort
+          FROM mysql.user
+          WHERE user NOT IN (
+            'mysql.infoschema','mysql.session','mysql.sys','root','debian-sys-maint',
+            'mysqlxsys','mysql','phpmyadmin','sys','',
+            'admin','rdsadmin','rdsrepladmin','rds_superuser_role'  -- exclude these as well
+          )
+
+          UNION ALL
+
+          --
+          -- 2) Global-level GRANTS (from mysql.user)
+          --
+          SELECT CONCAT(
+            '-- Global GRANTS for: ', user, '@', host, '\n',
+            'GRANT ',
+            CONCAT_WS(
+              ',',
+              IF(Select_priv='Y','SELECT',NULL),
+              IF(Insert_priv='Y','INSERT',NULL),
+              IF(Update_priv='Y','UPDATE',NULL),
+              IF(Delete_priv='Y','DELETE',NULL),
+              IF(Create_priv='Y','CREATE',NULL),
+              IF(Drop_priv='Y','DROP',NULL),
+              IF(Reload_priv='Y','RELOAD',NULL),
+              IF(Shutdown_priv='Y','SHUTDOWN',NULL),
+              IF(Process_priv='Y','PROCESS',NULL),
+              IF(File_priv='Y','FILE',NULL),
+              IF(Grant_priv='Y','GRANT OPTION',NULL),
+              IF(References_priv='Y','REFERENCES',NULL),
+              IF(Index_priv='Y','INDEX',NULL),
+              IF(Alter_priv='Y','ALTER',NULL),
+              IF(Show_db_priv='Y','SHOW DATABASES',NULL),
+              IF(Super_priv='Y','SUPER',NULL),
+              IF(Create_tmp_table_priv='Y','CREATE TEMPORARY TABLES',NULL),
+              IF(Lock_tables_priv='Y','LOCK TABLES',NULL),
+              IF(Execute_priv='Y','EXECUTE',NULL),
+              IF(Repl_slave_priv='Y','REPLICATION SLAVE',NULL),
+              IF(Repl_client_priv='Y','REPLICATION CLIENT',NULL),
+              IF(Create_view_priv='Y','CREATE VIEW',NULL),
+              IF(Show_view_priv='Y','SHOW VIEW',NULL),
+              IF(Create_routine_priv='Y','CREATE ROUTINE',NULL),
+              IF(Alter_routine_priv='Y','ALTER ROUTINE',NULL),
+              IF(Create_user_priv='Y','CREATE USER',NULL),
+              IF(Event_priv='Y','EVENT',NULL),
+              IF(Trigger_priv='Y','TRIGGER',NULL),
+              IF(Create_tablespace_priv='Y','CREATE TABLESPACE',NULL)
+            ),
+            ' ON *.* TO `', user, '`@`', host, '`',
+            IF(Grant_priv = 'Y',' WITH GRANT OPTION',''),
+            ';'
+          ) AS stmt,
+          2 AS ordering,
+          user AS user_sort,
+          host AS host_sort,
+          ''   AS db_sort,
+          ''   AS table_sort
+          FROM mysql.user
+          WHERE user NOT IN (
+            'mysql.infoschema','mysql.session','mysql.sys','root','debian-sys-maint',
+            'mysqlxsys','mysql','phpmyadmin','sys','',
+            'admin','rdsadmin','rdsrepladmin','rds_superuser_role'
+          )
+            AND (
+              Select_priv='Y' OR Insert_priv='Y' OR Update_priv='Y' OR
+              Delete_priv='Y' OR Create_priv='Y' OR Drop_priv='Y' OR
+              Reload_priv='Y' OR Shutdown_priv='Y' OR Process_priv='Y' OR
+              File_priv='Y'   OR Grant_priv='Y'   OR References_priv='Y' OR
+              Index_priv='Y'  OR Alter_priv='Y'   OR Show_db_priv='Y'    OR
+              Super_priv='Y'  OR Create_tmp_table_priv='Y'               OR
+              Lock_tables_priv='Y' OR Execute_priv='Y' OR Repl_slave_priv='Y' OR
+              Repl_client_priv='Y' OR Create_view_priv='Y' OR Show_view_priv='Y' OR
+              Create_routine_priv='Y' OR Alter_routine_priv='Y' OR Create_user_priv='Y' OR
+              Event_priv='Y' OR Trigger_priv='Y' OR Create_tablespace_priv='Y'
+            )
+
+          UNION ALL
+
+          --
+          -- 3) Database-level GRANTS (from mysql.db)
+          --
+          SELECT CONCAT(
+            '-- DB-level GRANTS for: ', User, '@', Host, ' on `', Db, '`\n',
+            'GRANT ',
+            CONCAT_WS(
+              ',',
+              IF(Select_priv='Y','SELECT',NULL),
+              IF(Insert_priv='Y','INSERT',NULL),
+              IF(Update_priv='Y','UPDATE',NULL),
+              IF(Delete_priv='Y','DELETE',NULL),
+              IF(Create_priv='Y','CREATE',NULL),
+              IF(Drop_priv='Y','DROP',NULL),
+              IF(Grant_priv='Y','GRANT OPTION',NULL),
+              IF(References_priv='Y','REFERENCES',NULL),
+              IF(Index_priv='Y','INDEX',NULL),
+              IF(Alter_priv='Y','ALTER',NULL),
+              IF(Create_tmp_table_priv='Y','CREATE TEMPORARY TABLES',NULL),
+              IF(Lock_tables_priv='Y','LOCK TABLES',NULL),
+              IF(Execute_priv='Y','EXECUTE',NULL),
+              IF(Create_view_priv='Y','CREATE VIEW',NULL),
+              IF(Show_view_priv='Y','SHOW VIEW',NULL),
+              IF(Create_routine_priv='Y','CREATE ROUTINE',NULL),
+              IF(Alter_routine_priv='Y','ALTER ROUTINE',NULL),
+              IF(Event_priv='Y','EVENT',NULL),
+              IF(Trigger_priv='Y','TRIGGER',NULL)
+            ),
+            ' ON `', Db, '`.* TO `', User, '`@`', Host, '`',
+            IF(Grant_priv='Y',' WITH GRANT OPTION',''),
+            ';'
+          ) AS stmt,
+          3 AS ordering,
+          User AS user_sort,
+          Host AS host_sort,
+          Db   AS db_sort,
+          ''   AS table_sort
+          FROM mysql.db
+          WHERE User NOT IN (
+            'mysql.infoschema','mysql.session','mysql.sys','root','debian-sys-maint',
+            'mysqlxsys','mysql','phpmyadmin','sys','',
+            'admin','rdsadmin','rds_superuser_role'
+          )
+            AND (
+              Select_priv='Y' OR Insert_priv='Y' OR Update_priv='Y' OR
+              Delete_priv='Y' OR Create_priv='Y' OR Drop_priv='Y' OR
+              Grant_priv='Y' OR References_priv='Y' OR Index_priv='Y'  OR
+              Alter_priv='Y' OR Create_tmp_table_priv='Y' OR Lock_tables_priv='Y' OR
+              Execute_priv='Y' OR Create_view_priv='Y' OR Show_view_priv='Y' OR
+              Create_routine_priv='Y' OR Alter_routine_priv='Y' OR
+              Event_priv='Y' OR Trigger_priv='Y'
+            )
+
+          UNION ALL
+
+          --
+          -- 4) Table-level GRANTS (from mysql.tables_priv)
+          --
+          SELECT CONCAT(
+            '-- Table-level GRANTS for: ', User, '@', Host,
+            ' on `', Db, '`.`', Table_name, '`\n',
+            'GRANT ',
+            Table_priv,
+            ' ON `', Db, '`.`', Table_name, '` TO `', User, '`@`', Host, '`;'
+          ) AS stmt,
+          4 AS ordering,
+          User       AS user_sort,
+          Host       AS host_sort,
+          Db         AS db_sort,
+          Table_name AS table_sort
+          FROM mysql.tables_priv
+          WHERE User NOT IN (
+            'mysql.infoschema','mysql.session','mysql.sys','root','debian-sys-maint',
+            'mysqlxsys','mysql','phpmyadmin','sys','',
+            'admin','rdsadmin','rdsrepladmin','rds_superuser_role'
+          )
+        ) AS sub
+        /*
+          We do GROUP_CONCAT to produce one big script (1 row).
+          Sorted primarily by user, host, then statement type, db, table.
+        */
+        ORDER BY NULL;  -- let GROUP_CONCAT's ORDER BY handle sorting internally
+EOF
+    )
+
+    mysql_query "$query" | sed 's/\\n/\n/g' > "${PARAMS["outputdir"]}/mysql_user_grants.sql"
+}
+
 echo "Config chosen: $CONFIG"
 
 # Define and initialize an associative array for parameters with sane defaults
@@ -215,8 +481,9 @@ declare -A INTERNAL_PARAMS=(
     ["s3region"]=eu-north-1
     ["s3profile"]=""
     ["s3tar"]=false # Requires 'tar' to be set to true as well
+    ["user-grants"]=false
 )
-INTERNAL_KEYS=("s3path" "password" "tar" "s3tar" "keep-backups" "s3region" "s3profile" "config" "table-limits")
+INTERNAL_KEYS=("s3path" "password" "tar" "s3tar" "keep-backups" "s3region" "s3profile" "config" "table-limits" "user-grants")
 
 # Extract all keys under the specified database configuration
 KEYS=$(yq eval ".${CONFIG} | keys | .[]" "$YAML_FILE" 2>/dev/null || echo "")
@@ -393,6 +660,17 @@ START=$(date +%s)
 "${CMD[@]}"
 # --exec="ls FILENAME"  # Execute a command after each file is written
 RESULT=$?
+echo ""
+
+if [[ -n "${INTERNAL_PARAMS[user-grants]}" && "${INTERNAL_PARAMS[user-grants]}" == "true" ]]; then
+
+    echo "Generating an SQL file for user grants, separate from mydumper."
+    sql_user_grants # Generate the SQL script for the user grants
+    echo ""
+else
+    echo "Not generating a separate sql file for user grants. Set 'user-grants: true' to enable this feature."
+fi
+
 END=$(date +%s)
 SECONDS=$((END-START))
 SIZE=$(du -sh "${BACKUP_DIR}" | awk '{print $1}')
