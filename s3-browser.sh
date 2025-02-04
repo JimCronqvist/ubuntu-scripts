@@ -155,6 +155,9 @@ parse_s3_path() {
 resolve_path() {
     local path="$1"
 
+    # Remove the '~' at the beginning of the path
+    path="$(echo "$path" | sed -e "s|^~\(\/.*\)$|$HOME\1|" -e "s|^~$|$HOME|")"
+
     # If the path is already absolute, return it
     if [[ "$path" == /* ]]; then
         echo "$path"
