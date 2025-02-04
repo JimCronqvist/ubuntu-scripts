@@ -603,12 +603,13 @@ if [[ -v INTERNAL_PARAMS["table-limits"] ]]; then
             fi
             #echo "$table.$col"
             ROW_LIMIT="limit = ${LIMIT}"
-            if ! [[ "${LIMIT}" =~ ^[0-9]+$ ]] || (( LIMIT < 0 )); then
-                ROW_LIMIT="" # If not a valid number, skip the limit
-            fi
             ROW_WHERE="where = 1 ORDER BY \`$col\` DESC"
-            if [[ $col == "NULL" ]]; then
-                ROW_WHERE="" # Skip the ORDER BY part for tables without primary key
+            if ! [[ "${LIMIT}" =~ ^[0-9]+$ ]] || (( LIMIT < 0 )); then
+                ROW_LIMIT="limit = 18446744073709551615" # If not a valid number, skip the limit (by setting it to the max value)
+                ROW_WHERE="" # Skip the ORDER BY part for tables where we don't want to limit the rows
+            fi
+            if [[ $col == "NULL" ]] || [[ "${LIMIT}" == "0" ]]; then
+                ROW_WHERE="" # Skip the ORDER BY part for tables without primary key, or if the limit is set to 0
             fi
             cat << EOF | envsubst | tee -a "${MYSQL_DEFAULTS_EXTRA_FILE}" >/dev/null
 [\`${DATABASE}\`.\`${table}\`]
