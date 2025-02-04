@@ -47,6 +47,8 @@ SELECTED_PATH=""          # Final selection (file or folder)
 SELECTED_ITEM_TYPE=""     # "file" or "folder"
 
 FLAG_DOWNLOAD=false       # If --download was passed
+FLAG_PRESIGN=false        # If --presign was passed
+EXPIRES_IN=60             # Pre-sign expiration time in seconds, used with --presign
 FLAG_LIST=false           # If --list was passed
 FLAG_LATEST=false         # If --latest was passed
 
@@ -67,15 +69,18 @@ Usage:
   ${0##*/} s3://bucket/prefix         # Interactive, but pre-select bucket+prefix
   ${0##*/} s3://bucket/prefix ./dst   # Interactive, but pre-select bucket+prefix and download to <download-path>
   ${0##*/} --download s3://...        # Immediately downloads the file or folder
+  ${0##*/} --presign s3://...         # Immediately prints out the pre-sign url for s3 for the file
   ${0##*/} --list --latest s3://...   # Immediately print the latest folder or file path, can be used with --download
   ${0##*/} --profile <aws-profile> --download s3://... /tmp/dst # Immediately downloads the file or folder with the specified profile and download path
 
 Options:
-  --profile <PROF>   Use that AWS profile (only within this script)
-  --download         Immediately download the file or folder (no menus)
-  --list             Immediately print a list of content in the path provided (no menus)
-  --latest           Print the current path to the latest file or folder in the path provided, can be used with --download, otherwise print (no menus)
-  -h, --help         Show this help
+  --profile <PROF>    Use that AWS profile (only within this script)
+  --download          Immediately download the file or folder (no menus)
+  --presign           Immediately print out the pre-sign url for the file (no menus)
+  --expires-in <NUM>  Set the expiration time for the pre-sign url in seconds (default: 60)
+  --list              Immediately print a list of content in the path provided (no menus)
+  --latest            Print the current path to the latest file or folder in the path provided, can be used with --download, otherwise print (no menus)
+  -h, --help          Show this help
 EOF
 }
 
@@ -400,6 +405,20 @@ while [[ $# -gt 0 ]]; do
             INTERACTIVE_MODE=false # Skip interactive mode and proceed to download
             shift
             ;;
+        --presign)
+            FLAG_PRESIGN=true
+            INTERACTIVE_MODE=false # Skip interactive mode and proceed to download
+            shift
+            ;;
+        --expires-in=*)
+            EXPIRES_IN="${1#--expires-in=}"
+            shift
+            ;;
+        --expires-in)
+            shift
+            EXPIRES_IN="$1"
+            shift
+            ;;
         --list)
             FLAG_LIST=true
             INTERACTIVE_MODE=false # Skip interactive mode and proceed to list
@@ -444,8 +463,8 @@ if [ "$INTERACTIVE_MODE" = false ] && [ -n "$SELECTED_BUCKET" ]; then
         SELECTED_ITEM_TYPE="folder"
 
         if [ "$FLAG_LIST" = true ] || [ "$FLAG_LATEST" = true ]; then
-            echo "Running command: ${AWS_CMD[*]} s3 ls $SELECTED_PATH | awk '\$3 != \"0\"' | awk '{print \$4}' | sort "
-            FILES="$("${AWS_CMD[@]}" s3 ls "$SELECTED_PATH" | awk '$3 != "0"' | awk '{print $2}' | sort)"
+            #echo "Running command: ${AWS_CMD[*]} s3 ls $SELECTED_PATH | awk '\$3 != \"0\"' | awk '{print \$4}' | sort"
+            FILES="$("${AWS_CMD[@]}" s3 ls "$SELECTED_PATH" | awk '$3 != "0"' | awk '{print $4}' | sort)"
 
             if [ "$FLAG_LATEST" = true ] && [ "$SELECTED_ITEM_TYPE" = "folder" ]; then
                 # Get the latest file in the folder, if it is a folder
@@ -456,10 +475,26 @@ if [ "$INTERACTIVE_MODE" = false ] && [ -n "$SELECTED_BUCKET" ]; then
                 fi
             fi
 
-            if [ "$FLAG_DOWNLOAD" = false ]; then
+            if [ "$FLAG_LIST" = true ]; then
                 echo "$FILES"
                 exit 0
             fi
+        fi
+
+        if [ "$FLAG_PRESIGN" = true ]; then
+            if [ "$SELECTED_ITEM_TYPE" = "folder" ]; then
+                echo "Error: Can't pre-sign a folder path. Exiting."
+                exit 1
+            fi
+            # Validate that EXPIRES_IN is a positive integer within the range 60-604800
+            if ! [[ "$EXPIRES_IN" =~ ^[0-9]+$ ]] || (( EXPIRES_IN < 60 || EXPIRES_IN > 604800 )); then
+                echo "Error: --expires-in={\d} must be an integer within the range 60-604800, got '$EXPIRES_IN'. Exiting." >&2
+                exit 1
+            fi
+            #echo "Running command: ${AWS_CMD[*]} s3 presign $SELECTED_PATH --expires-in $EXPIRES_IN"
+            PRESIGNED_URL="$("${AWS_CMD[@]}" s3 presign "$SELECTED_PATH" --expires-in "$EXPIRES_IN")"
+            echo "$PRESIGNED_URL"
+            exit 0
         fi
     else
         SELECTED_ITEM_TYPE="file"
