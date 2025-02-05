@@ -466,8 +466,8 @@ if [ "$INTERACTIVE_MODE" = false ] && [ -n "$SELECTED_BUCKET" ]; then
         SELECTED_ITEM_TYPE="folder"
 
         if [ "$FLAG_LIST" = true ] || [ "$FLAG_LATEST" = true ]; then
-            #echo "Running command: ${AWS_CMD[*]} s3 ls $SELECTED_PATH | awk '\$3 != \"0\"' | awk '{print \$4}' | sort"
-            FILES="$("${AWS_CMD[@]}" s3 ls "$SELECTED_PATH" | awk '$3 != "0"' | awk '{print $4}' | sort)"
+            #echo "Running command: ${AWS_CMD[*]} s3 ls $SELECTED_PATH | awk '\$3 != \"0\"' | awk '\$3 != \"0\" {print (\$1 == \"PRE\" ? \$2 : \$4)}' | sort"
+            FILES="$("${AWS_CMD[@]}" s3 ls "$SELECTED_PATH" | awk '$3 != "0"' | awk '$3 != "0" {print ($1 == "PRE" ? $2 : $4)}' | sort)"
 
             if [ "$FLAG_LATEST" = true ] && [ "$SELECTED_ITEM_TYPE" = "folder" ]; then
                 # Get the latest file in the folder, if it is a folder
@@ -477,7 +477,6 @@ if [ "$INTERACTIVE_MODE" = false ] && [ -n "$SELECTED_BUCKET" ]; then
                     SELECTED_ITEM_TYPE="file"
                 fi
             fi
-
             if [ "$FLAG_LIST" = true ]; then
                 echo "$FILES"
                 exit 0
