@@ -47,6 +47,7 @@ SELECTED_PATH=""          # Final selection (file or folder)
 SELECTED_ITEM_TYPE=""     # "file" or "folder"
 
 FLAG_DOWNLOAD=false       # If --download was passed
+FLAG_HEAD=false           # If --head was passed
 FLAG_PRESIGN=false        # If --presign was passed
 EXPIRES_IN=60             # Pre-sign expiration time in seconds, used with --presign
 FLAG_LIST=false           # If --list was passed
@@ -77,6 +78,7 @@ Options:
   --profile <PROF>    Use that AWS profile (only within this script)
   --download          Immediately download the file or folder (no menus)
   --presign           Immediately print out the pre-sign url for the file (no menus)
+  --head              Immediately print out meta data for the file (no menus)
   --expires-in <NUM>  Set the expiration time for the pre-sign url in seconds (default: 60)
   --list              Immediately print a list of content in the path provided (no menus)
   --latest            Print the current path to the latest file or folder in the path provided, can be used with --download, otherwise print (no menus)
@@ -408,9 +410,14 @@ while [[ $# -gt 0 ]]; do
             INTERACTIVE_MODE=false # Skip interactive mode and proceed to download
             shift
             ;;
+        --head)
+            FLAG_HEAD=true
+            INTERACTIVE_MODE=false # Skip interactive mode amd proceed with printing meta data for the file
+            shift
+            ;;
         --presign)
             FLAG_PRESIGN=true
-            INTERACTIVE_MODE=false # Skip interactive mode and proceed to download
+            INTERACTIVE_MODE=false # Skip interactive mode and proceed to print out the pre-signed url for the file
             shift
             ;;
         --expires-in=*)
@@ -482,24 +489,36 @@ if [ "$INTERACTIVE_MODE" = false ] && [ -n "$SELECTED_BUCKET" ]; then
                 exit 0
             fi
         fi
+    else
+        SELECTED_ITEM_TYPE="file"
+    fi
+
+    if [ "$FLAG_PRESIGN" = true ] || [ "$FLAG_HEAD" = true ]; then
+        if [ "$SELECTED_ITEM_TYPE" = "folder" ]; then
+            echo "Error: This operation is not valid for a folder path. Hint: if you want to specify a folder, use with --latest. Exiting."
+            exit 1
+        fi
+
+        if [ "$FLAG_HEAD" = true ]; then
+            KEY="${SELECTED_PATH#s3://"$SELECTED_BUCKET"/}"
+            #echo "Running command: ${AWS_CMD[*]} s3api head-object --bucket $SELECTED_BUCKET --key $KEY"
+            OBJECT="$("${AWS_CMD[@]}" s3api head-object --bucket "$SELECTED_BUCKET" --key "$KEY")"
+            echo "$OBJECT"
+            exit 0
+        fi
 
         if [ "$FLAG_PRESIGN" = true ]; then
-            if [ "$SELECTED_ITEM_TYPE" = "folder" ]; then
-                echo "Error: Can't pre-sign a folder path. Exiting."
-                exit 1
-            fi
             # Validate that EXPIRES_IN is a positive integer within the range 60-604800
             if ! [[ "$EXPIRES_IN" =~ ^[0-9]+$ ]] || (( EXPIRES_IN < 60 || EXPIRES_IN > 604800 )); then
                 echo "Error: --expires-in={\d} must be an integer within the range 60-604800, got '$EXPIRES_IN'. Exiting." >&2
                 exit 1
             fi
+
             #echo "Running command: ${AWS_CMD[*]} s3 presign $SELECTED_PATH --expires-in $EXPIRES_IN"
             PRESIGNED_URL="$("${AWS_CMD[@]}" s3 presign "$SELECTED_PATH" --expires-in "$EXPIRES_IN")"
             echo "$PRESIGNED_URL"
             exit 0
         fi
-    else
-        SELECTED_ITEM_TYPE="file"
     fi
 fi
 
