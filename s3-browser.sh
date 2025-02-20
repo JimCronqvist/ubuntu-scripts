@@ -499,21 +499,37 @@ if [ "$INTERACTIVE_MODE" = false ] && [ -n "$SELECTED_BUCKET" ]; then
             exit 1
         fi
 
-        if [ "$FLAG_HEAD" = true ]; then
-            KEY="${SELECTED_PATH#s3://"$SELECTED_BUCKET"/}"
-            #echo "Running command: ${AWS_CMD[*]} s3api head-object --bucket $SELECTED_BUCKET --key $KEY"
-            OBJECT="$("${AWS_CMD[@]}" s3api head-object --bucket "$SELECTED_BUCKET" --key "$KEY")"
-            echo "$OBJECT"
-            exit 0
-        fi
-
         if [ "$FLAG_PRESIGN" = true ]; then
             # Validate that EXPIRES_IN is a positive integer within the range 60-604800
             if ! [[ "$EXPIRES_IN" =~ ^[0-9]+$ ]] || (( EXPIRES_IN < 60 || EXPIRES_IN > 604800 )); then
                 echo "Error: --expires-in={\d} must be an integer within the range 60-604800, got '$EXPIRES_IN'. Exiting." >&2
                 exit 1
             fi
+        fi
 
+        if [ "$FLAG_HEAD" = true ]; then
+            KEY="${SELECTED_PATH#s3://"$SELECTED_BUCKET"/}"
+            FILENAME="${KEY##*/}"
+            #echo "Running command: ${AWS_CMD[*]} s3api head-object --bucket $SELECTED_BUCKET --key $KEY"
+            OBJECT="$("${AWS_CMD[@]}" s3api head-object --bucket "$SELECTED_BUCKET" --key "$KEY")"
+            OBJECT="$(echo "$OBJECT" | jq \
+                --arg fname "$FILENAME" \
+                --arg key "$KEY" \
+                --arg bucket "$SELECTED_BUCKET" \
+                '. + { FileName: $fname, Key: $key, Bucket: $bucket }')"
+
+            if [ "$FLAG_PRESIGN" = true ]; then
+                PRESIGNED_URL="$("${AWS_CMD[@]}" s3 presign "$SELECTED_PATH" --expires-in "$EXPIRES_IN")"
+                OBJECT="$(echo "$OBJECT" | jq \
+                    --arg presigned "$PRESIGNED_URL" \
+                    --arg expires "$EXPIRES_IN" \
+                    '. + { DownloadUrl: $presigned, DownloadUrlExpiresIn: $expires }')"
+            fi
+            echo "$OBJECT"
+            exit 0
+        fi
+
+        if [ "$FLAG_PRESIGN" = true ]; then
             #echo "Running command: ${AWS_CMD[*]} s3 presign $SELECTED_PATH --expires-in $EXPIRES_IN"
             PRESIGNED_URL="$("${AWS_CMD[@]}" s3 presign "$SELECTED_PATH" --expires-in "$EXPIRES_IN")"
             echo "$PRESIGNED_URL"
