@@ -440,6 +440,10 @@ EOF
     mysql_query "$query" | sed 's/\\n/\n/g' > "${PARAMS["outputdir"]}/mysql_user_grants.sql"
 }
 
+function mydumper_version() {
+    mydumper --version | grep -oP '(?<=v)\d+\.\d+\.\d+'
+}
+
 echo "Config chosen: $CONFIG"
 
 # Define and initialize an associative array for parameters with sane defaults
@@ -469,6 +473,13 @@ declare -A PARAMS=(
     #["all-tablespaces"]=true # To backup all
     #["database"]=mysql       # To backup only the specified database
 )
+
+# Change some defaults based on the version
+if [[ $(mydumper_version) < "0.17.2" ]]; then
+    unset PARAMS["sync-thread-lock-mode"]
+    unset PARAMS["trx-tables"]
+    PARAMS["lock-all-tables"]=true # Consistent backup on RDS on older versions of mydumper
+fi
 
 # Define and initialize an associative array for internal parameters, that won't be part of the backup command.
 declare -A INTERNAL_PARAMS=(
