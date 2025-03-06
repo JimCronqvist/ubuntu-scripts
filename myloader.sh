@@ -12,7 +12,7 @@ set -euo pipefail
 ###############################################################################
 
 # Which parameters remain on the myloader command line?
-CMD_LINE_PARAMS=("verbose" "debug")
+CMD_LINE_PARAMS=("verbose" "debug" "logfile")
 
 # Parameters that go under the [client] section
 CLIENT_PARAMS=("host" "port" "user" "password" "protocol" "ssl" "compress-protocol")
@@ -40,6 +40,9 @@ declare -A PARAMS=(
     ["set-gtid-purged"]="false"
     ["enable-binlog"]="true"
     ["disable-redo-log"]="false"
+
+    # Log file
+    ["logfile"]="myloader.\${TIMESTAMP}.log"
 
     # Defaults file
     ["defaults-extra-file"]="myloader.\${TIMESTAMP}.cnf"
@@ -320,8 +323,13 @@ build_command() {
     defaults_file="$(envsubst <<< "${PARAMS["defaults-extra-file"]}")"
     CMD+=("--defaults-extra-file=${defaults_file}")
 
+    # List of keys to ignore
+    local ignore_keys=("logfile")
+
     # Add those parameters specifically designated for the command line
     for keep_key in "${CMD_LINE_PARAMS[@]}"; do
+        [[ " ${ignore_keys[*]} " =~ " ${keep_key} " ]] && continue # skip if part of the ignored keys list
+
         local val="${PARAMS[$keep_key]:-}"
         [ -z "${val}" ] && continue  # skip if not set
 
@@ -395,10 +403,13 @@ run_command() {
     local defaults_file
     defaults_file="$(envsubst <<< "${PARAMS["defaults-extra-file"]}")"
 
+    local logfile
+    logfile="$(envsubst <<< "${PARAMS["logfile"]}")"
+
     echo ""
     echo "The restore started at: $(timestamp)."
     echo ""
-    echo "Running command: ${CMD[*]}"
+    echo "Running command: ${CMD[*]} 2>&1 | tee -a $logfile"
     echo ""
 
     echo "---- Defaults file content ----"
@@ -413,7 +424,7 @@ run_command() {
 
     local start end result seconds
     start="$(date +%s)"
-    "${CMD[@]}" || result=$?
+    { "${CMD[@]}" 2>&1 | tee -a "$logfile"; } || result=$?
     result=${result:-0}
     end="$(date +%s)"
     seconds=$(( end - start ))
@@ -449,6 +460,31 @@ function check_for_mysql_user_grants() {
         echo "Please manually execute if you want to re-import the user grants."
         echo ""
     fi
+}
+
+###############################################################################
+# 9) Check for common errors in the log file
+###############################################################################
+
+function check_for_common_errors_in_logfile() {
+    local logfile
+    logfile="$(envsubst <<< "${PARAMS["logfile"]}")"
+
+    echo ""
+    echo "Checking the log file against common errors to ensure a success."
+
+    local errors=(
+        "Warnings found during INSERT between lines"
+        "Out of range value for column"
+    )
+
+    for match in "${errors[@]}"; do
+        if grep -qF "$match" "$logfile"; then
+            echo "Error: Found an the following error '$match' in logfile. Failing."
+            exit 1
+        fi
+    done
+    echo "No common errors found in the log file."
 }
 
 ###############################################################################
@@ -488,6 +524,12 @@ main() {
 
     # 8) Check if the 'mysql_user_grants' file exists and inform the user
     check_for_mysql_user_grants
+
+    # 9) Check for common errors in the log file
+    check_for_common_errors_in_logfile
+
+    echo ""
+    echo "Restore completed successfully."
 }
 
 main "$@"
