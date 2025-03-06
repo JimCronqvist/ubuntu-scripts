@@ -656,9 +656,9 @@ echo "Running command: ${CMD[*]}"
 
 # Execute the mydumper command
 START=$(date +%s)
-"${CMD[@]}"
+"${CMD[@]}" || RESULT=$?
 # --exec="ls FILENAME"  # Execute a command after each file is written
-RESULT=$?
+RESULT=${RESULT:-0}
 echo ""
 
 if [[ -n "${INTERNAL_PARAMS[user-grants]}" && "${INTERNAL_PARAMS[user-grants]}" == "true" ]]; then
