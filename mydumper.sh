@@ -689,9 +689,9 @@ echo "The backup runtime was ${SECONDS} seconds, finished at $(timestamp). Total
 # Remove the password from the defaults-extra-file
 sed -i -e 's/^password=.*/#password=\*\*\*\*\*/g' "${MYSQL_DEFAULTS_EXTRA_FILE}"
 
-if [ $RESULT -ne 0 ]; then
+if [ "$RESULT" -ne 0 ]; then
     echo "But, the backup failed with exit code: $RESULT"
-    exit $RESULT
+    exit "$RESULT"
 fi
 
 function sync_to_s3() {

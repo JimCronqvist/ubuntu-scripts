@@ -434,9 +434,9 @@ run_command() {
     # Obscure the password in the defaults-extra-file
     sed -i -e 's/^password=.*/#password=\*\*\*\*\*/g' "${defaults_file}"
 
-    if [ $result -ne 0 ]; then
+    if [ "$result" -ne 0 ]; then
         echo "Restore failed with exit code: $result"
-        exit $result
+        exit "$result"
     fi
 
     echo ""
