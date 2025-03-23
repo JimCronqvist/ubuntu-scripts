@@ -99,7 +99,7 @@ wsl --install -d Ubuntu
 wsl --version
 
 # Install WSL2 USB support using a third-party tool: https://github.com/dorssel/usbipd-win
-winget install usbipd --accept-package-agreements --accept-source-agreements
+#winget install usbipd --accept-package-agreements --accept-source-agreements
 
 # Install Docker Desktop
 choco install -y docker-desktop
