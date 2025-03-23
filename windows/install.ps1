@@ -6,58 +6,46 @@ function Check-Command($cmdname) {
     return [bool](Get-Command -Name $cmdname -ErrorAction SilentlyContinue)
 }
 
-function Remove-UWP {
-    param (
-        [string]$name
-    )
-    Write-Host "Removing UWP $name..." -ForegroundColor Yellow
-    Get-AppxPackage $name | Remove-AppxPackage
-    Get-AppxPackage $name | Remove-AppxPackage -AllUsers
-}
-
 # Write out computer info
 Write-Host "OS Info:" -ForegroundColor Green
 Get-CimInstance Win32_OperatingSystem | Format-List Name, Version, InstallDate, OSArchitecture
 (Get-ItemProperty HKLM:\HARDWARE\DESCRIPTION\System\CentralProcessor\0\).ProcessorNameString
 
 # Set a new computer name
-$computerName = Read-Host 'Enter New Computer Name'
-Write-Host "Renaming this computer to: " $computerName  -ForegroundColor Yellow
-Rename-Computer -NewName $computerName
+#$computerName = Read-Host 'Enter New Computer Name'
+#Write-Host "Renaming this computer to: " $computerName  -ForegroundColor Yellow
+#Rename-Computer -NewName $computerName
+
 
 # Modify some Windows behaviors
 ## Disable "Show more options" context menu
 reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f /ve
 
-# Power options
-Write-Host ""
-Write-Host "Change the power plan, disable sleep and turn off screens after 15 minutes when on AC power..." -ForegroundColor Green
-Write-Host "------------------------------------" -ForegroundColor Green
+## Modify Windows Explorer settings
+cmd.exe /c "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f"
+cmd.exe /c "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v Hidden /t REG_DWORD /d 1 /f"
+cmd.exe /c "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v Start_TrackDocs /t REG_DWORD /d 0 /f"
+
+## Exclude www from Windows Defender
+Add-MpPreference -ExclusionPath "$env:USERPROFILE\www"
+
+## Enabling Hardware-Accelerated GPU Scheduling...
+#New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\" -Name 'HwSchMode' -Value '2' -PropertyType DWORD -Force
+
+## Power options - Disable sleep & turn off screens after 15 minutes when on AC power
 Powercfg /Change monitor-timeout-ac 15
 Powercfg /Change standby-timeout-ac 0
 
-# Remove UWP bloatwares - To list all appx packages: Get-AppxPackage | Format-Table -Property Name,Version,PackageFullName
-Write-Host "Removing UWP bloatwares..." -ForegroundColor Green
-Write-Host "------------------------------------" -ForegroundColor Green
-$uwpRubbishApps = @(
-    "Microsoft.GetHelp"
-    #"Microsoft.YourPhone"
-    "Microsoft.Getstarted"
-)
-foreach ($uwp in $uwpRubbishApps) {
-    Remove-UWP $uwp
-}
 
-# Enable Windows Features
-Write-Host ""
-Write-Host "Enabling Telnet Client..." -ForegroundColor Green
-Write-Host "------------------------------------" -ForegroundColor Green
+# Remove UWP bloatwares - To list all appx packages: Get-AppxPackage | Format-Table -Property Name,Version,PackageFullName
+Get-AppxPackage "Microsoft.GetHelp" | Remove-AppxPackage -AllUsers
+Get-AppxPackage "Microsoft.Getstarted" | Remove-AppxPackage -AllUsers
+Get-AppxPackage "Microsoft.BingNews" | Remove-AppxPackage -AllUsers
+
+# Enable Windows Feature - Telnet Client
 Enable-WindowsOptionalFeature -Online -FeatureName TelnetClient -All -NoRestart
 
 # Enable Windows Developer Mode
-#Write-Host ""
-#Write-Host "Enable Windows Developer Mode..." -ForegroundColor Green
-#Write-Host "------------------------------------" -ForegroundColor Green
 #reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
 
 # Install Chocolatey - https://community.chocolatey.org/packages
@@ -65,70 +53,44 @@ if (Check-Command -cmdname 'choco') {
     Write-Host "Choco is already installed, skip installation."
 }
 else {
-    Write-Host ""
-    Write-Host "Installing Choco for Windows..." -ForegroundColor Green
-    Write-Host "------------------------------------" -ForegroundColor Green
+    # Install Choco
     Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 }
 
 # Install applications via Choco
-Write-Host ""
-Write-Host "Installing Choco Applications..." -ForegroundColor Green
-Write-Host "------------------------------------" -ForegroundColor Green
+choco install -y 7zip.install
+choco install -y googlechrome
+choco install -y chromium
+choco install -y firefox
+choco install -y vlc
+choco install -y notepadplusplus.install
+choco install -y lightshot.install
+choco install -y dropbox
+choco install -y jetbrainstoolbox
+#choco install -y openvpn-connect
+#choco install -y icue
+choco install -y crystaldiskinfo
+choco install -y crystaldiskmark
+choco install -y hwinfo
+choco install -y spotify
+#choco install -y slack
+#choco install -y plexmediaserver
+#choco install -y mqtt-explorer
+choco install -y another-redis-desktop-manager
+#choco install -y docker-desktop
+choco install -y postman
+#choco install -y sysinternals
+#choco install -y powershell-core
+choco install -y chocolateygui
 
-$Apps = @(
-    "7zip.install",
-    "googlechrome",
-    "chromium",
-    "firefox"
-    "vlc",
-    "notepadplusplus.install",
-    "lightshot.install",
-    "dropbox",
-    "jetbrainstoolbox",
-    #"openvpn-connect",
-    #"icue",
-    "crystaldiskinfo.install",
-    "hwinfo",
-    "spotify",
-    #"slack",
-    #"plexmediaserver",
-    "skype",
-    
-    #"mqtt-explorer",
-    "another-redis-desktop-manager"
-    
-    #"docker-desktop",
-    
-    #"nodejs-lts",
-    #"postman",
-    #"sysinternals",
-    #"powershell-core",
-    "chocolateygui"
-)
-foreach ($app in $Apps) {
-    choco install $app -y
-}
 # Install 'gsudo'
 PowerShell -Command "Set-ExecutionPolicy RemoteSigned -scope Process; [Net.ServicePointManager]::SecurityProtocol = 'Tls12'; iwr -useb https://raw.githubusercontent.com/gerardog/gsudo/master/installgsudo.ps1 | iex"
 
-Write-Host "Apply Windows Explorer settings..." -ForegroundColor Green
-cmd.exe /c "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f"
-cmd.exe /c "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v Hidden /t REG_DWORD /d 1 /f"
-cmd.exe /c "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v Start_TrackDocs /t REG_DWORD /d 0 /f"
 
-Write-Host "Exclude repos from Windows Defender..." -ForegroundColor Green
-Add-MpPreference -ExclusionPath "$env:USERPROFILE\www"
-
-#Write-Host "Enabling Hardware-Accelerated GPU Scheduling..." -ForegroundColor Green
-#New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\" -Name 'HwSchMode' -Value '2' -PropertyType DWORD -Force
-
-# -----------------------------------------------------------------------------
-Write-Host ""
-Write-Host "Check for Windows Updates..." -ForegroundColor Green
-Write-Host "------------------------------------" -ForegroundColor Green
+# Install a Powershell module for Windows Updates"
 Install-Module -Name PSWindowsUpdate -Force -Confirm:$False
-Write-Host "Install Windows Updates..." -ForegroundColor Green
+
+# Check and Install Windows Updates
 Get-WindowsUpdate -AcceptAll -Install -ForceInstall -AutoReboot
 
 
