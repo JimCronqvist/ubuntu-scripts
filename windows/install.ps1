@@ -66,7 +66,9 @@ choco install -y vlc
 choco install -y notepadplusplus.install
 choco install -y lightshot.install
 choco install -y dropbox
+choco install -y lens
 choco install -y jetbrainstoolbox
+choco install -y tailscale
 #choco install -y openvpn-connect
 #choco install -y icue
 choco install -y crystaldiskinfo
