@@ -80,6 +80,7 @@ choco install -y crystaldiskinfo
 choco install -y crystaldiskmark
 choco install -y hwinfo
 choco install -y spotify
+choco install -y streamdeck
 #choco install -y slack
 #choco install -y plexmediaserver
 #choco install -y mqtt-explorer
