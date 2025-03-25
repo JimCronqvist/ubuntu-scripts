@@ -21,6 +21,10 @@ Get-CimInstance Win32_OperatingSystem | Format-List Name, Version, InstallDate, 
 ## Disable "Show more options" context menu
 reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f /ve
 
+## Placement of the start menu (first = left, second = center)
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarAl /t REG_DWORD /d 0 /f
+#reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarAl /t REG_DWORD /d 1 /f
+
 ## Modify Windows Explorer settings
 cmd.exe /c "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f"
 cmd.exe /c "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v Hidden /t REG_DWORD /d 1 /f"
@@ -28,6 +32,7 @@ cmd.exe /c "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Adva
 
 ## Exclude www from Windows Defender
 Add-MpPreference -ExclusionPath "$env:USERPROFILE\www"
+Add-MpPreference -ExclusionPath '\\wsl.localhost\Ubuntu\var\www'
 
 ## Enabling Hardware-Accelerated GPU Scheduling...
 #New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\" -Name 'HwSchMode' -Value '2' -PropertyType DWORD -Force
