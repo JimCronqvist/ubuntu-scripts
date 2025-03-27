@@ -90,6 +90,7 @@ choco install -y hwinfo
 choco install -y spotify
 choco install -y streamdeck
 #choco install -y equalizerapo
+# Peace Equalizer addon: https://sourceforge.net/projects/peace-equalizer-apo-extension/files/latest/download
 #choco install -y slack
 #choco install -y plexmediaserver
 #choco install -y mqtt-explorer
