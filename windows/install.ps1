@@ -28,6 +28,10 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Ta
 # Disable "Use the Print Screen key to open screen capture" - to let LightShot control the PRNTSCRN hotkey
 reg add "HKCU\Control Panel\Keyboard" /v PrintScreenKeyForSnippingEnabled /t REG_DWORD /d 0 /f
 
+# Disable OneDrive from taking over the print screen key as well
+reg add "HKCU\SOFTWARE\Microsoft\OneDrive" /v "DisableScreenshotShortcut" /t REG_DWORD /d 1 /f
+#reg add "HKCU\SOFTWARE\Microsoft\OneDrive" /v "DisableScreenshotShortcut" /t REG_DWORD /d 0 /f
+
 # Enable seconds in the clock in the taskbar
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowSecondsInSystemClock /t REG_DWORD /d 1 /f; taskkill /im explorer.exe /f; start explorer.exe
 #reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowSecondsInSystemClock /t REG_DWORD /d 0 /f; taskkill /im explorer.exe /f; start explorer.exe
