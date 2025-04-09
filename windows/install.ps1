@@ -73,6 +73,29 @@ else {
     Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 }
 
+# Set up an office365 configuration for the choco install
+$xmlContent = @'
+<Configuration>
+  <Add OfficeClientEdition="64" Channel="Current">
+    <Product ID="O365BusinessRetail">
+      <Language ID="en-us" />
+      <ExcludeApp ID="Access" />
+      <ExcludeApp ID="Publisher" />
+      <ExcludeApp ID="OneDrive" />
+      <ExcludeApp ID="OneNote" />
+      <ExcludeApp ID="Groove" />
+      <ExcludeApp ID="Teams" />
+    </Product>
+  </Add>
+  <Display Level="None" AcceptEULA="TRUE" />
+  <Property Name="AUTOACTIVATE" Value="1" />
+</Configuration>
+'@
+$path = "C:\Program Files\Microsoft Office"
+$file = Join-Path $path "chocolatey.xml"
+New-Item -Path $path -ItemType Directory -Force | Out-Null
+$xmlContent | Out-File -FilePath $file -Encoding UTF8 -Force
+
 # Install applications via Choco
 choco install -y 7zip.install
 choco install -y googlechrome
@@ -103,7 +126,7 @@ choco install -y another-redis-desktop-manager
 choco install -y postman
 #choco install -y sysinternals
 #choco install -y powershell-core
-#choco install -y office365business
+#choco install -y office365business --params="'/ConfigPath:""C:\Program Files\Microsoft Office\chocolatey.xml""'"
 choco install -y chocolateygui
 
 # Install 'gsudo'
