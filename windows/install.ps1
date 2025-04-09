@@ -103,6 +103,7 @@ choco install -y another-redis-desktop-manager
 choco install -y postman
 #choco install -y sysinternals
 #choco install -y powershell-core
+#choco install -y office365business
 choco install -y chocolateygui
 
 # Install 'gsudo'
