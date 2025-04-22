@@ -108,6 +108,7 @@ choco install -y dropbox
 choco install -y teamviewer
 choco install -y lens
 choco install -y jetbrainstoolbox
+choco install -y vscode
 choco install -y tailscale
 #choco install -y openvpn-connect
 #choco install -y icue
