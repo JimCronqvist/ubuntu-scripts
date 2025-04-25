@@ -319,8 +319,7 @@ EOF
             sudo -u "#1000" aws configure set default.region eu-north-1
             sudo -u "#1000" aws configure set default.output json
             echo ""
-            echo "Run 'aws configure' to configure your AWS credentials"
-            echo ""
+            echo "Run 'aws configure' to configure your AWS credentials. Followed by 'aws sts get-caller-identity' to confirm the correct Account ID."
             
             ;;
 
