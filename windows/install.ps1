@@ -142,22 +142,6 @@ Get-WindowsUpdate -AcceptAll -Install -ForceInstall -AutoReboot
 
 # Install AWS CLI v2
 msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi /qn
-#$awsPath = cmd.exe /c "where aws" | Select-Object -First 1
-#if ([string]::IsNullOrWhiteSpace($awsPath)) {
-#    Write-Error "Could not find aws executable. Ensure AWS CLI is installed and available in your current PATH."
-#    exit 1
-#} else {
-#    $systemPath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
-#    if ($systemPath -split ";" -contains $awsPath) {
-#        Write-Output "The AWS executable path is already present in the system PATH."
-#    } else {
-#        $newSystemPath = "$systemPath;$awsPath"
-#        [Environment]::SetEnvironmentVariable("PATH", $newSystemPath, "Machine")
-#        Write-Output "Successfully added aws executable path to the system PATH."
-#    }
-#}
-#choco install -y aws-iam-authenticator
-#aws-iam-authenticator version
 
 # Install WSL2 - after we have the latest windows updates
 wsl --install -d Ubuntu
