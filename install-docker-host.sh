@@ -314,6 +314,7 @@ EOF
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
             sudo ./aws/install
+            sudo rm -r aws/ && sudo rm awscliv2.zip
 
             sudo -u "#1000" aws configure set default.region eu-north-1
             sudo -u "#1000" aws configure set default.output json
@@ -394,7 +395,7 @@ EOF
                 curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
                 sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
                 rm argocd-linux-amd64
-                argocd version  
+                argocd version --client --short
             fi
             
             # Install k9s if not previously installed
@@ -402,15 +403,16 @@ EOF
                 REPO="derailed/k9s"
                 VERSION=$(curl -s https://api.github.com/repos/${REPO}/releases/latest | grep 'tag_name' | cut -d\" -f4)
                 curl -o k9s.tar.gz -L "https://github.com/derailed/k9s/releases/download/${VERSION}/k9s_Linux_amd64.tar.gz"
-                sudo tar -C /usr/local/bin/ -zxvf k9s.tar.gz k9s 
+                sudo tar -zxvf k9s.tar.gz k9s 
                 sudo install -p -m 755 -o root -g root k9s /usr/local/bin/
+                sudo rm k9s k9s.tar.gz
             fi
 
             # Install git and jq if not previously installed
             sudo apt-get install git jq -y
 
             # Install yq if not previously installed
-            if ! command -v k9s &> /dev/null; then
+            if ! command -v yq &> /dev/null; then
                 sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/local/bin/yq
                 yq --version
             fi
