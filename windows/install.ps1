@@ -140,6 +140,8 @@ Install-Module -Name PSWindowsUpdate -Force -Confirm:$False
 # Check and Install Windows Updates
 Get-WindowsUpdate -AcceptAll -Install -ForceInstall -AutoReboot
 
+# Install AWS CLI v2
+msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi /qn
 
 # Install WSL2 - after we have the latest windows updates
 wsl --install -d Ubuntu
