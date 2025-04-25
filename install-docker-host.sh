@@ -416,6 +416,9 @@ EOF
                 yq --version
             fi
 
+            # Add kubeswitch
+            curl -s https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/kubeswitch.sh | sudo tee /usr/local/bin/kubeswitch >/dev/null && sudo chmod +x /usr/local/bin/kubeswitch
+
             ;;
             
         "12") # Install Node
