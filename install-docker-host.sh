@@ -310,13 +310,16 @@ EOF
 	    "8") # Install AWS CLI v2
             
             cd ~
+            sudo apt-get install unzip -y
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
             sudo ./aws/install
 
-            sudo -u ubuntu aws configure set default.region eu-north-1
-            sudo -u ubuntu aws configure set default.output json
-            #aws configure
+            sudo -u "#1000" aws configure set default.region eu-north-1
+            sudo -u "#1000" aws configure set default.output json
+            echo ""
+            echo "Run 'aws configure' to configure your AWS credentials"
+            echo ""
             
             ;;
 
@@ -403,9 +406,9 @@ EOF
                 sudo install -p -m 755 -o root -g root k9s /usr/local/bin/
             fi
 
-            # Install Git & jq & yq
+            # Install git and jq if not previously installed
             sudo apt-get install git jq -y
-            
+
             # Install yq if not previously installed
             if ! command -v k9s &> /dev/null; then
                 sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/local/bin/yq
