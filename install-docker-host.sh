@@ -87,7 +87,7 @@ do
 (8) Install AWS CLI v2
 (9) Install Terraform
 (10) Import keys from GitHub
-(11) Install kubectl, helm, customize, eksctl, argocd cli, kompose
+(11) Install kubectl, helm, customize, eksctl, argocd cli
 (12) Install Node
 (13) Install database utilities (Xtrabackup, mysqldump, mysql-client)
 (14) Install Database
@@ -180,7 +180,7 @@ EOF
 
             # Install Git & jq & yq
             sudo apt-get install git jq -y
-            sudo snap install yq
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/local/bin/yq && yq --version
             
             # Pre-save the Github host key
             ssh-keyscan github.com | sudo tee -a /etc/ssh/ssh_known_hosts
@@ -339,7 +339,7 @@ EOF
             
             ;;
         
-        "11") # Install kubectl, helm, kustomize, eksctl, argocd cli, kompose, k9s
+        "11") # Install kubectl, helm, kustomize, eksctl, argocd cli, k9s, git, jq, yq
         
             # Install kubectl if not previously installed
             if ! command -v kubectl &> /dev/null; then
@@ -393,15 +393,6 @@ EOF
                 rm argocd-linux-amd64
                 argocd version  
             fi
-	    
-            # Install kompose if not previously installed
-            if ! command -v kompose &> /dev/null; then
-                echo "argocd not found, installing..."
-                sudo curl -sSL https://github.com/kubernetes/kompose/releases/download/v1.28.0/kompose-linux-amd64 -o kompose
-                sudo install -o root -g root -m 0755 kompose /usr/local/bin/kompose
-                sudo rm kompose
-                kompose version
-            fi
             
             # Install k9s if not previously installed
             if ! command -v k9s &> /dev/null; then
@@ -410,6 +401,15 @@ EOF
                 curl -o k9s.tar.gz -L "https://github.com/derailed/k9s/releases/download/${VERSION}/k9s_Linux_amd64.tar.gz"
                 sudo tar -C /usr/local/bin/ -zxvf k9s.tar.gz k9s 
                 sudo install -p -m 755 -o root -g root k9s /usr/local/bin/
+            fi
+
+            # Install Git & jq & yq
+            sudo apt-get install git jq -y
+            
+            # Install yq if not previously installed
+            if ! command -v k9s &> /dev/null; then
+                sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/local/bin/yq
+                yq --version
             fi
 
             ;;
