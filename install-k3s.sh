@@ -48,6 +48,7 @@ cat << EOF | envsubst | sudo tee /etc/rancher/k3s/config.yaml
 write-kubeconfig-mode: "0644"
 # Disable via .skip files for new installations
 #disable:
+#- coredns
 #- metrics-server
 #- traefik
 kubelet-arg:
@@ -59,6 +60,7 @@ sudo mkdir -p /var/lib/rancher/k3s/server/manifests
 sudo touch /var/lib/rancher/k3s/server/manifests/traefik.yaml.skip
 sudo touch /var/lib/rancher/k3s/server/manifests/traefik-config.yaml.skip
 sudo touch /var/lib/rancher/k3s/server/manifests/metrics-server.yaml.skip
+sudo touch /var/lib/rancher/k3s/server/manifests/coredns.yaml.skip
 
 # Install k3s
 curl -sfL https://get.k3s.io | sh -
@@ -70,6 +72,10 @@ sleep 40
 
 # Check for Ready node, takes ~30 seconds before this command returns the 'correct' result.
 kubectl get node
+
+# Deploy coredns via helm
+helm upgrade --install coredns oci://ghcr.io/jimcronqvist/helm-charts/coredns -n kube-system \
+  --set coredns.service.clusterIP="10.43.0.10"
 
 # Set up automated upgrades for K3s - install system-upgrade-controller
 kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/latest/download/system-upgrade-controller.yaml
