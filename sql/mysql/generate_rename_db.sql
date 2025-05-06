@@ -35,7 +35,7 @@ SELECT CONCAT(
           'CREATE OR REPLACE ',
           'DEFINER=', DEFINER, ' ',
           'SQL SECURITY ', SECURITY_TYPE, ' ',
-          'VIEW `', @newDb, '`.`', TABLE_NAME, '` AS ', VIEW_DEFINITION, ';'
+          'VIEW `', @newDb, '`.`', TABLE_NAME, '` AS ', REPLACE(VIEW_DEFINITION, CONCAT('`', @oldDb, '`.'), CONCAT('`', @newDb, '`.')), ';'
         ) SEPARATOR '\n'
       )
       FROM INFORMATION_SCHEMA.VIEWS
