@@ -416,6 +416,9 @@ EOF
                 yq --version
             fi
 
+            # Install htpasswd
+            sudo apt-get install apache2-utils -y
+
             # Add kubeswitch
             curl -s https://raw.githubusercontent.com/JimCronqvist/ubuntu-scripts/master/kubeswitch.sh | sudo tee /usr/local/bin/kubeswitch >/dev/null && sudo chmod +x /usr/local/bin/kubeswitch
 
