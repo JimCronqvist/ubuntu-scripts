@@ -53,6 +53,11 @@ write-kubeconfig-mode: "0644"
 #- traefik
 kubelet-arg:
 - "max-pods=250"
+
+# Uncomment below to use a custom CNI (Cilium, etc.). Note: do not use multiple active 'disable' sections in this file.
+#flannel-backend: "none"
+#disable:
+#  - network-policy
 EOF
 
 # Create .skip files to prevent the installation of a few k3s addons
