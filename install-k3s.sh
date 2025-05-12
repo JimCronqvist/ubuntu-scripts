@@ -53,16 +53,17 @@ disable:
 - metrics-server
 #- coredns
 #- traefik
-# Uncomment below to use a custom CNI (Cilium, etc.). Note: do not use multiple active 'disable' sections in this file.
-#- network-policy
-#flannel-backend: "none"
+
+# Use Cilium as a custom CNI, disable the built-in ones
+#disable-kube-proxy: true
+disable-network-policy: true
+flannel-backend: "none"
 EOF
 
 # Create .skip files to prevent the installation of a few k3s addons
 sudo mkdir -p /var/lib/rancher/k3s/server/manifests
 sudo touch /var/lib/rancher/k3s/server/manifests/traefik.yaml.skip
 sudo touch /var/lib/rancher/k3s/server/manifests/traefik-config.yaml.skip
-sudo touch /var/lib/rancher/k3s/server/manifests/metrics-server.yaml.skip
 sudo touch /var/lib/rancher/k3s/server/manifests/coredns.yaml.skip
 
 # Install k3s
@@ -94,6 +95,25 @@ echo 'export KUBECONFIG=/etc/rancher/k3s/k3s.yaml' >> /home/ubuntu/.bashrc
 helm upgrade --install coredns oci://ghcr.io/jimcronqvist/helm-charts/coredns -n kube-system \
   --set coredns.service.clusterIP="10.43.0.10" \
   --set coredns.replicaCount=1
+
+# Install Cilium CLI if not previously installed
+if ! command -v cilium &> /dev/null; then
+    CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
+    CLI_ARCH=$(uname -m | grep -q aarch64 && echo arm64 || echo amd64)
+    curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+    sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
+    sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
+    rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+    cilium version --client
+fi
+
+# Deploy cilium via helm
+helm upgrade --install cilium oci://ghcr.io/jimcronqvist/helm-charts/cilium -n kube-system \
+  --set cilium.ipam.operator.clusterPoolIPv4PodCIDRList="10.42.0.0/16" \
+  --set cilium.operator.replicas=1 
+#  --set cilium.kubeProxyReplacement=true \
+#  --set cilium.k8sServiceHost=10.43.0.1 \
+#  --set cilium.k8sServicePort=443
 
 
 if Confirm "Do you want to configure automatic updates for K3s? (Not recommended for production environments)" N; then
