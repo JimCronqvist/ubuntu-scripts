@@ -355,10 +355,15 @@ EOF
                 kubectl version
 
                 # Auto complete & alias (run as your user)
-                source <(kubectl completion bash)
-                echo "source <(kubectl completion bash)" >> ~/.bashrc
-                alias k=kubectl
-                complete -o default -F __start_kubectl k
+                {
+                    echo "source <(kubectl completion bash)"
+                  
+                    echo "alias k=kubectl"
+                    echo "complete -o default -F __start_kubectl k"
+                  
+                    echo "alias ks='kubectl -n kube-system'"
+                    echo "complete -o default -F __start_kubectl ks"
+                } >> ~/.bashrc
             fi
             
             # Install eksctl if not previously installed
