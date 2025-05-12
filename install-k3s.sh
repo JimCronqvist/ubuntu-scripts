@@ -94,13 +94,15 @@ echo 'export KUBECONFIG=/etc/rancher/k3s/k3s.yaml' >> /home/ubuntu/.bashrc
 
 # Deploy coredns via helm
 helm upgrade --install coredns oci://ghcr.io/jimcronqvist/helm-charts/coredns -n kube-system \
-  --set coredns.service.clusterIP="10.43.0.10"
+  --set coredns.service.clusterIP="10.43.0.10" \
+  --set coredns.replicaCount=1
 
-# Set up automated upgrades for K3s - install system-upgrade-controller
-kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/latest/download/system-upgrade-controller.yaml
-kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/latest/download/crd.yaml
 
 if Confirm "Do you want to configure automatic updates for K3s? (Not recommended for production environments)" N; then
+    # Set up automated upgrades for K3s - install system-upgrade-controller
+    kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/latest/download/system-upgrade-controller.yaml
+    kubectl apply -f https://github.com/rancher/system-upgrade-controller/releases/latest/download/crd.yaml
+
     # Configure server and agent plans for automated updates
     kubectl apply -f - <<EOF
 # Server plan
