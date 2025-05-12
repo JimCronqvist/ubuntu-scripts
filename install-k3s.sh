@@ -46,18 +46,16 @@ sudo mkdir -p /etc/rancher/k3s
 cat << EOF | envsubst | sudo tee /etc/rancher/k3s/config.yaml
 # Warning: Setting the kubeconfig mode to 644 should be used with care, it is recommended to leave it as 600, that way no non-root users can access the cluster.
 write-kubeconfig-mode: "0644"
-# Disable via .skip files for new installations
-#disable:
-#- coredns
-#- metrics-server
-#- traefik
 kubelet-arg:
 - "max-pods=250"
-
+# Disable via .skip files for new installations
+disable:
+- metrics-server
+#- coredns
+#- traefik
 # Uncomment below to use a custom CNI (Cilium, etc.). Note: do not use multiple active 'disable' sections in this file.
+#- network-policy
 #flannel-backend: "none"
-#disable:
-#  - network-policy
 EOF
 
 # Create .skip files to prevent the installation of a few k3s addons
