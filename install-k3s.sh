@@ -78,6 +78,20 @@ sleep 40
 # Check for Ready node, takes ~30 seconds before this command returns the 'correct' result.
 kubectl get node
 
+# Install helm if not previously installed
+if ! command -v helm &> /dev/null; then
+    echo "helm not found, installing..."
+    curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+    sudo apt install apt-transport-https --yes
+    echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+    sudo apt update
+    sudo apt install helm -y
+    helm version
+fi
+
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+echo 'export KUBECONFIG=/etc/rancher/k3s/k3s.yaml' >> /home/ubuntu/.bashrc
+
 # Deploy coredns via helm
 helm upgrade --install coredns oci://ghcr.io/jimcronqvist/helm-charts/coredns -n kube-system \
   --set coredns.service.clusterIP="10.43.0.10"
