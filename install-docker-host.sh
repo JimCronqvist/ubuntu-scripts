@@ -374,6 +374,14 @@ EOF
                 eksctl version
             fi
 
+            # Install eks-node-viewer if not previously installed
+            if ! command -v eks-node-viewer &> /dev/null; then
+                    curl -sSL -o eks-node-viewer https://github.com/awslabs/eks-node-viewer/releases/latest/download/eks-node-viewer_Linux_x86_64
+                    sudo install -p -m 755 -o root -g root eks-node-viewer /usr/local/bin/
+                    rm eks-node-viewer
+                    eks-node-viewer -v
+            fi
+
             # Install kustomize if not previously installed
             if ! command -v kustomize &> /dev/null; then
                 curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
