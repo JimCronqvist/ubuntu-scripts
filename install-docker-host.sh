@@ -450,8 +450,8 @@ EOF
             
         "12") # Install Node
             
-            # Install Node 16 LTS
-            curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+            # Install Node 22 LTS
+            curl -sL https://deb.nodesource.com/setup_22.x | sudo -E bash -
             sudo apt install nodejs -y
             sudo npm install npm@latest -g
             sudo npm install yarn@latest -g
