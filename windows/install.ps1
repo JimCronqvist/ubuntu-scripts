@@ -105,6 +105,7 @@ choco install -y vlc
 choco install -y notepadplusplus.install
 choco install -y lightshot.install
 choco install -y dropbox
+choco install -y adobereader
 choco install -y teamviewer
 choco install -y lens
 choco install -y jetbrainstoolbox
