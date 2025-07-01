@@ -352,7 +352,9 @@ EOF
             && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
             && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
             && sudo apt update \
-            && sudo apt install gh -y
+            && sudo apt install gh -y \
+	    && gh --version
+	    # gh auth login
 	
             # Install kubectl if not previously installed
             if ! command -v kubectl &> /dev/null; then
