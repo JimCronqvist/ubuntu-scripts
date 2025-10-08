@@ -140,7 +140,9 @@ fi
 
 echo "The following commands will be used to $action_desc ${#commands[@]} ${kind}(s) $ns_text:"
 echo
+echo
 printf '%s\n' "${commands[@]}"
+echo
 echo
 
 # Handle dry-run before execution prompt
