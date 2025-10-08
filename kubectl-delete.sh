@@ -7,12 +7,12 @@ usage() {
   echo
   echo "Examples:"
   echo "  $0 default Pod my-pod"                   # Delete one pod
-  echo "  $0 default Pod argo*"                    # Delete pods starting with 'argo'
-  echo "  $0 default Pod * --dry-run"              # Show all delete commands
-  echo "  $0 default Pod * --finalizers"           # Remove finalizers instead of deleting
+  echo "  $0 default Pod 'argo*'"                    # Delete pods starting with 'argo'
+  echo "  $0 default Pod '*' --dry-run"              # Show all delete commands
+  echo "  $0 default Pod '*' --finalizers"           # Remove finalizers instead of deleting
   echo "  $0 - PersistentVolume pv-* --finalizers" # Cluster-scoped example
   echo "  $0 default Pod my-pod --force"           # Force delete resources
-  echo "  $0 default Pod * --one"                  # Only run first matching command
+  echo "  $0 default Pod '*' --one"                  # Only run first matching command
   echo
   echo "Notes:"
   echo "  - Use '-' for cluster-scoped resources (e.g. PersistentVolume)."
