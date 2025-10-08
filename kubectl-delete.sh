@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Display usage instructions
 usage() {
-  echo "Usage: $0 <namespace|-> <kind> <name-pattern> [--dry-run] [--finalizers] [--force] [--one]"
+  echo "Usage: $0 <namespace|-> <kind> <name-pattern> [--dry-run] [--finalizers] [--force] [--one] [--yes]"
   echo
   echo "Examples:"
   echo "  $0 default Pod my-pod"                   # Delete one pod
@@ -13,6 +13,7 @@ usage() {
   echo "  $0 - PersistentVolume pv-* --finalizers" # Cluster-scoped example
   echo "  $0 default Pod my-pod --force"           # Force delete resources
   echo "  $0 default Pod '*' --one"                  # Only run first matching command
+  echo "  $0 default Pod '*' --yes"                  # Skip confirmation prompt
   echo
   echo "Notes:"
   echo "  - Use '-' for cluster-scoped resources (e.g. PersistentVolume)."
@@ -20,6 +21,7 @@ usage() {
   echo "  - '--finalizers' removes finalizers instead of deleting the resource."
   echo "  - '--force' adds --force and --grace-period=0 to kubectl commands."
   echo "  - '--one' runs only the first matching command."
+  echo "  - '--yes' skips the confirmation prompt."
   echo "  - '--dry-run' prints all commands, asks for confirmation, and exits."
   exit 1
 }
@@ -33,6 +35,7 @@ dry_run=false
 remove_finalizers=false
 force_delete=false
 run_one=false
+skip_confirm=false
 
 # Parse flags (allow either order)
 for arg in "$@"; do
@@ -49,13 +52,16 @@ for arg in "$@"; do
     --one)
       run_one=true
       ;;
+    --yes)
+      skip_confirm=true
+      ;;
   esac
 done
 
 # Strip optional flags for positional args
 args=()
 for arg in "$@"; do
-  if [[ "$arg" != "--dry-run" && "$arg" != "--finalizers" && "$arg" != "--force" && "$arg" != "--one" ]]; then
+  if [[ "$arg" != "--dry-run" && "$arg" != "--finalizers" && "$arg" != "--force" && "$arg" != "--one" && "$arg" != "--yes" ]]; then
     args+=("$arg")
   fi
 done
@@ -140,9 +146,7 @@ fi
 
 echo "The following commands will be used to $action_desc ${#commands[@]} ${kind}(s) $ns_text:"
 echo
-echo
 printf '%s\n' "${commands[@]}"
-echo
 echo
 
 # Handle dry-run before execution prompt
@@ -151,9 +155,14 @@ if $dry_run; then
   exit 0
 fi
 
-# Prompt user before executing
-read -rp "Press ENTER to continue to execute it on context '$current_context'..."
-echo
+# Prompt user before executing unless --yes is provided
+if ! $skip_confirm; then
+  read -rp "Press ENTER to continue to execute it on context '$current_context'..."
+  echo
+else
+  echo "--yes specified: skipping confirmation prompt."
+  echo
+fi
 
 # Execute commands for real
 echo "Executing on context '$current_context':"
