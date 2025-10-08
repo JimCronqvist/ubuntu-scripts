@@ -64,6 +64,11 @@ namespace="${args[0]}"
 kind="${args[1]}"
 name_pattern="${args[2]}"
 
+# Print current Kubernetes cluster context for safety
+current_context=$(kubectl config current-context 2>/dev/null || echo "unknown")
+echo "⚙️  Current cluster context: $current_context"
+echo
+
 # Handle namespace vs cluster-scoped
 if [[ "$namespace" == "-" ]]; then
   ns_flag=()
