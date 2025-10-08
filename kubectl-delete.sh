@@ -150,11 +150,11 @@ if $dry_run; then
 fi
 
 # Prompt user before executing
-read -rp "Press ENTER to continue (or Ctrl+C to abort)..."
+read -rp "Press ENTER to continue to execute it on context '$current_context'..."
 echo
 
 # Execute commands for real
-echo "Executing:"
+echo "Executing on context '$current_context':"
 for cmd in "${commands[@]}"; do
   echo "→ $cmd"
   eval "$cmd" >/dev/null || echo "⚠️  Failed: $cmd"
