@@ -154,7 +154,8 @@ read -rp "Press ENTER to continue (or Ctrl+C to abort)..."
 echo
 
 # Execute commands for real
+echo "Executing:"
 for cmd in "${commands[@]}"; do
-  echo "→ Executing: $cmd"
+  echo "→ $cmd"
   eval "$cmd" >/dev/null || echo "⚠️  Failed: $cmd"
 done
