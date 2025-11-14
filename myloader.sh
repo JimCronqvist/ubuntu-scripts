@@ -67,6 +67,9 @@ CMD=()
 # Keep track if --dry-run was provided
 DRY_RUN="false"
 
+# Track if we should handle redo log ourselves
+DISABLE_REDO_LOG="false"
+
 # We'll parse multiple --table arguments and convert them into a single comma-delimited tables-list
 TABLES=()
 
@@ -311,6 +314,13 @@ post_process_params() {
         combined="${combined// /,}"     # replace spaces with commas, i.e. TABLES=(db.table1 db.table2) -> db.table1,db.table2
         PARAMS["tables-list"]="$combined"
     fi
+
+    # If --disable-redo-log was requested, handle it ourselves (workaround myloader bug)
+    if [[ "${PARAMS["disable-redo-log"]:-false}" == "true" ]]; then
+        DISABLE_REDO_LOG="true"
+        # Prevent myloader from attempting this; we'll manage it manually
+        PARAMS["disable-redo-log"]="false"
+    fi
 }
 
 ###############################################################################
@@ -399,6 +409,53 @@ create_defaults_file() {
 ###############################################################################
 # 7) Run the myloader command (or skip if --dry-run)
 ###############################################################################
+mysql_query() {
+    local QUERY="$1"
+    local FIRST_ROW_FIRST_COL_ONLY="${2:-false}"
+
+    local OUTPUT
+    OUTPUT="$(mysql --defaults-extra-file="${MYSQL_DEFAULTS_EXTRA_FILE}" -N -B -e "$QUERY" 2>&1)"
+    local EXIT_CODE=$?
+
+    if [[ $EXIT_CODE -ne 0 ]]; then
+        echo "Error running MySQL command (exit code $EXIT_CODE):" >&2
+        echo "$OUTPUT" >&2
+        return $EXIT_CODE
+    fi
+
+    if echo "$OUTPUT" | grep -qi "^ERROR"; then
+        echo "MySQL query returned an error:" >&2
+        echo "$OUTPUT" >&2
+        return 1
+    fi
+
+    if [[ "$FIRST_ROW_FIRST_COL_ONLY" == "true" || "$FIRST_ROW_FIRST_COL_ONLY" == "1" ]]; then
+        echo "$OUTPUT" | head -n 1 | cut -f1
+    else
+        echo "$OUTPUT"
+    fi
+
+    echo "The query returned $(echo -n "$OUTPUT" | wc -l) rows." >&2
+}
+
+disable_redo_log() {
+    echo "Disabling InnoDB redo log before restore (handled by wrapper)."
+    if mysql_query "ALTER INSTANCE DISABLE INNODB REDO_LOG;"; then
+        echo "Redo log disabled successfully."
+    else
+        echo "Warning: Failed to disable redo log via ALTER INSTANCE. Proceeding." >&2
+    fi
+}
+
+enable_redo_log() {
+    echo "Re-enabling InnoDB redo log after restore."
+    if mysql_query "ALTER INSTANCE ENABLE INNODB REDO_LOG;"; then
+        echo "Redo log enabled successfully."
+    else
+        echo "Warning: Failed to re-enable redo log via ALTER INSTANCE. Please verify manually." >&2
+    fi
+}
+
 run_command() {
     local defaults_file
     defaults_file="$(envsubst <<< "${PARAMS["defaults-extra-file"]}")"
@@ -417,6 +474,9 @@ run_command() {
     echo "--------------------------------"
     echo ""
 
+    # Set defaults file for mysql_query helper
+    MYSQL_DEFAULTS_EXTRA_FILE="${defaults_file}"
+
     if [[ "$DRY_RUN" == "true" ]]; then
         echo "--dry-run option provided, skipping myloader execution."
         return
@@ -424,12 +484,21 @@ run_command() {
 
     local start end result seconds
     start="$(date +%s)"
+    # If we the disable redo logs argument was provided, handle it here before running myloader
+    if [[ "$DISABLE_REDO_LOG" == "true" && "$DRY_RUN" != "true" ]]; then
+        disable_redo_log
+    fi
     { "${CMD[@]}" 2>&1 | tee -a "$logfile"; } || result=$?
     result=${result:-0}
     end="$(date +%s)"
     seconds=$(( end - start ))
 
     echo "The restore runtime was ${seconds} seconds, finished at $(timestamp)."
+
+    # Always try to restore redo log afterwards if the disable redo logs was provided
+    if [[ "$DISABLE_REDO_LOG" == "true" && "$DRY_RUN" != "true" ]]; then
+        enable_redo_log
+    fi
 
     # Obscure the password in the defaults-extra-file
     sed -i -e 's/^password=.*/#password=\*\*\*\*\*/g' "${defaults_file}"
