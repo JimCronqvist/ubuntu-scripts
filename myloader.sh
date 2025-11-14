@@ -15,7 +15,7 @@ set -euo pipefail
 CMD_LINE_PARAMS=("verbose" "debug" "logfile")
 
 # Parameters that go under the [client] section
-CLIENT_PARAMS=("host" "port" "user" "password" "protocol" "ssl" "compress-protocol")
+CLIENT_PARAMS=("host" "port" "user" "password" "protocol" "ssl-mode")
 
 # Hardcoded defaults (lowest priority).
 declare -A PARAMS=(
