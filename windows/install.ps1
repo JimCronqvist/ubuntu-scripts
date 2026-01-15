@@ -127,6 +127,7 @@ choco install -y streamdeck
 choco install -y another-redis-desktop-manager
 #choco install -y docker-desktop
 choco install -y postman
+choco install -y wireshark
 #choco install -y sysinternals
 #choco install -y powershell-core
 #choco install -y office365business --params="'/ConfigPath:""C:\Program Files\Microsoft Office\chocolatey.xml""'"
