@@ -162,7 +162,7 @@ choose_one() {
 
   [[ "$INTERACTIVE" == "1" ]] || { echo "choose_one in non-interactive mode" >&2; return 2; }
   has_tty || { echo "No /dev/tty" >&2; return 2; }
-  command -v whiptail >/dev/null 2>&1 || { echo "whiptail missing" >&2; return 2; }
+  need whiptail
 
   export TERM="${TERM:-xterm-256color}"
 
@@ -190,7 +190,7 @@ choose_text() {
 
   [[ "$INTERACTIVE" == "1" ]] || { echo "choose_text in non-interactive mode" >&2; return 2; }
   has_tty || { echo "No /dev/tty" >&2; return 2; }
-  command -v whiptail >/dev/null 2>&1 || { echo "whiptail missing" >&2; return 2; }
+  need whiptail
 
   export TERM="${TERM:-xterm-256color}"
 
