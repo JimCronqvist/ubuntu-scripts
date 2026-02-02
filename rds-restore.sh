@@ -493,6 +493,108 @@ print_cmd() {
   return 0
 }
 
+# string differs and value is meaningful
+diff_str() {
+  local a="$1" b="$2"
+  [[ "$a" != "$b" && -n "$b" && "$b" != "null" ]]
+}
+
+# boolean differs (true/false)
+diff_bool() {
+  [[ "$1" != "$2" ]]
+}
+
+# array differs (order-sensitive, which is fine for SGs)
+diff_array() {
+  local -n a="$1" b="$2"
+  [[ "${a[*]}" != "${b[*]}" ]]
+}
+
+# Shell-escape a command line so it can be copied/pasted safely
+print_shell_cmd() {
+  local -a cmd=("$@")
+  local out=""
+  for a in "${cmd[@]}"; do
+    out+=" $(printf "%q" "$a")"
+  done
+  echo "${out:1}"
+}
+
+print_rerun_cmd_multiline() {
+  local label="$1"; shift
+  echo "$label"
+  print_cmd "" "$@"
+}
+
+# Build and print a non-interactive re-run command that reproduces the current plan
+build_rerun_cmd() {
+  # Usage:
+  #   print_rerun_cmd minimal   # only non-default args
+  #   print_rerun_cmd full      # always include all args
+  local mode="${1:-minimal}"
+
+  local script="${0:-rds-restore.sh}"
+  local -a rerun=("./$script" "--yes")
+
+  [[ -n "$REGION" ]] && rerun+=(--region "$REGION")
+  [[ "$NO_WAIT" == "1" ]] && rerun+=(--no-wait)
+
+  rerun+=(--source "$SOURCE" --target "$TARGET")
+
+  if [[ "$source_type" == "cluster" ]]; then
+    rerun+=(--aurora-writer-instance "$AURORA_WRITER_INSTANCE")
+  fi
+
+  # Restore target
+  if [[ -n "$SNAPSHOT_ID" ]]; then
+    rerun+=(--snapshot-id "$SNAPSHOT_ID")
+  elif [[ -n "$RESTORE_TIME_SPEC" ]]; then
+    rerun+=(--restore-time "$RESTORE_TIME_SPEC")
+  else
+    rerun+=(--latest)
+  fi
+
+  # Helper: include arg based on mode
+  include_str() {
+    local def="$1" cur="$2"
+    [[ "$mode" == "full" ]] || diff_str "$def" "$cur"
+  }
+  include_bool() {
+    local def="$1" cur="$2"
+    [[ "$mode" == "full" ]] || diff_bool "$def" "$cur"
+  }
+  include_array() {
+    local -n def_arr="$1" cur_arr="$2"
+    [[ "$mode" == "full" ]] || diff_array def_arr cur_arr
+  }
+
+  # Effective config
+  if [[ "$source_type" == "instance" ]]; then
+    include_str  "$cls_def"    "$cls"    && rerun+=(--db-instance-class "$cls")
+    include_str  "$subnet_def" "$subnet" && rerun+=(--db-subnet-group "$subnet")
+    include_bool "$pub_def"    "$pub"    && rerun+=(--publicly-accessible "$pub")
+    include_bool "$multi_def"  "$multi"  && rerun+=(--multi-az "$multi")
+    include_str  "$pgroup_def" "$pgroup" && rerun+=(--db-parameter-group "$pgroup")
+    include_str  "$ogroup_def" "$ogroup" && rerun+=(--option-group "$ogroup")
+
+    if include_array sgs_def sgs; then
+     rerun+=(--vpc-sg-ids "$(IFS=','; echo "${sgs[*]}")")
+    fi
+  else
+    include_str "$subnet_def" "$subnet" && rerun+=(--db-subnet-group "$subnet")
+    include_str "$cpg_def"    "$cpg"    && rerun+=(--db-cluster-parameter-group "$cpg")
+    include_str "$ogroup_def" "$ogroup" && rerun+=(--option-group "$ogroup")
+    include_str "$inst_class_def" "$inst_class" && rerun+=(--db-instance-class "$inst_class")
+
+    if include_array sgs_def sgs; then
+      rerun+=(--vpc-sg-ids "$(IFS=','; echo "${sgs[*]}")")
+    fi
+  fi
+
+  # print argv, one per line, for capture
+  printf '%s\n' "${rerun[@]}"
+}
+
 # -------------------- CLI --------------------
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -670,6 +772,15 @@ if [[ "$source_type" == "instance" ]]; then
   ogroup=$(echo "$d" | jq -r '.OptionGroupName')
   mapfile -t sgs < <(echo "$d" | jq -r '.VpcSecurityGroupIds[]')
 
+  # Store the defaults
+  cls_def="$cls"
+  subnet_def="$subnet"
+  pub_def="$pub"
+  multi_def="$multi"
+  pgroup_def="$pgroup"
+  ogroup_def="$ogroup"
+  sgs_def=("${sgs[@]}")
+
   # Apply CLI overrides first
   [[ -n "$DB_INSTANCE_CLASS" ]] && cls="$DB_INSTANCE_CLASS"
   [[ -n "$DB_SUBNET_GROUP" ]] && subnet="$DB_SUBNET_GROUP"
@@ -734,6 +845,11 @@ else
   cpg=$(echo "$d" | jq -r '.DBClusterParameterGroupName')
   ogroup=$(echo "$d" | jq -r '.OptionGroupName')
   mapfile -t sgs < <(echo "$d" | jq -r '.VpcSecurityGroupIds[]')
+
+  subnet_def="$subnet"
+  cpg_def="$cpg"
+  ogroup_def="$ogroup"
+  sgs_def=("${sgs[@]}")
 
   [[ -n "$DB_SUBNET_GROUP" ]] && subnet="$DB_SUBNET_GROUP"
   [[ -n "$DB_CLUSTER_PARAMETER_GROUP" ]] && cpg="$DB_CLUSTER_PARAMETER_GROUP"
@@ -824,6 +940,16 @@ else
   fi
 fi
 
+echo "======================================================"
+mapfile -t rerun_minimal < <(build_rerun_cmd minimal)
+mapfile -t rerun_full    < <(build_rerun_cmd full)
+echo "Re-run this exact restore non-interactively (with defaults):"
+print_cmd "" "${rerun_minimal[@]}"
+echo "Re-run this exact restore non-interactively (hardcoded arguments):"
+print_cmd "" "${rerun_full[@]}"
+echo "Single-line (copy/paste):"
+echo -n " "; print_shell_cmd "${rerun_minimal[@]}"
+echo
 echo "======================================================"
 echo
 
