@@ -418,7 +418,7 @@ cluster_defaults_json() {
   get_cluster_full "$source_id" | jq -r '{
     Engine, EngineVersion,
     DBSubnetGroupName: (.DBSubnetGroup // ""),
-    VpcSecurityGroupIds: (.VpcSecurityGroups // []),
+    VpcSecurityGroupIds: (.VpcSecurityGroups | map(.VpcSecurityGroupId)),
     DBClusterParameterGroupName: (.DBClusterParameterGroup // ""),
     OptionGroupName: (.OptionGroupMemberships[0].OptionGroupName // ""),
     EarliestRestorableTime: (.EarliestRestorableTime // null),
@@ -767,7 +767,6 @@ else
     cmd_restore=( "${aws_prefix[@]}" rds restore-db-cluster-to-point-in-time
       --source-db-cluster-identifier "$SOURCE"
       --db-cluster-identifier "$TARGET"
-      --engine "$engine"
     )
     if [[ -n "$RESTORE_TIME_SPEC" ]]; then
       cmd_restore+=(--restore-to-time "${RESTORE_TIME_ISO:-$RESTORE_TIME_SPEC}")
@@ -793,7 +792,7 @@ fi
 
 # Final plan + commands
 echo
-echo "================ FINAL PLAN (effective) ==============="
+echo "================ EXECUTION PLAN ======================"
 echo "Source:   $SOURCE"
 echo "Type:     $source_type"
 echo "Target:   $TARGET"
