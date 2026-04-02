@@ -341,7 +341,8 @@ build_command() {
     for keep_key in "${CMD_LINE_PARAMS[@]}"; do
         [[ " ${ignore_keys[*]} " =~ " ${keep_key} " ]] && continue # skip if part of the ignored keys list
 
-        local val="${PARAMS[$keep_key]:-}"
+        local val
+        val="$(envsubst <<< "${PARAMS[$keep_key]:-}")"
         [ -z "${val}" ] && continue  # skip if not set
 
         if [[ "${val}" == "true" ]]; then
