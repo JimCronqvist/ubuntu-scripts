@@ -12,7 +12,8 @@ set -euo pipefail
 ###############################################################################
 
 # Which parameters remain on the myloader command line?
-CMD_LINE_PARAMS=("verbose" "debug" "logfile")
+# Note: host gets added here, so we always pass it on, as myloader would recognize MYSQL_HOST automatically, overriding our defaults file otherwise.
+CMD_LINE_PARAMS=("verbose" "debug" "logfile", "host")
 
 # Parameters that go under the [client] section
 CLIENT_PARAMS=("host" "port" "user" "password" "protocol" "ssl-mode")
@@ -367,7 +368,7 @@ create_defaults_file() {
     for key in "${!PARAMS[@]}"; do
         # Skip certain keys that are strictly CLI parameters
         [[ "$key" == "defaults-extra-file" ]] && continue
-        if [[ " ${CMD_LINE_PARAMS[*]} " =~ " ${key} " ]]; then
+        if [[ " ${CMD_LINE_PARAMS[*]} " =~ " ${key} " ]] && [[ "$key" != "host" ]]; then # We duplicate the host key, both as a cli arg and in the defaults file.
             continue
         fi
 
