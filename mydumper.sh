@@ -452,7 +452,7 @@ declare -A PARAMS=(
     ["verbose"]=3
     ["compress-protocol"]="ZSTD"
     ["compress"]="ZSTD"
-    ["no-backup-locks"]=false # Will be set to true automatically if it is a RDS hostname
+    ["skip-ddl-locks"]=false # Will be set to true automatically if it is a RDS hostname - otherwise "LOCK INSTANCE FOR BACKUP" will be issued on RDS, which fails.
     ["long-query-guard"]=1800
     ["skip-definer"]=false
     ["build-empty-files"]=true
@@ -640,7 +640,7 @@ PARAMS["outputdir"]="${PARAMS["outputdir"]%/}/${CONFIG}/${TIMESTAMP}"
 
 # For RDS, disable backups locks, as we are not able to provide the BACKUP_ADMIN privilege there
 if [[ "$MYSQL_HOST" == *".rds.amazonaws.com" ]]; then
-  PARAMS["no-backup-locks"]=true
+  PARAMS["skip-ddl-locks"]=true
 fi
 
 # Build the command using the parameters in the array
