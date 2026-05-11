@@ -465,6 +465,7 @@ declare -A PARAMS=(
     ["defaults-extra-file"]='mydumper.${CONFIG}.cnf'
     ["outputdir"]='./mysql-backups/'
     ["ssl"]=true
+    ["source-control-command"]="AWS"
     #["checksum-all"]=true
     #["check-row-count"]=true
     ["triggers"]=true

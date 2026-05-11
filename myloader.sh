@@ -41,6 +41,7 @@ declare -A PARAMS=(
     ["set-gtid-purged"]="false"
     ["enable-binlog"]="true"
     ["disable-redo-log"]="false"
+    ["source-control-command"]="AWS"
 
     # Log file
     ["logfile"]="myloader.\${TIMESTAMP}.log"
