@@ -825,12 +825,11 @@ echo "To restore the backup, use a variation of the following commands:"
 echo ""
 echo ""
 
-
 cat << EOF
-# 1) Sync the backup from S3 to the local machine
-aws s3 sync s3://$(echo "${INTERNAL_PARAMS['s3path']%/}/${CONFIG}/" | envsubst)<backup> ~/mysql-restore/ --region ${S3_REGION} --profile <optional-profile>
+# 1) Sync the backup from S3 to the local machine (if s3 sync was configured)
+aws s3 sync s3://"${S3_PATH:-<bucket>/<config>/<backup>}" ~/mysql-restore/ --region "${S3_REGION:-eu-north-1}" --profile <optional-profile>
 or
-./s3-browser.sh s3://$(echo "${INTERNAL_PARAMS['s3path']%/}/${CONFIG}/" | envsubst) ~/mysql-restore/ --latest --download
+./s3-browser.sh s3://"${S3_PATH:-<bucket>/<config>/<backup>}" ~/mysql-restore/ --latest --download
 
 # 1a) If a tarball, decompress the file
 tar -xvf ~/mysql-restore/${TIMESTAMP}.tar
