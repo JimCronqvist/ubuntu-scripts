@@ -465,7 +465,6 @@ declare -A PARAMS=(
     ["defaults-extra-file"]='mydumper.${CONFIG}.cnf'
     ["outputdir"]='./mysql-backups/'
     ["ssl"]=true
-    ["source-control-command"]="AWS"
     #["checksum-all"]=true
     #["check-row-count"]=true
     ["triggers"]=true
@@ -639,9 +638,10 @@ echo "${CUSTOM_CONFIG}" >> "${MYSQL_DEFAULTS_EXTRA_FILE}"
 # Override the default output directory to append the config and timestamp
 PARAMS["outputdir"]="${PARAMS["outputdir"]%/}/${CONFIG}/${TIMESTAMP}"
 
-# For RDS, disable backups locks, as we are not able to provide the BACKUP_ADMIN privilege there
+# When AWS RDS, set some values
 if [[ "$MYSQL_HOST" == *".rds.amazonaws.com" ]]; then
-  PARAMS["skip-ddl-locks"]=true
+  PARAMS["skip-ddl-locks"]=true # Disable ddl locks, as we are not able to provide the BACKUP_ADMIN privilege there.
+  PARAMS["source-control-command"]="AWS"
 fi
 
 # Build the command using the parameters in the array

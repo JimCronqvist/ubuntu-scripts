@@ -41,7 +41,6 @@ declare -A PARAMS=(
     ["set-gtid-purged"]="false"
     ["enable-binlog"]="true"
     ["disable-redo-log"]="false"
-    ["source-control-command"]="AWS"
 
     # Log file
     ["logfile"]="myloader.\${TIMESTAMP}.log"
@@ -303,6 +302,11 @@ post_process_params() {
 
     PARAMS["host"]="$host"
     PARAMS["user"]="$user"
+
+    # When AWS RDS, set some values
+    if [[ "$host" == *".rds.amazonaws.com" ]]; then
+      PARAMS["source-control-command"]="AWS"
+    fi
 
     # If user gave multiple --table= but also provided a tables-list, abort
     if [[ "${#TABLES[@]}" -gt 0 && -n "${PARAMS["tables-list"]}" ]]; then
