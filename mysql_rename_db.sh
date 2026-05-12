@@ -2,6 +2,8 @@
 set -euo pipefail
 
 SCRIPT_NAME="$(basename "$0")"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GENERATOR_SQL="${GENERATOR_SQL:-$SCRIPT_DIR/sql/mysql/generate_rename_db.sql}"
 
 OLD_DB=""
 NEW_DB=""
@@ -12,15 +14,14 @@ COPY_GRANTS=0
 REVOKE_OLD_GRANTS=0
 
 MYSQL_ARGS=()
-TMP_DIR=""
 
 usage() {
     cat <<EOF
 Usage:
   $SCRIPT_NAME [script options] <old_database> <new_database> [-- mysql options]
 
-Renames a MySQL database by creating the new database, moving/recreating
-objects, and dropping the old database only if no objects remain.
+Renames a MySQL database by generating and executing SQL from:
+  $GENERATOR_SQL
 
 Script options:
   --copy-grants           Copy grants from old_database.* and old objects to
@@ -30,7 +31,7 @@ Script options:
 
   --rename-grants         Shortcut for --copy-grants and --revoke-old-grants.
 
-  --dry-run               Discover objects and print generated SQL without executing.
+  --dry-run               Print generated SQL without executing.
   --yes                   Skip confirmation prompt.
   --verbose               Print extra details.
 
@@ -50,10 +51,11 @@ Examples:
 
 Notes:
   - MySQL connection options must go after --.
-  - Do not pass -e or --execute after --; this script generates SQL itself.
+  - Do not pass -e, --execute, -f, or --force after --.
   - Database names are limited to letters, numbers, and underscores.
   - localhost passed as a MySQL host is normalized to 127.0.0.1.
-  - mysqldump is used for views, triggers, routines, and events.
+  - The old database is dropped only after the wrapper verifies it has no
+    remaining tables, views, routines, triggers, or events.
 EOF
 }
 
@@ -67,13 +69,6 @@ log() {
         echo "$*"
     fi
 }
-
-cleanup() {
-    if [[ -n "$TMP_DIR" && -d "$TMP_DIR" ]]; then
-        rm -rf "$TMP_DIR"
-    fi
-}
-trap cleanup EXIT
 
 shell_quote() {
     local value="$1"
@@ -91,6 +86,7 @@ shell_quote() {
 }
 
 print_mysql_command_stdin() {
+    local input_name="$1"
     local arg
 
     printf 'mysql'
@@ -100,22 +96,8 @@ print_mysql_command_stdin() {
         shell_quote "$arg"
     done
 
-    printf ' < generated-sql-file\n'
-}
-
-print_mysql_command_e() {
-    local sql="$1"
-    local arg
-
-    printf 'mysql'
-
-    for arg in "${MYSQL_ARGS[@]}"; do
-        printf ' '
-        shell_quote "$arg"
-    done
-
-    printf ' -e '
-    shell_quote "$sql"
+    printf ' < '
+    shell_quote "$input_name"
     printf '\n'
 }
 
@@ -157,19 +139,6 @@ validate_db_name() {
     esac
 }
 
-validate_mysql_identifier_value() {
-    local label="$1"
-    local value="$2"
-
-    if [[ -z "$value" ]]; then
-        error "$label cannot be empty."
-    fi
-
-    if [[ ! "$value" =~ ^[a-zA-Z0-9_]+$ ]]; then
-        error "Invalid $label '$value'. Only letters, numbers, and underscores are allowed."
-    fi
-}
-
 validate_mysql_passthrough_args() {
     local arg
 
@@ -177,6 +146,9 @@ validate_mysql_passthrough_args() {
         case "$arg" in
             -e|-e?*|--execute|--execute=*)
                 error "Do not pass '$arg' after --. This script provides its own SQL."
+                ;;
+            -f|--force)
+                error "Do not pass '$arg' after --. This script must fail immediately on SQL errors."
                 ;;
         esac
     done
@@ -260,68 +232,6 @@ normalize_mysql_host_args() {
     MYSQL_ARGS=("${normalized_args[@]}")
 }
 
-mysql_query() {
-    local sql="$1"
-
-    mysql "${MYSQL_ARGS[@]}" --batch --raw --skip-column-names -e "$sql"
-}
-
-mysql_execute() {
-    local sql="$1"
-
-    mysql "${MYSQL_ARGS[@]}" -e "$sql"
-}
-
-mysqldump_to_file() {
-    local output_file="$1"
-    shift
-
-    mysqldump "${MYSQL_ARGS[@]}" "$@" > "$output_file"
-}
-
-transform_dump_file() {
-    local input_file="$1"
-    local output_file="$2"
-
-    sed \
-        -e "s/\`$OLD_DB\`\./\`$NEW_DB\`\./g" \
-        -e "s/USE \`$OLD_DB\`;/USE \`$NEW_DB\`;/g" \
-        "$input_file" > "$output_file"
-}
-
-append_section() {
-    local file="$1"
-    local title="$2"
-
-    {
-        echo
-        echo "--"
-        echo "-- $title"
-        echo "--"
-    } >> "$file"
-}
-
-append_query_output() {
-    local file="$1"
-    local sql="$2"
-    local output
-
-    output="$(mysql_query "$sql")"
-
-    if [[ -n "$output" ]]; then
-        printf '%s\n' "$output" >> "$file"
-    fi
-}
-
-append_file_if_not_empty() {
-    local source_file="$1"
-    local target_file="$2"
-
-    if [[ -s "$source_file" ]]; then
-        cat "$source_file" >> "$target_file"
-    fi
-}
-
 parse_args() {
     local passthrough=0
 
@@ -393,9 +303,89 @@ parse_args() {
     done
 }
 
+mysql_scalar() {
+    local sql="$1"
+
+    mysql "${MYSQL_ARGS[@]}" \
+        --batch \
+        --raw \
+        --skip-column-names \
+        -e "$sql"
+}
+
+database_exists() {
+    local db_name="$1"
+    local db_literal
+    local count
+
+    db_literal="$(sql_string_literal "$db_name")"
+    count="$(mysql_scalar "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ${db_literal};")"
+
+    [[ "$count" == "1" ]]
+}
+
+old_db_remaining_count() {
+    local old_db_literal
+
+    old_db_literal="$(sql_string_literal "$OLD_DB")"
+
+    mysql_scalar "
+        SELECT
+            (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ${old_db_literal}) +
+            (SELECT COUNT(*) FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA = ${old_db_literal}) +
+            (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TRIGGERS WHERE TRIGGER_SCHEMA = ${old_db_literal}) +
+            (SELECT COUNT(*) FROM INFORMATION_SCHEMA.EVENTS WHERE EVENT_SCHEMA = ${old_db_literal});
+    "
+}
+
+print_object_summary() {
+    local old_db_literal
+
+    old_db_literal="$(sql_string_literal "$OLD_DB")"
+
+    echo "Object summary for '$OLD_DB':"
+    mysql "${MYSQL_ARGS[@]}" --batch --raw --table <<SQL
+SELECT 'base tables' AS object_type, COUNT(*) AS count
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = ${old_db_literal}
+  AND TABLE_TYPE = 'BASE TABLE'
+UNION ALL
+SELECT 'views', COUNT(*)
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = ${old_db_literal}
+  AND TABLE_TYPE = 'VIEW'
+UNION ALL
+SELECT 'triggers', COUNT(*)
+FROM INFORMATION_SCHEMA.TRIGGERS
+WHERE TRIGGER_SCHEMA = ${old_db_literal}
+UNION ALL
+SELECT 'procedures/functions', COUNT(*)
+FROM INFORMATION_SCHEMA.ROUTINES
+WHERE ROUTINE_SCHEMA = ${old_db_literal}
+UNION ALL
+SELECT 'events', COUNT(*)
+FROM INFORMATION_SCHEMA.EVENTS
+WHERE EVENT_SCHEMA = ${old_db_literal};
+SQL
+}
+
+generate_rename_sql() {
+    [[ -f "$GENERATOR_SQL" ]] || error "Generator SQL file not found: $GENERATOR_SQL"
+
+    {
+        printf 'SET @oldDb = %s;\n' "$(sql_string_literal "$OLD_DB")"
+        printf 'SET @newDb = %s;\n' "$(sql_string_literal "$NEW_DB")"
+        printf 'SET @copyGrants = %d;\n' "$COPY_GRANTS"
+        printf 'SET @revokeOldGrants = %d;\n' "$REVOKE_OLD_GRANTS"
+        cat "$GENERATOR_SQL"
+    } | mysql "${MYSQL_ARGS[@]}" \
+        --batch \
+        --raw \
+        --skip-column-names
+}
+
 confirm_rename() {
     local answer=""
-    local expected="$OLD_DB->$NEW_DB"
 
     if [[ "$YES" -eq 1 ]]; then
         return 0
@@ -405,355 +395,60 @@ confirm_rename() {
         error "Confirmation required, but stdin is not interactive. Re-run with --yes to execute non-interactively."
     fi
 
-    echo "You are about to rename this database:"
+    echo "You are about to rename this MySQL database:"
     echo
-    echo "  $OLD_DB -> $NEW_DB"
-    echo
-    echo "The old database will be dropped only if no objects remain."
+    echo "  From: $OLD_DB"
+    echo "  To:   $NEW_DB"
     echo
 
-    read -r -p "Type '$expected' to confirm: " answer
+    if [[ "$COPY_GRANTS" -eq 1 || "$REVOKE_OLD_GRANTS" -eq 1 ]]; then
+        echo "Grant handling:"
+        if [[ "$COPY_GRANTS" -eq 1 ]]; then
+            echo "  - copy old grants to the new database/objects"
+        fi
+        if [[ "$REVOKE_OLD_GRANTS" -eq 1 ]]; then
+            echo "  - revoke old grants from the old database/objects"
+        fi
+        echo
+    fi
 
-    if [[ "$answer" != "$expected" ]]; then
+    echo "The old database will be dropped only if it is empty after the rename."
+    echo
+
+    read -r -p "Type the new database name to confirm: " answer
+
+    if [[ "$answer" != "$NEW_DB" ]]; then
         echo "Aborted."
         exit 0
     fi
 }
 
-read_object_names() {
-    local query="$1"
-    local line
+execute_generated_sql() {
+    local generated_sql="$1"
+    local tmp_sql
 
-    while IFS= read -r line; do
-        [[ -n "$line" ]] || continue
-        printf '%s\n' "$line"
-    done < <(mysql_query "$query")
+    tmp_sql="$(mktemp)"
+    printf '%s\n' "$generated_sql" > "$tmp_sql"
+
+    mysql "${MYSQL_ARGS[@]}" < "$tmp_sql"
+
+    rm -f "$tmp_sql"
 }
 
-get_schema_exists_count() {
-    local db_name="$1"
-    local db_lit
+drop_old_db_if_empty() {
+    local remaining
+    local quoted_old_db
 
-    db_lit="$(sql_string_literal "$db_name")"
-    mysql_query "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = $db_lit;"
-}
+    remaining="$(old_db_remaining_count)"
 
-get_remaining_object_count() {
-    local db_lit
-
-    db_lit="$(sql_string_literal "$OLD_DB")"
-
-    mysql_query "
-SELECT
-    (SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = $db_lit) +
-    (SELECT COUNT(*) FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = $db_lit) +
-    (SELECT COUNT(*) FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = $db_lit) +
-    (SELECT COUNT(*) FROM information_schema.EVENTS WHERE EVENT_SCHEMA = $db_lit);
-"
-}
-
-append_base_table_rename_sql() {
-    local file="$1"
-    shift
-    local -a base_tables=("$@")
-    local table
-    local first=1
-
-    if [[ "${#base_tables[@]}" -eq 0 ]]; then
-        return 0
+    if [[ "$remaining" != "0" ]]; then
+        error "Old database '$OLD_DB' still has $remaining remaining object(s). Leaving it in place."
     fi
 
-    append_section "$file" "Move base tables"
+    quoted_old_db="$(quote_identifier "$OLD_DB")"
+    mysql "${MYSQL_ARGS[@]}" -e "DROP DATABASE ${quoted_old_db};"
 
-    printf 'RENAME TABLE\n' >> "$file"
-
-    for table in "${base_tables[@]}"; do
-        if [[ "$first" -eq 1 ]]; then
-            first=0
-        else
-            printf ',\n' >> "$file"
-        fi
-
-        printf '  %s.%s TO %s.%s' \
-            "$(quote_identifier "$OLD_DB")" \
-            "$(quote_identifier "$table")" \
-            "$(quote_identifier "$NEW_DB")" \
-            "$(quote_identifier "$table")" >> "$file"
-    done
-
-    printf ';\n' >> "$file"
-}
-
-append_drop_triggers_sql() {
-    local file="$1"
-    shift
-    local -a triggers=("$@")
-    local trigger
-
-    if [[ "${#triggers[@]}" -eq 0 ]]; then
-        return 0
-    fi
-
-    append_section "$file" "Drop old triggers before moving tables"
-
-    for trigger in "${triggers[@]}"; do
-        printf 'DROP TRIGGER %s.%s;\n' \
-            "$(quote_identifier "$OLD_DB")" \
-            "$(quote_identifier "$trigger")" >> "$file"
-    done
-}
-
-append_drop_views_sql() {
-    local file="$1"
-    shift
-    local -a views=("$@")
-    local view
-
-    if [[ "${#views[@]}" -eq 0 ]]; then
-        return 0
-    fi
-
-    append_section "$file" "Drop old views"
-
-    for view in "${views[@]}"; do
-        printf 'DROP VIEW %s.%s;\n' \
-            "$(quote_identifier "$OLD_DB")" \
-            "$(quote_identifier "$view")" >> "$file"
-    done
-}
-
-append_drop_routines_sql() {
-    local file="$1"
-    local routine_rows_file="$2"
-    local line
-    local routine_type
-    local routine_name
-
-    if [[ ! -s "$routine_rows_file" ]]; then
-        return 0
-    fi
-
-    append_section "$file" "Drop old routines"
-
-    while IFS=$'\t' read -r routine_type routine_name; do
-        [[ -n "$routine_type" && -n "$routine_name" ]] || continue
-
-        case "$routine_type" in
-            PROCEDURE|FUNCTION)
-                printf 'DROP %s %s.%s;\n' \
-                    "$routine_type" \
-                    "$(quote_identifier "$OLD_DB")" \
-                    "$(quote_identifier "$routine_name")" >> "$file"
-                ;;
-            *)
-                error "Unexpected routine type '$routine_type' for routine '$routine_name'."
-                ;;
-        esac
-    done < "$routine_rows_file"
-}
-
-append_drop_events_sql() {
-    local file="$1"
-    shift
-    local -a events=("$@")
-    local event
-
-    if [[ "${#events[@]}" -eq 0 ]]; then
-        return 0
-    fi
-
-    append_section "$file" "Drop old events"
-
-    for event in "${events[@]}"; do
-        printf 'DROP EVENT %s.%s;\n' \
-            "$(quote_identifier "$OLD_DB")" \
-            "$(quote_identifier "$event")" >> "$file"
-    done
-}
-
-append_copy_grants_sql() {
-    local file="$1"
-    local old_lit
-    local new_lit
-
-    old_lit="$(sql_string_literal "$OLD_DB")"
-    new_lit="$(sql_string_literal "$NEW_DB")"
-
-    append_section "$file" "Copy grants to new database and objects"
-
-    append_query_output "$file" "
-SET SESSION group_concat_max_len = 1048576;
-SELECT CONCAT(
-    'GRANT ',
-    GROUP_CONCAT(PRIVILEGE_TYPE ORDER BY PRIVILEGE_TYPE SEPARATOR ', '),
-    ' ON ', CHAR(96), $new_lit, CHAR(96), '.* TO ',
-    GRANTEE,
-    IF(IS_GRANTABLE = 'YES', ' WITH GRANT OPTION', ''),
-    ';'
-)
-FROM information_schema.SCHEMA_PRIVILEGES
-WHERE TABLE_SCHEMA = $old_lit
-GROUP BY GRANTEE, IS_GRANTABLE
-ORDER BY GRANTEE, IS_GRANTABLE;
-"
-
-    append_query_output "$file" "
-SET SESSION group_concat_max_len = 1048576;
-SELECT CONCAT(
-    'GRANT ',
-    GROUP_CONCAT(PRIVILEGE_TYPE ORDER BY PRIVILEGE_TYPE SEPARATOR ', '),
-    ' ON ', CHAR(96), $new_lit, CHAR(96), '.',
-    CHAR(96), REPLACE(TABLE_NAME, CHAR(96), CONCAT(CHAR(96), CHAR(96))), CHAR(96),
-    ' TO ', GRANTEE,
-    IF(IS_GRANTABLE = 'YES', ' WITH GRANT OPTION', ''),
-    ';'
-)
-FROM information_schema.TABLE_PRIVILEGES
-WHERE TABLE_SCHEMA = $old_lit
-GROUP BY GRANTEE, TABLE_NAME, IS_GRANTABLE
-ORDER BY GRANTEE, TABLE_NAME, IS_GRANTABLE;
-"
-
-    append_query_output "$file" "
-SET SESSION group_concat_max_len = 1048576;
-SELECT CONCAT(
-    'GRANT ', PRIVILEGE_TYPE,
-    ' (',
-    GROUP_CONCAT(
-        CONCAT(CHAR(96), REPLACE(COLUMN_NAME, CHAR(96), CONCAT(CHAR(96), CHAR(96))), CHAR(96))
-        ORDER BY COLUMN_NAME
-        SEPARATOR ', '
-    ),
-    ') ON ', CHAR(96), $new_lit, CHAR(96), '.',
-    CHAR(96), REPLACE(TABLE_NAME, CHAR(96), CONCAT(CHAR(96), CHAR(96))), CHAR(96),
-    ' TO ', GRANTEE,
-    IF(IS_GRANTABLE = 'YES', ' WITH GRANT OPTION', ''),
-    ';'
-)
-FROM information_schema.COLUMN_PRIVILEGES
-WHERE TABLE_SCHEMA = $old_lit
-GROUP BY GRANTEE, TABLE_NAME, PRIVILEGE_TYPE, IS_GRANTABLE
-ORDER BY GRANTEE, TABLE_NAME, PRIVILEGE_TYPE, IS_GRANTABLE;
-"
-
-    append_query_output "$file" "
-SET SESSION group_concat_max_len = 1048576;
-SELECT CONCAT(
-    'GRANT ', p.privileges,
-    ' ON ', p.Routine_type, ' ', CHAR(96), $new_lit, CHAR(96), '.',
-    CHAR(96), REPLACE(p.Routine_name, CHAR(96), CONCAT(CHAR(96), CHAR(96))), CHAR(96),
-    ' TO ', p.grantee,
-    IF(p.has_grant_option = 1, ' WITH GRANT OPTION', ''),
-    ';'
-)
-FROM (
-    SELECT
-        CONCAT(QUOTE(User), '@', QUOTE(Host)) AS grantee,
-        Routine_name,
-        Routine_type,
-        REPLACE(
-            REPLACE(
-                TRIM(BOTH ',' FROM REPLACE(REPLACE(Proc_priv, 'Grant', ''), ',,', ',')),
-                'Execute', 'EXECUTE'
-            ),
-            'Alter Routine', 'ALTER ROUTINE'
-        ) AS privileges,
-        IF(FIND_IN_SET('Grant', Proc_priv) > 0, 1, 0) AS has_grant_option
-    FROM mysql.procs_priv
-    WHERE Db = $old_lit
-) AS p
-WHERE p.privileges <> ''
-ORDER BY p.grantee, p.Routine_type, p.Routine_name;
-"
-}
-
-append_revoke_old_grants_sql() {
-    local file="$1"
-    local old_lit
-
-    old_lit="$(sql_string_literal "$OLD_DB")"
-
-    append_section "$file" "Revoke grants from old database and objects"
-
-    append_query_output "$file" "
-SET SESSION group_concat_max_len = 1048576;
-SELECT CONCAT(
-    'REVOKE ',
-    GROUP_CONCAT(PRIVILEGE_TYPE ORDER BY PRIVILEGE_TYPE SEPARATOR ', '),
-    ' ON ', CHAR(96), $old_lit, CHAR(96), '.* FROM ',
-    GRANTEE,
-    ';'
-)
-FROM information_schema.SCHEMA_PRIVILEGES
-WHERE TABLE_SCHEMA = $old_lit
-GROUP BY GRANTEE
-ORDER BY GRANTEE;
-"
-
-    append_query_output "$file" "
-SET SESSION group_concat_max_len = 1048576;
-SELECT CONCAT(
-    'REVOKE ',
-    GROUP_CONCAT(PRIVILEGE_TYPE ORDER BY PRIVILEGE_TYPE SEPARATOR ', '),
-    ' ON ', CHAR(96), $old_lit, CHAR(96), '.',
-    CHAR(96), REPLACE(TABLE_NAME, CHAR(96), CONCAT(CHAR(96), CHAR(96))), CHAR(96),
-    ' FROM ', GRANTEE,
-    ';'
-)
-FROM information_schema.TABLE_PRIVILEGES
-WHERE TABLE_SCHEMA = $old_lit
-GROUP BY GRANTEE, TABLE_NAME
-ORDER BY GRANTEE, TABLE_NAME;
-"
-
-    append_query_output "$file" "
-SET SESSION group_concat_max_len = 1048576;
-SELECT CONCAT(
-    'REVOKE ', PRIVILEGE_TYPE,
-    ' (',
-    GROUP_CONCAT(
-        CONCAT(CHAR(96), REPLACE(COLUMN_NAME, CHAR(96), CONCAT(CHAR(96), CHAR(96))), CHAR(96))
-        ORDER BY COLUMN_NAME
-        SEPARATOR ', '
-    ),
-    ') ON ', CHAR(96), $old_lit, CHAR(96), '.',
-    CHAR(96), REPLACE(TABLE_NAME, CHAR(96), CONCAT(CHAR(96), CHAR(96))), CHAR(96),
-    ' FROM ', GRANTEE,
-    ';'
-)
-FROM information_schema.COLUMN_PRIVILEGES
-WHERE TABLE_SCHEMA = $old_lit
-GROUP BY GRANTEE, TABLE_NAME, PRIVILEGE_TYPE
-ORDER BY GRANTEE, TABLE_NAME, PRIVILEGE_TYPE;
-"
-
-    append_query_output "$file" "
-SET SESSION group_concat_max_len = 1048576;
-SELECT CONCAT(
-    'REVOKE ', p.privileges,
-    ' ON ', p.Routine_type, ' ', CHAR(96), $old_lit, CHAR(96), '.',
-    CHAR(96), REPLACE(p.Routine_name, CHAR(96), CONCAT(CHAR(96), CHAR(96))), CHAR(96),
-    ' FROM ', p.grantee,
-    ';'
-)
-FROM (
-    SELECT
-        CONCAT(QUOTE(User), '@', QUOTE(Host)) AS grantee,
-        Routine_name,
-        Routine_type,
-        REPLACE(
-            REPLACE(
-                TRIM(BOTH ',' FROM REPLACE(REPLACE(Proc_priv, 'Grant', ''), ',,', ',')),
-                'Execute', 'EXECUTE'
-            ),
-            'Alter Routine', 'ALTER ROUTINE'
-        ) AS privileges
-    FROM mysql.procs_priv
-    WHERE Db = $old_lit
-) AS p
-WHERE p.privileges <> ''
-ORDER BY p.grantee, p.Routine_type, p.Routine_name;
-"
+    echo "Dropped empty old database '$OLD_DB'."
 }
 
 main() {
@@ -778,224 +473,50 @@ main() {
         error "mysql client was not found in PATH."
     fi
 
-    log "mysql client found."
+    [[ -f "$GENERATOR_SQL" ]] || error "Generator SQL file not found: $GENERATOR_SQL"
 
-    local old_exists
-    local new_exists
-    local old_lit
-    local new_lit
-    local schema_row
-    local charset
-    local collation
-    local sql_file
-    local view_dump_raw
-    local view_dump_sql
-    local trigger_dump_raw
-    local trigger_dump_sql
-    local routine_event_dump_raw
-    local routine_event_dump_sql
-    local remaining_count
+    log "Using generator SQL: $GENERATOR_SQL"
 
-    old_exists="$(get_schema_exists_count "$OLD_DB")"
-    if [[ "$old_exists" != "1" ]]; then
+    if ! database_exists "$OLD_DB"; then
         error "Old database '$OLD_DB' does not exist."
     fi
 
-    new_exists="$(get_schema_exists_count "$NEW_DB")"
-    if [[ "$new_exists" != "0" ]]; then
+    if database_exists "$NEW_DB"; then
         error "New database '$NEW_DB' already exists."
-    fi
-
-    old_lit="$(sql_string_literal "$OLD_DB")"
-    new_lit="$(sql_string_literal "$NEW_DB")"
-
-    schema_row="$(mysql_query "SELECT DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = $old_lit;")"
-    IFS=$'\t' read -r charset collation <<< "$schema_row"
-
-    validate_mysql_identifier_value "charset" "$charset"
-    validate_mysql_identifier_value "collation" "$collation"
-
-    local -a base_tables=()
-    local -a views=()
-    local -a triggers=()
-    local -a events=()
-    local line
-
-    while IFS= read -r line; do
-        [[ -n "$line" ]] || continue
-        base_tables+=("$line")
-    done < <(read_object_names "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = $old_lit AND TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME;")
-
-    while IFS= read -r line; do
-        [[ -n "$line" ]] || continue
-        views+=("$line")
-    done < <(read_object_names "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = $old_lit AND TABLE_TYPE = 'VIEW' ORDER BY TABLE_NAME;")
-
-    while IFS= read -r line; do
-        [[ -n "$line" ]] || continue
-        triggers+=("$line")
-    done < <(read_object_names "SELECT TRIGGER_NAME FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = $old_lit ORDER BY EVENT_OBJECT_TABLE, ACTION_TIMING, EVENT_MANIPULATION, TRIGGER_NAME;")
-
-    while IFS= read -r line; do
-        [[ -n "$line" ]] || continue
-        events+=("$line")
-    done < <(read_object_names "SELECT EVENT_NAME FROM information_schema.EVENTS WHERE EVENT_SCHEMA = $old_lit ORDER BY EVENT_NAME;")
-
-    TMP_DIR="$(mktemp -d)"
-    sql_file="$TMP_DIR/rename.sql"
-    view_dump_raw="$TMP_DIR/views.raw.sql"
-    view_dump_sql="$TMP_DIR/views.sql"
-    trigger_dump_raw="$TMP_DIR/triggers.raw.sql"
-    trigger_dump_sql="$TMP_DIR/triggers.sql"
-    routine_event_dump_raw="$TMP_DIR/routines_events.raw.sql"
-    routine_event_dump_sql="$TMP_DIR/routines_events.sql"
-    local routine_rows_file="$TMP_DIR/routines.tsv"
-
-    mysql_query "SELECT ROUTINE_TYPE, ROUTINE_NAME FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = $old_lit ORDER BY ROUTINE_TYPE, ROUTINE_NAME;" > "$routine_rows_file"
-
-    local routine_count
-    routine_count="$(wc -l < "$routine_rows_file" | tr -d ' ')"
-
-    if [[ "${#views[@]}" -gt 0 || "${#triggers[@]}" -gt 0 || "$routine_count" -gt 0 || "${#events[@]}" -gt 0 ]]; then
-        if ! command -v mysqldump >/dev/null 2>&1; then
-            error "mysqldump client was not found in PATH. It is required when views, triggers, routines, or events exist."
-        fi
-
-        log "mysqldump client found."
-    fi
-
-    : > "$sql_file"
-
-    append_section "$sql_file" "Create new database"
-    printf 'CREATE DATABASE %s DEFAULT CHARACTER SET %s DEFAULT COLLATE %s;\n' \
-        "$(quote_identifier "$NEW_DB")" \
-        "$charset" \
-        "$collation" >> "$sql_file"
-
-    if [[ "${#views[@]}" -gt 0 ]]; then
-        local -a ignore_table_args=()
-        local table
-
-        for table in "${base_tables[@]}"; do
-            ignore_table_args+=("--ignore-table=${OLD_DB}.${table}")
-        done
-
-        mysqldump_to_file "$view_dump_raw" \
-            --no-data \
-            --skip-triggers \
-            --skip-routines \
-            --skip-events \
-            "${ignore_table_args[@]}" \
-            "$OLD_DB"
-
-        transform_dump_file "$view_dump_raw" "$view_dump_sql"
-    fi
-
-    if [[ "${#triggers[@]}" -gt 0 ]]; then
-        mysqldump_to_file "$trigger_dump_raw" \
-            --no-data \
-            --no-create-info \
-            --triggers \
-            --skip-routines \
-            --skip-events \
-            "$OLD_DB"
-
-        transform_dump_file "$trigger_dump_raw" "$trigger_dump_sql"
-    fi
-
-    if [[ -s "$routine_rows_file" || "${#events[@]}" -gt 0 ]]; then
-        mysqldump_to_file "$routine_event_dump_raw" \
-            --no-data \
-            --no-create-info \
-            --skip-triggers \
-            --routines \
-            --events \
-            "$OLD_DB"
-
-        transform_dump_file "$routine_event_dump_raw" "$routine_event_dump_sql"
-    fi
-
-    append_drop_triggers_sql "$sql_file" "${triggers[@]}"
-    append_base_table_rename_sql "$sql_file" "${base_tables[@]}"
-
-    if [[ "${#views[@]}" -gt 0 ]]; then
-        append_section "$sql_file" "Create views in new database"
-        printf 'USE %s;\n' "$(quote_identifier "$NEW_DB")" >> "$sql_file"
-        append_file_if_not_empty "$view_dump_sql" "$sql_file"
-    fi
-
-    if [[ -s "$routine_event_dump_sql" ]]; then
-        append_section "$sql_file" "Create routines and events in new database"
-        printf 'USE %s;\n' "$(quote_identifier "$NEW_DB")" >> "$sql_file"
-        append_file_if_not_empty "$routine_event_dump_sql" "$sql_file"
-    fi
-
-    if [[ -s "$trigger_dump_sql" ]]; then
-        append_section "$sql_file" "Create triggers in new database"
-        printf 'USE %s;\n' "$(quote_identifier "$NEW_DB")" >> "$sql_file"
-        append_file_if_not_empty "$trigger_dump_sql" "$sql_file"
-    fi
-
-    append_drop_views_sql "$sql_file" "${views[@]}"
-    append_drop_routines_sql "$sql_file" "$routine_rows_file"
-    append_drop_events_sql "$sql_file" "${events[@]}"
-
-    if [[ "$COPY_GRANTS" -eq 1 ]]; then
-        append_copy_grants_sql "$sql_file"
-    fi
-
-    if [[ "$REVOKE_OLD_GRANTS" -eq 1 ]]; then
-        append_revoke_old_grants_sql "$sql_file"
     fi
 
     if [[ "$VERBOSE" -eq 1 || "$DRY_RUN" -eq 1 ]]; then
         echo "Old database: $OLD_DB"
         echo "New database: $NEW_DB"
-        echo "Charset:      $charset"
-        echo "Collation:    $collation"
+        echo "Copy grants: $COPY_GRANTS"
+        echo "Revoke old grants: $REVOKE_OLD_GRANTS"
         echo
-        echo "Objects discovered:"
-        echo "  Base tables: ${#base_tables[@]}"
-        echo "  Views:       ${#views[@]}"
-        echo "  Triggers:    ${#triggers[@]}"
-        echo "  Routines:    $routine_count"
-        echo "  Events:      ${#events[@]}"
-        echo
-        echo "Grant actions:"
-        echo "  Copy grants:       $([[ "$COPY_GRANTS" -eq 1 ]] && echo yes || echo no)"
-        echo "  Revoke old grants: $([[ "$REVOKE_OLD_GRANTS" -eq 1 ]] && echo yes || echo no)"
+        print_object_summary
         echo
     fi
 
+    local generated_sql
+    generated_sql="$(generate_rename_sql)"
+
     if [[ "$DRY_RUN" -eq 1 ]]; then
-        echo "SQL:"
-        cat "$sql_file"
+        echo "Generated SQL:"
+        echo "$generated_sql"
         echo
-        echo "Final cleanup step:"
-        echo "  The script will check whether '$OLD_DB' has remaining objects."
-        echo "  If no objects remain, it will run:"
-        printf '  '
-        print_mysql_command_e "DROP DATABASE $(quote_identifier "$OLD_DB");"
+        echo "Execution command:"
+        print_mysql_command_stdin "generated-sql-file"
         echo
-        echo "Command for generated SQL:"
-        print_mysql_command_stdin
+        echo "Final cleanup performed by wrapper after execution:"
+        echo "  - verify old database has zero remaining objects"
+        echo "  - DROP DATABASE $(quote_identifier "$OLD_DB")"
         exit 0
     fi
 
     confirm_rename
 
-    mysql "${MYSQL_ARGS[@]}" < "$sql_file"
+    execute_generated_sql "$generated_sql"
+    drop_old_db_if_empty
 
-    remaining_count="$(get_remaining_object_count)"
-
-    if [[ "$remaining_count" == "0" ]]; then
-        mysql_execute "DROP DATABASE $(quote_identifier "$OLD_DB");"
-        echo "Renamed database '$OLD_DB' to '$NEW_DB'. Old database was dropped because it is empty."
-    else
-        echo "Rename operations completed, but old database '$OLD_DB' still contains $remaining_count object(s)." >&2
-        echo "Old database was not dropped." >&2
-        exit 1
-    fi
+    echo "Database '$OLD_DB' has been renamed to '$NEW_DB'."
 }
 
 main "$@"
