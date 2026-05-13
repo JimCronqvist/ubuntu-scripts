@@ -13,7 +13,7 @@ set -euo pipefail
 
 # Which parameters remain on the myloader command line?
 # Note: host gets added here, so we always pass it on, as myloader would recognize MYSQL_HOST automatically, overriding our defaults file otherwise.
-CMD_LINE_PARAMS=("verbose" "debug" "logfile", "host")
+CMD_LINE_PARAMS=("verbose" "debug" "logfile" "host")
 
 # Parameters that go under the [client] section
 CLIENT_PARAMS=("host" "port" "user" "password" "protocol" "ssl-mode")
@@ -550,13 +550,16 @@ function check_for_common_errors_in_logfile() {
     echo "Checking the log file against common errors to ensure a success."
 
     local errors=(
+        "checksum mismatch found for"
+        "Checksum failed"
         "Warnings found during INSERT between lines"
         "Out of range value for column"
+        "This should not happen"
     )
 
     for match in "${errors[@]}"; do
         if grep -qF "$match" "$logfile"; then
-            echo "Error: Found an the following error '$match' in logfile. Failing."
+            echo "Error: Found the following error '$match' in the logfile. Failing."
             exit 1
         fi
     done
