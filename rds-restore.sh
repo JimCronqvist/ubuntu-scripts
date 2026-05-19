@@ -917,32 +917,38 @@ list_sources() {
   local target_region
   target_region=$(effective_region)
 
-  local inst
+  local inst live_instance_ids_json
+  live_instance_ids_json="[]"
   inst=$(aws_json rds describe-db-instances 2>/dev/null || true)
   if [[ -n "$inst" ]]; then
+    live_instance_ids_json=$(echo "$inst" | jq -c '[.DBInstances[].DBInstanceIdentifier]')
     echo "$inst" | jq -r '.DBInstances[] | ["instance:" + .DBInstanceIdentifier, "live instance", .DBInstanceIdentifier, .Engine, .DBInstanceStatus] | @tsv'
   fi
 
-  local cl
+  local cl live_cluster_ids_json
+  live_cluster_ids_json="[]"
   cl=$(aws_json rds describe-db-clusters 2>/dev/null || true)
   if [[ -n "$cl" ]]; then
+    live_cluster_ids_json=$(echo "$cl" | jq -c '[.DBClusters[].DBClusterIdentifier]')
     echo "$cl" | jq -r '.DBClusters[] | ["cluster:" + .DBClusterIdentifier, "live cluster", .DBClusterIdentifier, .Engine, .Status] | @tsv'
   fi
 
   local inst_backups
   inst_backups=$(aws_json rds describe-db-instance-automated-backups 2>/dev/null || true)
   if [[ -n "$inst_backups" ]]; then
-    echo "$inst_backups" | jq -r --arg region "$target_region" '.DBInstanceAutomatedBackups[]
+    echo "$inst_backups" | jq -r --arg region "$target_region" --argjson live_ids "$live_instance_ids_json" '.DBInstanceAutomatedBackups[]
       | select((.DBInstanceAutomatedBackupsArn // "") != "")
       | select($region == "" or ((.DBInstanceAutomatedBackupsArn | split(":")[3]) == $region))
+      | select((.DBInstanceIdentifier // "") as $id | ($live_ids | index($id) | not))
       | ["instance-backup:" + .DBInstanceAutomatedBackupsArn, "instance backup", .DBInstanceIdentifier, .Engine, ((.RestoreWindow.LatestTime // "no latest") + " " + (.Status // ""))] | @tsv'
   fi
 
   local cluster_backups
   cluster_backups=$(aws_json rds describe-db-cluster-automated-backups 2>/dev/null || true)
   if [[ -n "$cluster_backups" ]]; then
-    echo "$cluster_backups" | jq -r '.DBClusterAutomatedBackups[]
+    echo "$cluster_backups" | jq -r --argjson live_ids "$live_cluster_ids_json" '.DBClusterAutomatedBackups[]
       | select((.DbClusterResourceId // "") != "")
+      | select((.DBClusterIdentifier // "") as $id | ($live_ids | index($id) | not))
       | ["cluster-backup:" + .DbClusterResourceId, "cluster backup", .DBClusterIdentifier, .Engine, ((.RestoreWindow.LatestTime // "no latest") + " " + (.Status // ""))] | @tsv'
   fi
 
