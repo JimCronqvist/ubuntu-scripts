@@ -13,29 +13,29 @@ need jq
 # if available, and prints them as "<height> <width> <menu_height>".
 ################################################################################
 calc_whiptail_size() {
-    local term_rows=24
-    local term_cols=80
+  local term_rows=24
+  local term_cols=80
 
-    if command -v tput &>/dev/null; then
-        local r c
-        r=$(tput lines </dev/tty 2>/dev/null || true)
-        c=$(tput cols </dev/tty 2>/dev/null || true)
-        [[ "$r" =~ ^[0-9]+$ ]] && [ "$r" -gt 0 ] && term_rows="$r"
-        [[ "$c" =~ ^[0-9]+$ ]] && [ "$c" -gt 0 ] && term_cols="$c"
-    fi
+  if command -v tput &>/dev/null; then
+    local r c
+    r=$(tput lines </dev/tty 2>/dev/null || true)
+    c=$(tput cols </dev/tty 2>/dev/null || true)
+    [[ "$r" =~ ^[0-9]+$ ]] && [ "$r" -gt 0 ] && term_rows="$r"
+    [[ "$c" =~ ^[0-9]+$ ]] && [ "$c" -gt 0 ] && term_cols="$c"
+  fi
 
-    (( term_rows < 10 )) && term_rows=10
-    (( term_cols < 40 )) && term_cols=40
+  (( term_rows < 10 )) && term_rows=10
+  (( term_cols < 40 )) && term_cols=40
 
-    local dh=$(( term_rows - 4 ))
-    local dw=$(( term_cols - 10 ))
-    (( dh < 10 )) && dh=10
-    (( dw < 40 )) && dw=40
+  local dh=$(( term_rows - 4 ))
+  local dw=$(( term_cols - 10 ))
+  (( dh < 10 )) && dh=10
+  (( dw < 40 )) && dw=40
 
-    local dm=$(( dh - 8 ))
-    (( dm < 5 )) && dm=5
+  local dm=$(( dh - 8 ))
+  (( dm < 5 )) && dm=5
 
-    echo "$dh $dw $dm"
+  echo "$dh $dw $dm"
 }
 
 calc_whiptail_hw() {
@@ -46,7 +46,7 @@ calc_whiptail_hw() {
 }
 
 # -------------------- Globals / flags --------------------
-REGION=""               # from --region; if empty, aws cli uses env/config
+REGION="" # from --region; if empty, aws cli uses env/config
 
 has_tty() { [[ -r /dev/tty && -w /dev/tty ]]; }
 
@@ -62,15 +62,25 @@ NO_WAIT=0
 
 # Intent
 LATEST=1
-RESTORE_TIME_SPEC=""    # user-supplied: ISO8601 or relative like -5m/-2h
-RESTORE_TIME_ISO=""     # computed ISO8601 for AWS (empty => latest)
+RESTORE_TIME_SPEC="" # user-supplied: ISO8601 or relative like -5m/-2h
+RESTORE_TIME_ISO="" # computed ISO8601 for AWS (empty => latest)
 SNAPSHOT_ID=""
 
 # Source/target
 SOURCE=""
+SOURCE_ARG=""
 TARGET=""
 AURORA_WRITER_INSTANCE=""
 source_type=""
+SOURCE_KIND=""
+SOURCE_AUTOMATED_BACKUP_ARN=""
+SOURCE_CLUSTER_RESOURCE_ID=""
+SOURCE_METADATA_REGION=""
+SOURCE_BACKUP_EARLIEST=""
+SOURCE_BACKUP_LATEST=""
+SOURCE_BACKUP_RETENTION=""
+SOURCE_ENGINE=""
+SOURCE_SNAPSHOT_TIME=""
 
 # Restorable bounds (raw + display)
 EARLIEST_RESTORABLE=""
@@ -83,52 +93,77 @@ LATEST_DISPLAY=""
 DB_INSTANCE_CLASS=""
 DB_SUBNET_GROUP=""
 VPC_SG_IDS=""
-PUBLICLY_ACCESSIBLE=""  # true|false (instance only)
-MULTI_AZ=""             # true|false (instance only)
+PUBLICLY_ACCESSIBLE="" # true|false (instance only)
+MULTI_AZ="" # true|false (instance only)
 DB_PARAMETER_GROUP=""
 DB_CLUSTER_PARAMETER_GROUP=""
 OPTION_GROUP=""
 
 usage() {
-  cat <<'EOF'
+  cat <<'EOF_USAGE'
 Usage:
   rds-restore.sh [--help] [--interactive] [--yes] [--dry-run] [--no-wait] [--region <region>]
-                 [--source <id>] [--target <new-id>]
-                 [--latest | --restore-time <ISO8601|relative> | --snapshot-id <snapshot-id>]
-                 [--aurora-writer-instance <id>]
-                 [--db-instance-class <class>]
-                 [--db-subnet-group <name>]
-                 [--vpc-sg-ids <sg-1,sg-2,...>]
-                 [--publicly-accessible true|false]   (RDS instance only)
-                 [--multi-az true|false]               (RDS instance only)
-                 [--db-parameter-group <name>]         (RDS instance only)
-                 [--db-cluster-parameter-group <name>] (Aurora cluster only)
-                 [--option-group <name>]
+    [--source <id>] [--target <new-id>]
+    [--latest | --restore-time <ISO8601|relative> | --snapshot-id <snapshot-id>]
+    [--aurora-writer-instance <id>]
+    [--db-instance-class <class>]
+    [--db-subnet-group <name>]
+    [--vpc-sg-ids <sg-1,sg-2,...>]
+    [--publicly-accessible true|false] (RDS instance only)
+    [--multi-az true|false] (RDS instance only)
+    [--db-parameter-group <name>] (RDS instance only)
+    [--db-cluster-parameter-group <name>] (Aurora cluster only)
+    [--option-group <name>]
+
+Region behavior:
+  The selected AWS region is the restore target region.
+  Examples:
+    AWS_REGION=eu-west-1 ./rds-restore.sh
+    ./rds-restore.sh --region eu-west-1
+
+Source selectors:
+  Plain source IDs are supported, as before:
+    --source db01
+
+  The interactive menu can also select these explicit source forms:
+    instance:<db-instance-id>
+    cluster:<db-cluster-id>
+    instance-backup:<db-instance-automated-backups-arn>
+    cluster-backup:<db-cluster-resource-id>
+    instance-snapshot:<db-snapshot-id>
+    cluster-snapshot:<db-cluster-snapshot-id>
 
 Defaults:
   - Interactive when /dev/tty is present
   - Non-interactive when /dev/tty is not present
   - Providing --yes forces non-interactive (no prompts)
+  - Latest restore uses the latest restorable time in the target region/source selected
 
 Restore target options:
   --latest
       Restore to latest available state (PITR latest).
-  --restore-time <value>
-      Restore to a specific time.
-      Accepts ISO8601 UTC (e.g. 2026-01-20T10:30:00Z)
-      or relative time: -<N>[s|m|h|d] (e.g. -5m, -2h, -1d)
+
+  --restore-time <time>
+      Restore to a specific time. Accepts ISO8601 UTC
+      (e.g. 2026-01-20T10:30:00Z) or relative time:
+      -<N>[s|m|h|d] (e.g. -5m, -2h, -1d)
+
   --snapshot-id <id>
       Restore from a specific snapshot identifier.
 
 --no-wait behavior:
   - RDS instance: runs ONLY the restore call, then exits.
-  - Aurora cluster: runs ONLY the cluster restore call, then exits (does NOT create writer yet).
+  - Aurora cluster: runs ONLY the cluster restore call, then exits
+    (does NOT create writer yet).
 
 Examples:
   Interactive guided restore:
     ./rds-restore.sh
 
-  Dry-run (print plan + commands):
+  DR-region interactive restore from replicated backups:
+    ./rds-restore.sh --region eu-west-1
+
+  Dry-run:
     ./rds-restore.sh --dry-run
 
   Non-interactive restore to latest:
@@ -139,7 +174,7 @@ Examples:
 
   Non-interactive restore from snapshot:
     ./rds-restore.sh --yes --source db01 --target db01-restore --snapshot-id rds:db01-2026-01-20-03-15
-EOF
+EOF_USAGE
 }
 
 # -------------------- UI helpers --------------------
@@ -150,10 +185,9 @@ confirm() {
   has_tty || die "No /dev/tty available. Use --yes for non-interactive mode."
   local ans
   read -r -p "$msg [y/N] " ans </dev/tty
-  [[ "${ans,,}" == "y" || "${ans,,}" == "yes" ]]
+  [[ "$ans" == "y" || "$ans" == "Y" || "$ans" == "yes" || "$ans" == "YES" ]]
 }
 
-# choose_one TITLE PROMPT tag1 desc1 tag2 desc2 ...
 # Returns selected tag on stdout. Returns 1 on Cancel.
 choose_one() {
   local title="$1"
@@ -163,26 +197,21 @@ choose_one() {
   [[ "$INTERACTIVE" == "1" ]] || { echo "choose_one in non-interactive mode" >&2; return 2; }
   has_tty || { echo "No /dev/tty" >&2; return 2; }
   need whiptail
-
   export TERM="${TERM:-xterm-256color}"
 
   local choice
   choice=$(
     # shellcheck disable=SC2046
     whiptail --title "$title" \
-             --menu "$prompt" \
-             $(calc_whiptail_size) \
-             "$@" \
-             3>&1 1>&2 2>&3 </dev/tty
+      --menu "$prompt" \
+      $(calc_whiptail_size) \
+      "$@" \
+      3>&1 1>&2 2>&3 </dev/tty
   ) || return 1
 
-  [[ -n "$choice" ]] || return 1
-  printf "%s\n" "$choice"
-  return 0
+  echo "$choice"
 }
 
-# choose_text TITLE PROMPT DEFAULT
-# Returns typed text on stdout. Returns 1 on Cancel.
 choose_text() {
   local title="$1"
   local prompt="$2"
@@ -191,7 +220,6 @@ choose_text() {
   [[ "$INTERACTIVE" == "1" ]] || { echo "choose_text in non-interactive mode" >&2; return 2; }
   has_tty || { echo "No /dev/tty" >&2; return 2; }
   need whiptail
-
   export TERM="${TERM:-xterm-256color}"
 
   local h w
@@ -200,43 +228,32 @@ choose_text() {
   local text
   text=$(
     whiptail --title "$title" \
-             --inputbox "$prompt" \
-             "$h" "$w" \
-             -- "$def" \
-             3>&1 1>&2 2>&3 </dev/tty
+      --inputbox "$prompt" \
+      "$h" "$w" \
+      -- "$def" \
+      3>&1 1>&2 2>&3 </dev/tty
   ) || return 1
 
-  printf "%s\n" "$text"
-  return 0
+  echo "$text"
 }
 
-# Like choose_text, but if user submits empty string, returns the provided default.
-# Returns 1 on Cancel.
 choose_text_keep_default_if_empty() {
   local title="$1"
   local prompt="$2"
   local def="${3:-}"
+  local out
 
-  local v
-  if ! v=$(choose_text "$title" "$prompt" "$def"); then
-    return 1
-  fi
-
-  if [[ -z "${v:-}" ]]; then
-    printf "%s\n" "$def"
+  out=$(choose_text "$title" "$prompt" "$def") || return $?
+  if [[ -z "$out" ]]; then
+    echo "$def"
   else
-    printf "%s\n" "$v"
+    echo "$out"
   fi
-  return 0
 }
 
-# -------------------- Time utilities --------------------
+# -------------------- Time helpers --------------------
 epoch_now() { date -u +%s; }
-
-epoch_to_iso() {
-  local e="$1"
-  date -u -d "@$e" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || true
-}
+epoch_to_iso() { date -u -d "@$1" +%Y-%m-%dT%H:%M:%SZ; }
 
 resolve_restore_time_spec_to_iso() {
   local spec="$1"
@@ -246,6 +263,7 @@ resolve_restore_time_spec_to_iso() {
     local n="${BASH_REMATCH[1]}"
     local u="${BASH_REMATCH[2]}"
     local mult=1
+
     case "$u" in
       s) mult=1 ;;
       m) mult=60 ;;
@@ -253,9 +271,11 @@ resolve_restore_time_spec_to_iso() {
       d) mult=86400 ;;
       *) mult=1 ;;
     esac
-    local now; now=$(epoch_now)
-    local sec=$(( n * mult ))
-    local tgt=$(( now - sec ))
+
+    local now sec tgt
+    now=$(epoch_now)
+    sec=$(( n * mult ))
+    tgt=$(( now - sec ))
     epoch_to_iso "$tgt"
     return 0
   fi
@@ -263,22 +283,529 @@ resolve_restore_time_spec_to_iso() {
   echo "$spec"
 }
 
+time_display() {
+  local v="${1:-}"
+  if [[ -z "$v" || "$v" == "null" ]]; then
+    echo "n/a"
+  else
+    echo "$v"
+  fi
+}
+
 # -------------------- AWS helpers --------------------
-aws_json() {
+aws_json_in_region() {
+  local region="$1"
+  shift
+
   local cmd=(aws)
-  [[ -n "$REGION" ]] && cmd+=(--region "$REGION")
+  [[ -n "$region" ]] && cmd+=(--region "$region")
   cmd+=("$@")
   "${cmd[@]}"
 }
 
+aws_json() {
+  aws_json_in_region "$REGION" "$@"
+}
+
+effective_region() {
+  if [[ -n "$REGION" ]]; then
+    echo "$REGION"
+    return 0
+  fi
+  if [[ -n "${AWS_REGION:-}" ]]; then
+    echo "$AWS_REGION"
+    return 0
+  fi
+  if [[ -n "${AWS_DEFAULT_REGION:-}" ]]; then
+    echo "$AWS_DEFAULT_REGION"
+    return 0
+  fi
+  aws configure get region 2>/dev/null || true
+}
+
+region_label() {
+  local region="$1"
+
+  if [[ -n "$region" ]]; then
+    echo "$region"
+    return 0
+  fi
+
+  local eff
+  eff=$(effective_region)
+  if [[ -n "$eff" ]]; then
+    echo "$eff"
+  else
+    echo "current AWS CLI region"
+  fi
+}
+
+target_region_label() {
+  region_label "$REGION"
+}
+
+arn_region() {
+  local arn="$1"
+  [[ "$arn" == arn:* ]] || { echo ""; return 0; }
+  echo "$arn" | cut -d: -f4
+}
+
+source_metadata_region() {
+  if [[ -n "$SOURCE_METADATA_REGION" ]]; then
+    echo "$SOURCE_METADATA_REGION"
+  else
+    effective_region
+  fi
+}
+
 instance_exists() {
   local id="$1"
-  aws_json rds describe-db-instances --db-instance-identifier "$id" >/dev/null 2>&1
+  local region="${2:-$REGION}"
+  aws_json_in_region "$region" rds describe-db-instances --db-instance-identifier "$id" >/dev/null 2>&1
 }
 
 cluster_exists() {
   local id="$1"
-  aws_json rds describe-db-clusters --db-cluster-identifier "$id" >/dev/null 2>&1
+  local region="${2:-$REGION}"
+  aws_json_in_region "$region" rds describe-db-clusters --db-cluster-identifier "$id" >/dev/null 2>&1
+}
+
+get_instance_full() {
+  local id="$1"
+  local region="${2:-$REGION}"
+  aws_json_in_region "$region" rds describe-db-instances --db-instance-identifier "$id" | jq -r '.DBInstances[0]'
+}
+
+get_cluster_full() {
+  local id="$1"
+  local region="${2:-$REGION}"
+  aws_json_in_region "$region" rds describe-db-clusters --db-cluster-identifier "$id" | jq -r '.DBClusters[0]'
+}
+
+split_to_array() {
+  local csv="$1"
+  local -n out_arr="$2"
+  local tmp=()
+  local item
+
+  out_arr=()
+  IFS=',' read -r -a tmp <<<"$csv"
+
+  for item in "${tmp[@]}"; do
+    item="${item#"${item%%[![:space:]]*}"}"
+    item="${item%"${item##*[![:space:]]}"}"
+    [[ -n "$item" ]] && out_arr+=("$item")
+  done
+}
+
+# -------------------- Automated backups and snapshots --------------------
+get_instance_automated_backup_full() {
+  local key="$1"
+  local json
+
+  if [[ "$key" == arn:* ]]; then
+    json=$(aws_json rds describe-db-instance-automated-backups --db-instance-automated-backups-arn "$key")
+  else
+    json=$(aws_json rds describe-db-instance-automated-backups --db-instance-identifier "$key")
+  fi
+
+  echo "$json" | jq -r '.DBInstanceAutomatedBackups | sort_by(.RestoreWindow.LatestTime // "") | last // empty'
+}
+
+get_cluster_automated_backup_full() {
+  local key="$1"
+  local by_resource_id="${2:-0}"
+  local json
+
+  if [[ "$by_resource_id" == "1" ]]; then
+    json=$(aws_json rds describe-db-cluster-automated-backups --db-cluster-resource-id "$key")
+  else
+    json=$(aws_json rds describe-db-cluster-automated-backups --db-cluster-identifier "$key")
+  fi
+
+  echo "$json" | jq -r '.DBClusterAutomatedBackups | sort_by(.RestoreWindow.LatestTime // "") | last // empty'
+}
+
+get_instance_snapshot_full() {
+  local id="$1"
+  aws_json rds describe-db-snapshots --db-snapshot-identifier "$id" | jq -r '.DBSnapshots[0] // empty'
+}
+
+get_cluster_snapshot_full() {
+  local id="$1"
+  aws_json rds describe-db-cluster-snapshots --db-cluster-snapshot-identifier "$id" | jq -r '.DBClusterSnapshots[0] // empty'
+}
+
+set_instance_automated_backup_source() {
+  local backup_json="$1"
+  local source_arg="${2:-}"
+
+  SOURCE=$(echo "$backup_json" | jq -r '.DBInstanceIdentifier // empty')
+  SOURCE_ARG="${source_arg:-instance-backup:$(echo "$backup_json" | jq -r '.DBInstanceAutomatedBackupsArn // empty')}"
+  SOURCE_KIND="instance-backup"
+  SOURCE_AUTOMATED_BACKUP_ARN=$(echo "$backup_json" | jq -r '.DBInstanceAutomatedBackupsArn // empty')
+  SOURCE_METADATA_REGION=$(arn_region "$(echo "$backup_json" | jq -r '.DBInstanceArn // empty')")
+  [[ -n "$SOURCE_METADATA_REGION" ]] || SOURCE_METADATA_REGION=$(echo "$backup_json" | jq -r '.Region // empty')
+  SOURCE_BACKUP_EARLIEST=$(echo "$backup_json" | jq -r '.RestoreWindow.EarliestTime // empty')
+  SOURCE_BACKUP_LATEST=$(echo "$backup_json" | jq -r '.RestoreWindow.LatestTime // empty')
+  SOURCE_BACKUP_RETENTION=$(echo "$backup_json" | jq -r '.BackupRetentionPeriod // empty')
+  SOURCE_ENGINE=$(echo "$backup_json" | jq -r '.Engine // empty')
+
+  [[ -n "$SOURCE" ]] || die "Selected automated backup does not include a DB instance identifier."
+  [[ -n "$SOURCE_AUTOMATED_BACKUP_ARN" ]] || die "Automated backup for '$SOURCE' does not include a DB instance automated backups ARN. Choose the live DB in this region, choose a snapshot, or verify backup replication."
+  [[ -n "$SOURCE_METADATA_REGION" ]] || die "Could not determine the original source region for '$SOURCE'. The script needs it to read subnet/parameter/security-group defaults."
+}
+
+set_cluster_automated_backup_source() {
+  local backup_json="$1"
+  local source_arg="${2:-}"
+
+  SOURCE=$(echo "$backup_json" | jq -r '.DBClusterIdentifier // empty')
+  SOURCE_ARG="${source_arg:-cluster-backup:$(echo "$backup_json" | jq -r '.DbClusterResourceId // empty')}"
+  SOURCE_KIND="cluster-backup"
+  SOURCE_CLUSTER_RESOURCE_ID=$(echo "$backup_json" | jq -r '.DbClusterResourceId // empty')
+  SOURCE_METADATA_REGION=$(arn_region "$(echo "$backup_json" | jq -r '.DBClusterArn // empty')")
+  [[ -n "$SOURCE_METADATA_REGION" ]] || SOURCE_METADATA_REGION=$(echo "$backup_json" | jq -r '.Region // empty')
+  SOURCE_BACKUP_EARLIEST=$(echo "$backup_json" | jq -r '.RestoreWindow.EarliestTime // empty')
+  SOURCE_BACKUP_LATEST=$(echo "$backup_json" | jq -r '.RestoreWindow.LatestTime // empty')
+  SOURCE_BACKUP_RETENTION=$(echo "$backup_json" | jq -r '.BackupRetentionPeriod // empty')
+  SOURCE_ENGINE=$(echo "$backup_json" | jq -r '.Engine // empty')
+
+  [[ -n "$SOURCE" ]] || die "Selected automated backup does not include a DB cluster identifier."
+  [[ -n "$SOURCE_CLUSTER_RESOURCE_ID" ]] || die "Automated backup for '$SOURCE' does not include a source DB cluster resource ID."
+  [[ -n "$SOURCE_METADATA_REGION" ]] || die "Could not determine the original source region for '$SOURCE'. The script needs it to read subnet/parameter/security-group defaults."
+}
+
+set_instance_snapshot_source() {
+  local snapshot_json="$1"
+  local source_arg="${2:-}"
+
+  SOURCE=$(echo "$snapshot_json" | jq -r '.DBInstanceIdentifier // empty')
+  SNAPSHOT_ID=$(echo "$snapshot_json" | jq -r '.DBSnapshotIdentifier // empty')
+  SOURCE_ARG="${source_arg:-instance-snapshot:$SNAPSHOT_ID}"
+  SOURCE_KIND="instance-snapshot"
+  SOURCE_METADATA_REGION=$(echo "$snapshot_json" | jq -r '.SourceRegion // empty')
+  [[ -n "$SOURCE_METADATA_REGION" ]] || SOURCE_METADATA_REGION=$(effective_region)
+  SOURCE_ENGINE=$(echo "$snapshot_json" | jq -r '.Engine // empty')
+  SOURCE_SNAPSHOT_TIME=$(echo "$snapshot_json" | jq -r '.SnapshotCreateTime // empty')
+
+  [[ -n "$SOURCE" ]] || die "Selected DB snapshot does not include a DB instance identifier."
+  [[ -n "$SNAPSHOT_ID" ]] || die "Selected DB snapshot does not include a snapshot identifier."
+}
+
+set_cluster_snapshot_source() {
+  local snapshot_json="$1"
+  local source_arg="${2:-}"
+
+  SOURCE=$(echo "$snapshot_json" | jq -r '.DBClusterIdentifier // empty')
+  SNAPSHOT_ID=$(echo "$snapshot_json" | jq -r '.DBClusterSnapshotIdentifier // empty')
+  SOURCE_ARG="${source_arg:-cluster-snapshot:$SNAPSHOT_ID}"
+  SOURCE_KIND="cluster-snapshot"
+  SOURCE_METADATA_REGION=$(echo "$snapshot_json" | jq -r '.SourceRegion // empty')
+  [[ -n "$SOURCE_METADATA_REGION" ]] || SOURCE_METADATA_REGION=$(effective_region)
+  SOURCE_ENGINE=$(echo "$snapshot_json" | jq -r '.Engine // empty')
+  SOURCE_SNAPSHOT_TIME=$(echo "$snapshot_json" | jq -r '.SnapshotCreateTime // empty')
+
+  [[ -n "$SOURCE" ]] || die "Selected DB cluster snapshot does not include a DB cluster identifier."
+  [[ -n "$SNAPSHOT_ID" ]] || die "Selected DB cluster snapshot does not include a snapshot identifier."
+}
+
+reset_source_metadata() {
+  SOURCE_AUTOMATED_BACKUP_ARN=""
+  SOURCE_CLUSTER_RESOURCE_ID=""
+  SOURCE_METADATA_REGION=""
+  SOURCE_BACKUP_EARLIEST=""
+  SOURCE_BACKUP_LATEST=""
+  SOURCE_BACKUP_RETENTION=""
+  SOURCE_ENGINE=""
+  SOURCE_SNAPSHOT_TIME=""
+  SOURCE_KIND=""
+}
+
+# -------------------- Target resource validation --------------------
+require_target_db_subnet_group() {
+  local name="$1"
+  [[ -n "$name" && "$name" != "null" ]] || die "DB subnet group is required. Create a same-named DB subnet group in $(target_region_label), or pass --db-subnet-group <name>."
+
+  aws_json rds describe-db-subnet-groups --db-subnet-group-name "$name" >/dev/null 2>&1 || \
+    die "DB subnet group '$name' does not exist in $(target_region_label). Create it in the target region/VPC, or pass --db-subnet-group <name>."
+}
+
+require_target_db_parameter_group() {
+  local name="$1"
+  [[ -n "$name" && "$name" != "null" ]] || return 0
+
+  aws_json rds describe-db-parameter-groups --db-parameter-group-name "$name" >/dev/null 2>&1 || \
+    die "DB parameter group '$name' does not exist in $(target_region_label). Create a same-named parameter group in the target region, or pass --db-parameter-group <name>."
+}
+
+require_target_db_cluster_parameter_group() {
+  local name="$1"
+  [[ -n "$name" && "$name" != "null" ]] || return 0
+
+  aws_json rds describe-db-cluster-parameter-groups --db-cluster-parameter-group-name "$name" >/dev/null 2>&1 || \
+    die "DB cluster parameter group '$name' does not exist in $(target_region_label). Create a same-named cluster parameter group in the target region, or pass --db-cluster-parameter-group <name>."
+}
+
+require_target_option_group() {
+  local name="$1"
+  [[ -n "$name" && "$name" != "null" ]] || return 0
+
+  aws_json rds describe-option-groups --option-group-name "$name" >/dev/null 2>&1 || \
+    die "Option group '$name' does not exist in $(target_region_label). Create a same-named option group in the target region, or pass --option-group <name>."
+}
+
+db_subnet_group_vpc_id() {
+  local name="$1"
+  require_target_db_subnet_group "$name"
+  aws_json rds describe-db-subnet-groups --db-subnet-group-name "$name" | jq -r '.DBSubnetGroups[0].VpcId // empty'
+}
+
+source_sg_name_for_id() {
+  local source_region="$1"
+  local sg_id="$2"
+  aws_json_in_region "$source_region" ec2 describe-security-groups --group-ids "$sg_id" | jq -r '.SecurityGroups[0].GroupName // empty'
+}
+
+target_sg_id_for_name() {
+  local name="$1"
+  local vpc_id="$2"
+  local ids=()
+
+  mapfile -t ids < <(aws_json ec2 describe-security-groups \
+    --filters "Name=vpc-id,Values=$vpc_id" "Name=group-name,Values=$name" \
+    | jq -r '.SecurityGroups[].GroupId')
+
+  if ((${#ids[@]} == 0)); then
+    die "Could not find security group named '$name' in target VPC '$vpc_id' ($(target_region_label)). Create a same-named security group there, or pass --vpc-sg-ids with target-region SG IDs."
+  fi
+  if ((${#ids[@]} > 1)); then
+    die "Found multiple security groups named '$name' in target VPC '$vpc_id' ($(target_region_label)). Pass --vpc-sg-ids explicitly."
+  fi
+
+  echo "${ids[0]}"
+}
+
+map_sg_ids_to_target_by_name() {
+  local source_region="$1"
+  local subnet_group="$2"
+  shift 2
+
+  local source_region_name
+  source_region_name=$(region_label "$source_region")
+
+  local vpc_id
+  vpc_id=$(db_subnet_group_vpc_id "$subnet_group")
+  [[ -n "$vpc_id" ]] || die "Could not determine VPC for DB subnet group '$subnet_group' in $(target_region_label)."
+
+  local source_sg_id source_sg_name target_sg_id
+  local out=()
+
+  for source_sg_id in "$@"; do
+    [[ -n "$source_sg_id" && "$source_sg_id" != "null" ]] || continue
+
+    if ! source_sg_name=$(source_sg_name_for_id "$source_region" "$source_sg_id"); then
+      die "Could not read source security group '$source_sg_id' in $source_region_name. Pass --vpc-sg-ids with target-region SG IDs."
+    fi
+    [[ -n "$source_sg_name" ]] || die "Could not resolve source security group '$source_sg_id' to a name in $source_region_name. Pass --vpc-sg-ids with target-region SG IDs."
+
+    target_sg_id=$(target_sg_id_for_name "$source_sg_name" "$vpc_id")
+    out+=("$target_sg_id")
+  done
+
+  printf '%s\n' "${out[@]}"
+}
+
+validate_sg_ids_in_target_subnet_vpc() {
+  local subnet_group="$1"
+  shift
+  ((${#@} == 0)) && return 0
+
+  local vpc_id
+  vpc_id=$(db_subnet_group_vpc_id "$subnet_group")
+  [[ -n "$vpc_id" ]] || die "Could not determine VPC for DB subnet group '$subnet_group' in $(target_region_label)."
+
+  local sg_id sg_vpc_id
+  for sg_id in "$@"; do
+    [[ -n "$sg_id" && "$sg_id" != "null" ]] || continue
+
+    if ! sg_vpc_id=$(aws_json ec2 describe-security-groups --group-ids "$sg_id" | jq -r '.SecurityGroups[0].VpcId // empty'); then
+      die "Security group '$sg_id' does not exist in $(target_region_label). Pass --vpc-sg-ids with target-region SG IDs."
+    fi
+
+    [[ "$sg_vpc_id" == "$vpc_id" ]] || die "Security group '$sg_id' is in VPC '$sg_vpc_id', but DB subnet group '$subnet_group' is in VPC '$vpc_id'. Pass SG IDs from the target VPC."
+  done
+}
+
+# -------------------- Source detection/listing --------------------
+detect_source_type() {
+  local source_id="$1"
+  local matches=0
+  local inst_backup="" cluster_backup="" inst_snap="" cluster_snap=""
+
+  reset_source_metadata
+  SOURCE_ARG="$source_id"
+
+  if [[ "$source_id" == instance:* ]]; then
+    SOURCE="${source_id#instance:}"
+    SOURCE_KIND="instance"
+    source_type="instance"
+    return 0
+  fi
+
+  if [[ "$source_id" == cluster:* ]]; then
+    SOURCE="${source_id#cluster:}"
+    SOURCE_KIND="cluster"
+    source_type="cluster"
+    return 0
+  fi
+
+  if [[ "$source_id" == instance-backup:* ]]; then
+    local key="${source_id#instance-backup:}"
+    inst_backup=$(get_instance_automated_backup_full "$key" 2>/dev/null || true)
+    [[ -n "$inst_backup" && "$inst_backup" != "null" ]] || die "Could not find instance automated backup: $key"
+    set_instance_automated_backup_source "$inst_backup" "$source_id"
+    source_type="instance"
+    return 0
+  fi
+
+  if [[ "$source_id" == cluster-backup:* ]]; then
+    local key="${source_id#cluster-backup:}"
+    cluster_backup=$(get_cluster_automated_backup_full "$key" 1 2>/dev/null || true)
+    [[ -n "$cluster_backup" && "$cluster_backup" != "null" ]] || die "Could not find cluster automated backup: $key"
+    set_cluster_automated_backup_source "$cluster_backup" "$source_id"
+    source_type="cluster"
+    return 0
+  fi
+
+  if [[ "$source_id" == instance-snapshot:* ]]; then
+    local key="${source_id#instance-snapshot:}"
+    inst_snap=$(get_instance_snapshot_full "$key" 2>/dev/null || true)
+    [[ -n "$inst_snap" && "$inst_snap" != "null" ]] || die "Could not find DB snapshot: $key"
+    set_instance_snapshot_source "$inst_snap" "$source_id"
+    source_type="instance"
+    return 0
+  fi
+
+  if [[ "$source_id" == cluster-snapshot:* ]]; then
+    local key="${source_id#cluster-snapshot:}"
+    cluster_snap=$(get_cluster_snapshot_full "$key" 2>/dev/null || true)
+    [[ -n "$cluster_snap" && "$cluster_snap" != "null" ]] || die "Could not find DB cluster snapshot: $key"
+    set_cluster_snapshot_source "$cluster_snap" "$source_id"
+    source_type="cluster"
+    return 0
+  fi
+
+  if [[ "$source_id" == arn:*:auto-backup:* ]]; then
+    inst_backup=$(get_instance_automated_backup_full "$source_id" 2>/dev/null || true)
+    [[ -n "$inst_backup" && "$inst_backup" != "null" ]] || die "Could not find instance automated backup ARN: $source_id"
+    set_instance_automated_backup_source "$inst_backup" "instance-backup:$source_id"
+    source_type="instance"
+    return 0
+  fi
+
+  if instance_exists "$source_id"; then
+    SOURCE="$source_id"
+    SOURCE_KIND="instance"
+    source_type="instance"
+    return 0
+  fi
+
+  if cluster_exists "$source_id"; then
+    SOURCE="$source_id"
+    SOURCE_KIND="cluster"
+    source_type="cluster"
+    return 0
+  fi
+
+  inst_backup=$(get_instance_automated_backup_full "$source_id" 2>/dev/null || true)
+  [[ -n "$inst_backup" && "$inst_backup" != "null" ]] && matches=$((matches + 1))
+
+  cluster_backup=$(get_cluster_automated_backup_full "$source_id" 2>/dev/null || true)
+  [[ -n "$cluster_backup" && "$cluster_backup" != "null" ]] && matches=$((matches + 1))
+
+  if [[ -z "$SNAPSHOT_ID" ]]; then
+    inst_snap=$(get_instance_snapshot_full "$source_id" 2>/dev/null || true)
+    [[ -n "$inst_snap" && "$inst_snap" != "null" ]] && matches=$((matches + 1))
+
+    cluster_snap=$(get_cluster_snapshot_full "$source_id" 2>/dev/null || true)
+    [[ -n "$cluster_snap" && "$cluster_snap" != "null" ]] && matches=$((matches + 1))
+  fi
+
+  if (( matches == 1 )); then
+    if [[ -n "$inst_backup" && "$inst_backup" != "null" ]]; then
+      set_instance_automated_backup_source "$inst_backup"
+      source_type="instance"
+    elif [[ -n "$cluster_backup" && "$cluster_backup" != "null" ]]; then
+      set_cluster_automated_backup_source "$cluster_backup"
+      source_type="cluster"
+    elif [[ -n "$inst_snap" && "$inst_snap" != "null" ]]; then
+      set_instance_snapshot_source "$inst_snap"
+      source_type="instance"
+    else
+      set_cluster_snapshot_source "$cluster_snap"
+      source_type="cluster"
+    fi
+    return 0
+  fi
+
+  if (( matches > 1 )); then
+    die "Source '$source_id' matches multiple backup/snapshot sources. Use the interactive menu or pass an explicit selector such as instance-backup:<arn>, cluster-backup:<resource-id>, instance-snapshot:<id>, or cluster-snapshot:<id>."
+  fi
+
+  die "Could not find DB instance, DB cluster, automated backup, or snapshot named: $source_id"
+}
+
+list_sources() {
+  local target_region
+  target_region=$(effective_region)
+
+  local inst
+  inst=$(aws_json rds describe-db-instances 2>/dev/null || true)
+  if [[ -n "$inst" ]]; then
+    echo "$inst" | jq -r '.DBInstances[] | ["instance:" + .DBInstanceIdentifier, "live instance", .DBInstanceIdentifier, .Engine, .DBInstanceStatus] | @tsv'
+  fi
+
+  local cl
+  cl=$(aws_json rds describe-db-clusters 2>/dev/null || true)
+  if [[ -n "$cl" ]]; then
+    echo "$cl" | jq -r '.DBClusters[] | ["cluster:" + .DBClusterIdentifier, "live cluster", .DBClusterIdentifier, .Engine, .Status] | @tsv'
+  fi
+
+  local inst_backups
+  inst_backups=$(aws_json rds describe-db-instance-automated-backups 2>/dev/null || true)
+  if [[ -n "$inst_backups" ]]; then
+    echo "$inst_backups" | jq -r --arg region "$target_region" '.DBInstanceAutomatedBackups[]
+      | select((.DBInstanceAutomatedBackupsArn // "") != "")
+      | select($region == "" or ((.DBInstanceAutomatedBackupsArn | split(":")[3]) == $region))
+      | ["instance-backup:" + .DBInstanceAutomatedBackupsArn, "instance backup", .DBInstanceIdentifier, .Engine, ((.RestoreWindow.LatestTime // "no latest") + " " + (.Status // ""))] | @tsv'
+  fi
+
+  local cluster_backups
+  cluster_backups=$(aws_json rds describe-db-cluster-automated-backups 2>/dev/null || true)
+  if [[ -n "$cluster_backups" ]]; then
+    echo "$cluster_backups" | jq -r '.DBClusterAutomatedBackups[]
+      | select((.DbClusterResourceId // "") != "")
+      | ["cluster-backup:" + .DbClusterResourceId, "cluster backup", .DBClusterIdentifier, .Engine, ((.RestoreWindow.LatestTime // "no latest") + " " + (.Status // ""))] | @tsv'
+  fi
+
+  local inst_snaps
+  inst_snaps=$(aws_json rds describe-db-snapshots --snapshot-type manual 2>/dev/null || true)
+  if [[ -n "$inst_snaps" ]]; then
+    echo "$inst_snaps" | jq -r '.DBSnapshots
+      | sort_by(.SnapshotCreateTime // "") | reverse
+      | .[]
+      | ["instance-snapshot:" + .DBSnapshotIdentifier, "instance snapshot", (.DBInstanceIdentifier // "unknown"), .Engine, ((.SnapshotCreateTime // "no time") + " " + (.Status // ""))] | @tsv'
+  fi
+
+  local cluster_snaps
+  cluster_snaps=$(aws_json rds describe-db-cluster-snapshots --snapshot-type manual 2>/dev/null || true)
+  if [[ -n "$cluster_snaps" ]]; then
+    echo "$cluster_snaps" | jq -r '.DBClusterSnapshots
+      | sort_by(.SnapshotCreateTime // "") | reverse
+      | .[]
+      | ["cluster-snapshot:" + .DBClusterSnapshotIdentifier, "cluster snapshot", (.DBClusterIdentifier // "unknown"), .Engine, ((.SnapshotCreateTime // "no time") + " " + (.Status // ""))] | @tsv'
+  fi
 }
 
 ensure_target_available_or_prompt() {
@@ -319,65 +846,30 @@ ensure_target_available_or_prompt() {
   eval "$varname=\"\$cur\""
 }
 
-detect_source_type() {
-  local source_id="$1"
-  if instance_exists "$source_id"; then echo "instance"; return 0; fi
-  if cluster_exists "$source_id"; then echo "cluster"; return 0; fi
-  die "Could not find DB instance or DB cluster named: $source_id"
-}
-
-list_sources() {
-  local inst; inst=$(aws_json rds describe-db-instances)
-  echo "$inst" | jq -r '.DBInstances[] | ["instance", .DBInstanceIdentifier, .Engine, .DBInstanceStatus] | @tsv'
-  local cl; cl=$(aws_json rds describe-db-clusters)
-  echo "$cl" | jq -r '.DBClusters[] | ["cluster", .DBClusterIdentifier, .Engine, .Status] | @tsv'
-}
-
-get_instance_full() {
-  local id="$1"
-  aws_json rds describe-db-instances --db-instance-identifier "$id" | jq -r '.DBInstances[0]'
-}
-
-get_cluster_full() {
-  local id="$1"
-  aws_json rds describe-db-clusters --db-cluster-identifier "$id" | jq -r '.DBClusters[0]'
-}
-
-split_to_array() {
-  local csv="$1"
-  local -n out_arr="$2"
-  out_arr=()
-  IFS=',' read -r -a out_arr <<<"$csv"
-  for i in "${!out_arr[@]}"; do
-    out_arr[$i]="${out_arr[$i]#"${out_arr[$i]%%[![:space:]]*}"}"
-    out_arr[$i]="${out_arr[$i]%"${out_arr[$i]##*[![:space:]]}"}"
-  done
-}
-
 # -------------------- Snapshots listing/choosing --------------------
 list_instance_snapshot_items() {
   local id="$1"
   aws_json rds describe-db-snapshots --db-instance-identifier "$id" \
-    | jq -r '.DBSnapshots | sort_by(.SnapshotCreateTime) | reverse
-      | map("\(.DBSnapshotIdentifier)\t\(.SnapshotCreateTime)\t\(.SnapshotType)") | .[]'
+    | jq -r '.DBSnapshots | sort_by(.SnapshotCreateTime) | reverse | map("\(.DBSnapshotIdentifier)\t\(.SnapshotCreateTime)\t\(.SnapshotType)") | .[]'
 }
 
 list_cluster_snapshot_items() {
   local id="$1"
   aws_json rds describe-db-cluster-snapshots --db-cluster-identifier "$id" \
-    | jq -r '.DBClusterSnapshots | sort_by(.SnapshotCreateTime) | reverse
-      | map("\(.DBClusterSnapshotIdentifier)\t\(.SnapshotCreateTime)\t\(.SnapshotType)") | .[]'
+    | jq -r '.DBClusterSnapshots | sort_by(.SnapshotCreateTime) | reverse | map("\(.DBClusterSnapshotIdentifier)\t\(.SnapshotCreateTime)\t\(.SnapshotType)") | .[]'
 }
 
 choose_snapshot_id() {
-  local stype="$1" sid="$2"
-
+  local stype="$1"
+  local sid="$2"
   local rows=()
+
   if [[ "$stype" == "instance" ]]; then
     mapfile -t rows < <(list_instance_snapshot_items "$sid")
   else
     mapfile -t rows < <(list_cluster_snapshot_items "$sid")
   fi
+
   ((${#rows[@]})) || die "No snapshots found for $sid"
 
   local items=()
@@ -391,6 +883,7 @@ choose_snapshot_id() {
   if ! out=$(choose_one "Snapshots" "Choose a snapshot:" "${items[@]}"); then
     cancelled
   fi
+
   SNAPSHOT_ID="$out"
   echo "$SNAPSHOT_ID"
 }
@@ -398,7 +891,8 @@ choose_snapshot_id() {
 # -------------------- Defaults from source --------------------
 instance_defaults_json() {
   local source_id="$1"
-  get_instance_full "$source_id" | jq -r '{
+  local region="${2:-$REGION}"
+  get_instance_full "$source_id" "$region" | jq -r '{
     Engine, EngineVersion,
     DBInstanceClass,
     DBSubnetGroupName: .DBSubnetGroup.DBSubnetGroupName,
@@ -415,7 +909,8 @@ instance_defaults_json() {
 
 cluster_defaults_json() {
   local source_id="$1"
-  get_cluster_full "$source_id" | jq -r '{
+  local region="${2:-$REGION}"
+  get_cluster_full "$source_id" "$region" | jq -r '{
     Engine, EngineVersion,
     DBSubnetGroupName: (.DBSubnetGroup // ""),
     VpcSecurityGroupIds: (.VpcSecurityGroups | map(.VpcSecurityGroupId)),
@@ -428,273 +923,298 @@ cluster_defaults_json() {
 }
 
 # -------------------- Pretty-print commands --------------------
-print_cmd() {
-  local prefix="$1"; shift
-  local -a parts=("$@")
-  ((${#parts[@]})) || return 0
-
-  # Find "rds" and include "rds <subcommand>" + any positionals until first -- on the first line
-  local rds_i=-1
-  for ((i=0; i<${#parts[@]}; i++)); do
-    if [[ "${parts[$i]}" == "rds" ]]; then
-      rds_i=$i
-      break
-    fi
-  done
-
-  local base_end=0
-  if (( rds_i >= 0 )); then
-    base_end=$(( rds_i + 2 ))
-    (( base_end > ${#parts[@]} )) && base_end=${#parts[@]}
-    while (( base_end < ${#parts[@]} )) && [[ "${parts[$base_end]}" != --* ]]; do
-      base_end=$((base_end + 1))
-    done
-  else
-    for ((i=0; i<${#parts[@]}; i++)); do
-      [[ "${parts[$i]}" == --* ]] && break
-      base_end=$((i+1))
-    done
-  fi
-
-  local -a lines=()
-
-  local line="$prefix"
-  for ((i=0; i<base_end; i++)); do
-    line+=" ${parts[$i]}"
-  done
-  lines+=("$line")
-
-  local i=$base_end
-  while (( i < ${#parts[@]} )); do
-    local tok="${parts[$i]}"
-    if [[ "$tok" == --* ]]; then
-      line="  $tok"
-      ((i++))
-      while (( i < ${#parts[@]} )) && [[ "${parts[$i]}" != --* ]]; do
-        line+=" ${parts[$i]}"
-        ((i++))
-      done
-      lines+=("$line")
-    else
-      lines+=("  ${parts[$i]}")
-      ((i++))
-    fi
-  done
-
-  local last=$(( ${#lines[@]} - 1 ))
-  for ((j=0; j<${#lines[@]}; j++)); do
-    if (( j < last )); then
-      printf '%s \\\n' "${lines[$j]}"
-    else
-      printf '%s\n' "${lines[$j]}"
-    fi
-  done
-  printf '\n'
-  return 0
-}
-
-# string differs and value is meaningful
-diff_str() {
-  local a="$1" b="$2"
-  [[ "$a" != "$b" && -n "$b" && "$b" != "null" ]]
-}
-
-# boolean differs (true/false)
-diff_bool() {
-  [[ "$1" != "$2" ]]
-}
-
-# array differs (order-sensitive, which is fine for SGs)
-diff_array() {
-  local -n a="$1" b="$2"
-  [[ "${a[*]}" != "${b[*]}" ]]
-}
-
-# Shell-escape a command line so it can be copied/pasted safely
 print_shell_cmd() {
-  local -a cmd=("$@")
-  local out=""
-  for a in "${cmd[@]}"; do
-    out+=" $(printf "%q" "$a")"
+  local q
+  for q in "$@"; do
+    printf '%q ' "$q"
   done
-  echo "${out:1}"
+  echo
 }
 
-print_rerun_cmd_multiline() {
-  local label="$1"; shift
-  echo "$label"
-  print_cmd "" "$@"
+print_cmd() {
+  local prefix="$1"
+  shift
+
+  if [[ -n "$prefix" ]]; then
+    printf '%s ' "$prefix"
+  fi
+  print_shell_cmd "$@"
 }
 
-# Build and print a non-interactive re-run command that reproduces the current plan
 build_rerun_cmd() {
-  # Usage:
-  #   print_rerun_cmd minimal   # only non-default args
-  #   print_rerun_cmd full      # always include all args
   local mode="${1:-minimal}"
-
-  local script="${0:-rds-restore.sh}"
-  local -a rerun=("./$script" "--yes")
+  local -a rerun=(./rds-restore.sh --yes)
 
   [[ -n "$REGION" ]] && rerun+=(--region "$REGION")
   [[ "$NO_WAIT" == "1" ]] && rerun+=(--no-wait)
+  rerun+=(--source "${SOURCE_ARG:-$SOURCE}" --target "$TARGET")
 
-  rerun+=(--source "$SOURCE" --target "$TARGET")
-
-  if [[ "$source_type" == "cluster" ]]; then
-    rerun+=(--aurora-writer-instance "$AURORA_WRITER_INSTANCE")
-  fi
-
-  # Restore target
   if [[ -n "$SNAPSHOT_ID" ]]; then
-    rerun+=(--snapshot-id "$SNAPSHOT_ID")
+    if [[ "$SOURCE_KIND" == "instance-snapshot" || "$SOURCE_KIND" == "cluster-snapshot" ]]; then
+      :
+    else
+      rerun+=(--snapshot-id "$SNAPSHOT_ID")
+    fi
   elif [[ -n "$RESTORE_TIME_SPEC" ]]; then
     rerun+=(--restore-time "$RESTORE_TIME_SPEC")
   else
     rerun+=(--latest)
   fi
 
-  # Helper: include arg based on mode
-  include_str() {
-    local def="$1" cur="$2"
-    [[ "$mode" == "full" ]] || diff_str "$def" "$cur"
-  }
-  include_bool() {
-    local def="$1" cur="$2"
-    [[ "$mode" == "full" ]] || diff_bool "$def" "$cur"
-  }
-  include_array() {
-    local -n def_arr="$1" cur_arr="$2"
-    [[ "$mode" == "full" ]] || diff_array def_arr cur_arr
-  }
+  if [[ "$source_type" == "cluster" ]]; then
+    [[ -n "$AURORA_WRITER_INSTANCE" ]] && rerun+=(--aurora-writer-instance "$AURORA_WRITER_INSTANCE")
+  fi
 
-  # Effective config
-  if [[ "$source_type" == "instance" ]]; then
-    include_str  "$cls_def"    "$cls"    && rerun+=(--db-instance-class "$cls")
-    include_str  "$subnet_def" "$subnet" && rerun+=(--db-subnet-group "$subnet")
-    include_bool "$pub_def"    "$pub"    && rerun+=(--publicly-accessible "$pub")
-    include_bool "$multi_def"  "$multi"  && rerun+=(--multi-az "$multi")
-    include_str  "$pgroup_def" "$pgroup" && rerun+=(--db-parameter-group "$pgroup")
-    include_str  "$ogroup_def" "$ogroup" && rerun+=(--option-group "$ogroup")
-
-    if include_array sgs_def sgs; then
-     rerun+=(--vpc-sg-ids "$(IFS=','; echo "${sgs[*]}")")
-    fi
-  else
-    include_str "$subnet_def" "$subnet" && rerun+=(--db-subnet-group "$subnet")
-    include_str "$cpg_def"    "$cpg"    && rerun+=(--db-cluster-parameter-group "$cpg")
-    include_str "$ogroup_def" "$ogroup" && rerun+=(--option-group "$ogroup")
-    include_str "$inst_class_def" "$inst_class" && rerun+=(--db-instance-class "$inst_class")
-
-    if include_array sgs_def sgs; then
-      rerun+=(--vpc-sg-ids "$(IFS=','; echo "${sgs[*]}")")
+  if [[ "$mode" == "full" ]]; then
+    if [[ "$source_type" == "instance" ]]; then
+      [[ -n "${cls:-}" ]] && rerun+=(--db-instance-class "$cls")
+      [[ -n "${subnet:-}" ]] && rerun+=(--db-subnet-group "$subnet")
+      if ((${#sgs[@]})); then
+        local sgs_csv
+        sgs_csv=$(IFS=','; echo "${sgs[*]}")
+        rerun+=(--vpc-sg-ids "$sgs_csv")
+      fi
+      [[ -n "${pub:-}" ]] && rerun+=(--publicly-accessible "$pub")
+      [[ -n "${multi:-}" ]] && rerun+=(--multi-az "$multi")
+      [[ -n "${pgroup:-}" && "${pgroup:-}" != "null" ]] && rerun+=(--db-parameter-group "$pgroup")
+      [[ -n "${ogroup:-}" && "${ogroup:-}" != "null" ]] && rerun+=(--option-group "$ogroup")
+    else
+      [[ -n "${inst_class:-}" ]] && rerun+=(--db-instance-class "$inst_class")
+      [[ -n "${subnet:-}" ]] && rerun+=(--db-subnet-group "$subnet")
+      if ((${#sgs[@]})); then
+        local sgs_csv
+        sgs_csv=$(IFS=','; echo "${sgs[*]}")
+        rerun+=(--vpc-sg-ids "$sgs_csv")
+      fi
+      [[ -n "${cpg:-}" && "${cpg:-}" != "null" ]] && rerun+=(--db-cluster-parameter-group "$cpg")
+      [[ -n "${ogroup:-}" && "${ogroup:-}" != "null" ]] && rerun+=(--option-group "$ogroup")
     fi
   fi
 
-  # print argv, one per line, for capture
   printf '%s\n' "${rerun[@]}"
 }
 
-# -------------------- CLI --------------------
+# -------------------- Arg parsing --------------------
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -h|--help)
+    --help|-h)
       usage
       exit 0
       ;;
     --interactive)
-      has_tty || die "--interactive requires /dev/tty"
       INTERACTIVE=1
-      shift
       ;;
     --yes|-y)
       YES=1
       INTERACTIVE=0
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      ;;
+    --no-wait)
+      NO_WAIT=1
+      ;;
+    --region)
+      [[ $# -ge 2 ]] || die "--region requires a value"
+      REGION="$2"
       shift
       ;;
-    --dry-run) DRY_RUN=1; shift ;;
-    --no-wait) NO_WAIT=1; shift ;;
-    --region) REGION="${2:-}"; shift 2 ;;
-
-    --source) SOURCE="${2:-}"; shift 2 ;;
-    --target) TARGET="${2:-}"; shift 2 ;;
-
-    --latest) LATEST=1; RESTORE_TIME_SPEC=""; RESTORE_TIME_ISO=""; SNAPSHOT_ID=""; shift ;;
-    --restore-time) LATEST=0; RESTORE_TIME_SPEC="${2:-}"; SNAPSHOT_ID=""; shift 2 ;;
-    --snapshot-id) LATEST=0; RESTORE_TIME_SPEC=""; RESTORE_TIME_ISO=""; SNAPSHOT_ID="${2:-}"; shift 2 ;;
-
-    --aurora-writer-instance) AURORA_WRITER_INSTANCE="${2:-}"; shift 2 ;;
-
-    --db-instance-class) DB_INSTANCE_CLASS="${2:-}"; shift 2 ;;
-    --db-subnet-group) DB_SUBNET_GROUP="${2:-}"; shift 2 ;;
-    --vpc-sg-ids) VPC_SG_IDS="${2:-}"; shift 2 ;;
-    --publicly-accessible) PUBLICLY_ACCESSIBLE="${2:-}"; shift 2 ;;
-    --multi-az) MULTI_AZ="${2:-}"; shift 2 ;;
-    --db-parameter-group) DB_PARAMETER_GROUP="${2:-}"; shift 2 ;;
-    --db-cluster-parameter-group) DB_CLUSTER_PARAMETER_GROUP="${2:-}"; shift 2 ;;
-    --option-group) OPTION_GROUP="${2:-}"; shift 2 ;;
-
+    --region=*)
+      REGION="${1#*=}"
+      ;;
+    --source)
+      [[ $# -ge 2 ]] || die "--source requires a value"
+      SOURCE_ARG="$2"
+      SOURCE="$2"
+      shift
+      ;;
+    --source=*)
+      SOURCE_ARG="${1#*=}"
+      SOURCE="$SOURCE_ARG"
+      ;;
+    --target)
+      [[ $# -ge 2 ]] || die "--target requires a value"
+      TARGET="$2"
+      shift
+      ;;
+    --target=*)
+      TARGET="${1#*=}"
+      ;;
+    --latest)
+      LATEST=1
+      RESTORE_TIME_SPEC=""
+      RESTORE_TIME_ISO=""
+      SNAPSHOT_ID=""
+      ;;
+    --restore-time)
+      [[ $# -ge 2 ]] || die "--restore-time requires a value"
+      LATEST=0
+      RESTORE_TIME_SPEC="$2"
+      RESTORE_TIME_ISO=""
+      SNAPSHOT_ID=""
+      shift
+      ;;
+    --restore-time=*)
+      LATEST=0
+      RESTORE_TIME_SPEC="${1#*=}"
+      RESTORE_TIME_ISO=""
+      SNAPSHOT_ID=""
+      ;;
+    --snapshot-id)
+      [[ $# -ge 2 ]] || die "--snapshot-id requires a value"
+      LATEST=0
+      SNAPSHOT_ID="$2"
+      RESTORE_TIME_SPEC=""
+      RESTORE_TIME_ISO=""
+      shift
+      ;;
+    --snapshot-id=*)
+      LATEST=0
+      SNAPSHOT_ID="${1#*=}"
+      RESTORE_TIME_SPEC=""
+      RESTORE_TIME_ISO=""
+      ;;
+    --aurora-writer-instance)
+      [[ $# -ge 2 ]] || die "--aurora-writer-instance requires a value"
+      AURORA_WRITER_INSTANCE="$2"
+      shift
+      ;;
+    --aurora-writer-instance=*)
+      AURORA_WRITER_INSTANCE="${1#*=}"
+      ;;
+    --db-instance-class)
+      [[ $# -ge 2 ]] || die "--db-instance-class requires a value"
+      DB_INSTANCE_CLASS="$2"
+      shift
+      ;;
+    --db-instance-class=*)
+      DB_INSTANCE_CLASS="${1#*=}"
+      ;;
+    --db-subnet-group|--db-subnet-group-name)
+      [[ $# -ge 2 ]] || die "$1 requires a value"
+      DB_SUBNET_GROUP="$2"
+      shift
+      ;;
+    --db-subnet-group=*|--db-subnet-group-name=*)
+      DB_SUBNET_GROUP="${1#*=}"
+      ;;
+    --vpc-sg-ids|--vpc-security-group-ids)
+      [[ $# -ge 2 ]] || die "$1 requires a value"
+      VPC_SG_IDS="$2"
+      shift
+      ;;
+    --vpc-sg-ids=*|--vpc-security-group-ids=*)
+      VPC_SG_IDS="${1#*=}"
+      ;;
+    --publicly-accessible)
+      [[ $# -ge 2 ]] || die "--publicly-accessible requires true|false"
+      PUBLICLY_ACCESSIBLE="$2"
+      shift
+      ;;
+    --publicly-accessible=*)
+      PUBLICLY_ACCESSIBLE="${1#*=}"
+      ;;
+    --multi-az)
+      [[ $# -ge 2 ]] || die "--multi-az requires true|false"
+      MULTI_AZ="$2"
+      shift
+      ;;
+    --multi-az=*)
+      MULTI_AZ="${1#*=}"
+      ;;
+    --db-parameter-group|--db-parameter-group-name)
+      [[ $# -ge 2 ]] || die "$1 requires a value"
+      DB_PARAMETER_GROUP="$2"
+      shift
+      ;;
+    --db-parameter-group=*|--db-parameter-group-name=*)
+      DB_PARAMETER_GROUP="${1#*=}"
+      ;;
+    --db-cluster-parameter-group|--db-cluster-parameter-group-name)
+      [[ $# -ge 2 ]] || die "$1 requires a value"
+      DB_CLUSTER_PARAMETER_GROUP="$2"
+      shift
+      ;;
+    --db-cluster-parameter-group=*|--db-cluster-parameter-group-name=*)
+      DB_CLUSTER_PARAMETER_GROUP="${1#*=}"
+      ;;
+    --option-group|--option-group-name)
+      [[ $# -ge 2 ]] || die "$1 requires a value"
+      OPTION_GROUP="$2"
+      shift
+      ;;
+    --option-group=*|--option-group-name=*)
+      OPTION_GROUP="${1#*=}"
+      ;;
     *)
       die "Unknown argument: $1"
       ;;
   esac
+  shift
 done
 
-# If non-interactive, require source/target
-if [[ "$INTERACTIVE" == "0" ]]; then
-  [[ -n "$SOURCE" ]] || die "--source is required in non-interactive mode"
-  [[ -n "$TARGET" ]] || die "--target is required in non-interactive mode"
+# Basic flag validation
+if [[ -n "$PUBLICLY_ACCESSIBLE" && "$PUBLICLY_ACCESSIBLE" != "true" && "$PUBLICLY_ACCESSIBLE" != "false" ]]; then
+  die "--publicly-accessible must be true or false"
+fi
+if [[ -n "$MULTI_AZ" && "$MULTI_AZ" != "true" && "$MULTI_AZ" != "false" ]]; then
+  die "--multi-az must be true or false"
 fi
 
 # Interactive: choose source if not provided
-if [[ -z "$SOURCE" ]]; then
+if [[ -z "$SOURCE_ARG" ]]; then
+  [[ "$INTERACTIVE" == "1" ]] || die "--source is required in non-interactive mode."
+
   mapfile -t rows < <(list_sources)
-  ((${#rows[@]})) || die "No RDS instances or clusters found."
+  ((${#rows[@]})) || die "No RDS instances, clusters, automated backups, or manual snapshots found in $(target_region_label)."
 
   items=()
   for r in "${rows[@]}"; do
-    IFS=$'\t' read -r t id engine status <<<"$r"
-    items+=("$id" "$t $engine $status")
+    IFS=$'\t' read -r key t id engine status <<<"$r"
+    items+=("$key" "$id - $t $engine $status")
   done
 
-  if ! SOURCE=$(choose_one "Sources" "Choose a DB instance or cluster:" "${items[@]}"); then
+  if ! SOURCE_ARG=$(choose_one "Sources" "Choose a restore source in $(target_region_label):" "${items[@]}"); then
     cancelled
   fi
 fi
 
-source_type=$(detect_source_type "$SOURCE")
+detect_source_type "$SOURCE_ARG"
 
 # Load bounds early (display normalization once)
-if [[ "$source_type" == "instance" ]]; then
-  d_bounds=$(instance_defaults_json "$SOURCE")
+if [[ -n "$SOURCE_BACKUP_EARLIEST$SOURCE_BACKUP_LATEST$SOURCE_BACKUP_RETENTION" ]]; then
+  d_bounds=$(jq -n \
+    --arg earliest "$SOURCE_BACKUP_EARLIEST" \
+    --arg latest "$SOURCE_BACKUP_LATEST" \
+    --arg retention "$SOURCE_BACKUP_RETENTION" \
+    '{EarliestRestorableTime: (if $earliest == "" then null else $earliest end), LatestRestorableTime: (if $latest == "" then null else $latest end), BackupRetentionPeriod: (if $retention == "" then null else ($retention | tonumber?) end)}')
+elif [[ -n "$SOURCE_SNAPSHOT_TIME" ]]; then
+  d_bounds=$(jq -n --arg snap "$SOURCE_SNAPSHOT_TIME" '{EarliestRestorableTime: null, LatestRestorableTime: $snap, BackupRetentionPeriod: null}')
+elif [[ "$source_type" == "instance" ]]; then
+  d_bounds=$(instance_defaults_json "$SOURCE" "$(source_metadata_region)")
 else
-  d_bounds=$(cluster_defaults_json "$SOURCE")
+  d_bounds=$(cluster_defaults_json "$SOURCE" "$(source_metadata_region)")
 fi
 
 EARLIEST_RESTORABLE=$(echo "$d_bounds" | jq -r '.EarliestRestorableTime // empty')
 LATEST_RESTORABLE=$(echo "$d_bounds" | jq -r '.LatestRestorableTime // empty')
 RETENTION_DAYS=$(echo "$d_bounds" | jq -r '.BackupRetentionPeriod // empty')
+EARLIEST_DISPLAY=$(time_display "$EARLIEST_RESTORABLE")
+LATEST_DISPLAY=$(time_display "$LATEST_RESTORABLE")
 
-if [[ -n "$EARLIEST_RESTORABLE" ]]; then
-  EARLIEST_DISPLAY="$EARLIEST_RESTORABLE"
-elif [[ -n "$RETENTION_DAYS" ]]; then
-  EARLIEST_DISPLAY="not reported by AWS (retention: ${RETENTION_DAYS} days)"
-else
-  EARLIEST_DISPLAY="not reported by AWS"
-fi
-
-if [[ -n "$LATEST_RESTORABLE" ]]; then
-  LATEST_DISPLAY="$LATEST_RESTORABLE"
-else
-  LATEST_DISPLAY="not reported by AWS"
-fi
-
-# Interactive: choose restore intent BEFORE target naming; choose snapshot/time immediately
+# Interactive: choose restore intent BEFORE target naming; choose snapshot/time immediately.
+# If a snapshot source was selected, the intent is already fixed to that snapshot.
 if [[ "$INTERACTIVE" == "1" && -z "$SNAPSHOT_ID" && -z "$RESTORE_TIME_SPEC" ]]; then
-  if ! choice=$(choose_one "Restore target" "Restore to:" \
-    latest   "Latest available state (default)" \
-    time     "Specific point in time" \
-    snapshot "Specific snapshot"); then
+  restore_items=(
+    latest "Latest available state (default)"
+    time "Specific point in time"
+  )
+
+  if [[ -z "$SOURCE_AUTOMATED_BACKUP_ARN$SOURCE_CLUSTER_RESOURCE_ID" ]]; then
+    restore_items+=(snapshot "Specific snapshot")
+  fi
+
+  if ! choice=$(choose_one "Restore target" "Restore to:" "${restore_items[@]}"); then
     cancelled
   fi
 
@@ -724,16 +1244,15 @@ if [[ "$INTERACTIVE" == "1" && -z "$SNAPSHOT_ID" && -z "$RESTORE_TIME_SPEC" ]]; 
 fi
 
 # Non-interactive: resolve relative restore time if provided
-if [[ "$INTERACTIVE" == "0" && -n "$RESTORE_TIME_SPEC" ]]; then
+if [[ -n "$RESTORE_TIME_SPEC" && -z "$RESTORE_TIME_ISO" ]]; then
   RESTORE_TIME_ISO=$(resolve_restore_time_spec_to_iso "$RESTORE_TIME_SPEC")
 fi
 
-# Propose default target naming if not provided (whiptail inputbox in interactive)
+# Target naming
 if [[ -z "$TARGET" ]]; then
-  ts=$(date +%Y%m%d-%H%M%S)
-  default_target="${SOURCE}-restore-${ts}"
+  default_target="${SOURCE}-restore-$(date -u +%Y%m%d%H%M%S)"
   if [[ "$INTERACTIVE" == "1" ]]; then
-    if ! TARGET=$(choose_text_keep_default_if_empty "Target identifier" "Enter target identifier:" "$default_target"); then
+    if ! TARGET=$(choose_text_keep_default_if_empty "Target identifier" "Target identifier:" "$default_target"); then
       cancelled
     fi
   else
@@ -741,19 +1260,20 @@ if [[ -z "$TARGET" ]]; then
   fi
 fi
 
-ensure_target_available_or_prompt "$source_type" TARGET
-
-# Aurora writer id required for clusters
-if [[ "$source_type" == "cluster" && -z "$AURORA_WRITER_INSTANCE" ]]; then
-  if [[ "$INTERACTIVE" == "1" ]]; then
-    if ! AURORA_WRITER_INSTANCE=$(choose_text_keep_default_if_empty "Writer instance" "Enter Aurora writer instance identifier:" "${TARGET}-writer"); then
-      cancelled
+if [[ "$source_type" == "instance" ]]; then
+  ensure_target_available_or_prompt "instance" TARGET
+else
+  ensure_target_available_or_prompt "cluster" TARGET
+  if [[ -z "$AURORA_WRITER_INSTANCE" ]]; then
+    default_writer="${TARGET}-writer"
+    if [[ "$INTERACTIVE" == "1" ]]; then
+      if ! AURORA_WRITER_INSTANCE=$(choose_text_keep_default_if_empty "Writer instance" "Writer DB instance identifier:" "$default_writer"); then
+        cancelled
+      fi
+    else
+      AURORA_WRITER_INSTANCE="$default_writer"
     fi
-  else
-    die "Aurora restore requires --aurora-writer-instance <id>"
   fi
-fi
-if [[ "$source_type" == "cluster" ]]; then
   ensure_target_available_or_prompt "instance" AURORA_WRITER_INSTANCE
 fi
 
@@ -761,53 +1281,62 @@ fi
 aws_prefix=(aws)
 [[ -n "$REGION" ]] && aws_prefix+=(--region "$REGION")
 
-# Build restore command (+ always prompt config in interactive mode)
+# Build restore command (+ prompt config in interactive mode)
 if [[ "$source_type" == "instance" ]]; then
-  d=$(instance_defaults_json "$SOURCE")
+  source_region=$(source_metadata_region)
+
+  if ! d=$(instance_defaults_json "$SOURCE" "$source_region" 2>/dev/null); then
+    die "Could not load source DB instance '$SOURCE' in $(region_label "$source_region") to derive restore defaults. Automated backups and copied snapshots do not expose DB subnet group, parameter group, or security group names. Ensure the source DB exists in its original region, or add that metadata to the script before restoring."
+  fi
+
   cls=$(echo "$d" | jq -r '.DBInstanceClass')
   subnet=$(echo "$d" | jq -r '.DBSubnetGroupName')
   pub=$(echo "$d" | jq -r '.PubliclyAccessible')
   multi=$(echo "$d" | jq -r '.MultiAZ')
   pgroup=$(echo "$d" | jq -r '.DBParameterGroupName')
   ogroup=$(echo "$d" | jq -r '.OptionGroupName')
-  mapfile -t sgs < <(echo "$d" | jq -r '.VpcSecurityGroupIds[]')
+  mapfile -t source_sgs < <(echo "$d" | jq -r '.VpcSecurityGroupIds[]')
 
-  # Store the defaults
-  cls_def="$cls"
-  subnet_def="$subnet"
-  pub_def="$pub"
-  multi_def="$multi"
-  pgroup_def="$pgroup"
-  ogroup_def="$ogroup"
-  sgs_def=("${sgs[@]}")
-
-  # Apply CLI overrides first
+  # Apply CLI overrides first.
   [[ -n "$DB_INSTANCE_CLASS" ]] && cls="$DB_INSTANCE_CLASS"
   [[ -n "$DB_SUBNET_GROUP" ]] && subnet="$DB_SUBNET_GROUP"
   [[ -n "$PUBLICLY_ACCESSIBLE" ]] && pub="$PUBLICLY_ACCESSIBLE"
   [[ -n "$MULTI_AZ" ]] && multi="$MULTI_AZ"
   [[ -n "$DB_PARAMETER_GROUP" ]] && pgroup="$DB_PARAMETER_GROUP"
   [[ -n "$OPTION_GROUP" ]] && ogroup="$OPTION_GROUP"
-  if [[ -n "$VPC_SG_IDS" ]]; then split_to_array "$VPC_SG_IDS" sgs; fi
 
-  # Always prompt (fast: defaults prefilled)
+  # Prompt for logical config before validating same-name existence in the target region.
   if [[ "$INTERACTIVE" == "1" ]]; then
     if ! cls=$(choose_text_keep_default_if_empty "DB instance class" "DB instance class:" "$cls"); then cancelled; fi
     if ! subnet=$(choose_text_keep_default_if_empty "DB subnet group" "DB subnet group:" "$subnet"); then cancelled; fi
     if ! pub=$(choose_text_keep_default_if_empty "Public access" "Publicly accessible (true/false):" "$pub"); then cancelled; fi
     if ! multi=$(choose_text_keep_default_if_empty "Multi-AZ" "Multi-AZ (true/false):" "$multi"); then cancelled; fi
-
     if [[ -n "$pgroup" && "$pgroup" != "null" ]]; then
       if ! pgroup=$(choose_text_keep_default_if_empty "Parameter group" "DB parameter group:" "$pgroup"); then cancelled; fi
     fi
     if [[ -n "$ogroup" && "$ogroup" != "null" ]]; then
       if ! ogroup=$(choose_text_keep_default_if_empty "Option group" "Option group:" "$ogroup"); then cancelled; fi
     fi
+  fi
 
+  require_target_db_subnet_group "$subnet"
+  require_target_db_parameter_group "$pgroup"
+  require_target_option_group "$ogroup"
+
+  sgs=()
+  if [[ -n "$VPC_SG_IDS" ]]; then
+    split_to_array "$VPC_SG_IDS" sgs
+  elif ((${#source_sgs[@]})); then
+    mapfile -t sgs < <(map_sg_ids_to_target_by_name "$source_region" "$subnet" "${source_sgs[@]}")
+  fi
+
+  if [[ "$INTERACTIVE" == "1" ]]; then
     sgs_def_csv=$(IFS=','; echo "${sgs[*]}")
-    if ! sgs_in=$(choose_text_keep_default_if_empty "Security groups" "VPC security groups (comma-separated):" "$sgs_def_csv"); then cancelled; fi
+    if ! sgs_in=$(choose_text_keep_default_if_empty "Security groups" "VPC security groups (comma-separated target-region SG IDs):" "$sgs_def_csv"); then cancelled; fi
     split_to_array "$sgs_in" sgs
   fi
+
+  validate_sg_ids_in_target_subnet_vpc "$subnet" "${sgs[@]}"
 
   if [[ -n "$SNAPSHOT_ID" ]]; then
     cmd_restore=( "${aws_prefix[@]}" rds restore-db-instance-from-db-snapshot
@@ -817,12 +1346,14 @@ if [[ "$source_type" == "instance" ]]; then
       --db-subnet-group-name "$subnet"
     )
   else
-    cmd_restore=( "${aws_prefix[@]}" rds restore-db-instance-to-point-in-time
-      --source-db-instance-identifier "$SOURCE"
-      --target-db-instance-identifier "$TARGET"
-      --db-instance-class "$cls"
-      --db-subnet-group-name "$subnet"
-    )
+    cmd_restore=( "${aws_prefix[@]}" rds restore-db-instance-to-point-in-time )
+    if [[ -n "$SOURCE_AUTOMATED_BACKUP_ARN" ]]; then
+      cmd_restore+=(--source-db-instance-automated-backups-arn "$SOURCE_AUTOMATED_BACKUP_ARN")
+    else
+      cmd_restore+=(--source-db-instance-identifier "$SOURCE")
+    fi
+    cmd_restore+=(--target-db-instance-identifier "$TARGET" --db-instance-class "$cls" --db-subnet-group-name "$subnet")
+
     if [[ -n "$RESTORE_TIME_SPEC" ]]; then
       cmd_restore+=(--restore-time "${RESTORE_TIME_ISO:-$RESTORE_TIME_SPEC}")
     else
@@ -837,28 +1368,25 @@ if [[ "$source_type" == "instance" ]]; then
   [[ "$multi" == "true" ]] && cmd_restore+=(--multi-az) || cmd_restore+=(--no-multi-az)
 
   cmd_wait=( "${aws_prefix[@]}" rds wait db-instance-available --db-instance-identifier "$TARGET" )
-
 else
-  d=$(cluster_defaults_json "$SOURCE")
+  source_region=$(source_metadata_region)
+
+  if ! d=$(cluster_defaults_json "$SOURCE" "$source_region" 2>/dev/null); then
+    die "Could not load source DB cluster '$SOURCE' in $(region_label "$source_region") to derive restore defaults. Automated backups and copied snapshots do not expose DB subnet group, cluster parameter group, or security group names. Ensure the source cluster exists in its original region, or add that metadata to the script before restoring."
+  fi
+
   engine=$(echo "$d" | jq -r '.Engine')
   subnet=$(echo "$d" | jq -r '.DBSubnetGroupName')
   cpg=$(echo "$d" | jq -r '.DBClusterParameterGroupName')
   ogroup=$(echo "$d" | jq -r '.OptionGroupName')
-  mapfile -t sgs < <(echo "$d" | jq -r '.VpcSecurityGroupIds[]')
-
-  subnet_def="$subnet"
-  cpg_def="$cpg"
-  ogroup_def="$ogroup"
-  sgs_def=("${sgs[@]}")
+  mapfile -t source_sgs < <(echo "$d" | jq -r '.VpcSecurityGroupIds[]')
 
   [[ -n "$DB_SUBNET_GROUP" ]] && subnet="$DB_SUBNET_GROUP"
   [[ -n "$DB_CLUSTER_PARAMETER_GROUP" ]] && cpg="$DB_CLUSTER_PARAMETER_GROUP"
   [[ -n "$OPTION_GROUP" ]] && ogroup="$OPTION_GROUP"
-  if [[ -n "$VPC_SG_IDS" ]]; then split_to_array "$VPC_SG_IDS" sgs; fi
 
   inst_class="${DB_INSTANCE_CLASS:-db.r6g.large}"
 
-  # Always prompt (fast: defaults prefilled)
   if [[ "$INTERACTIVE" == "1" ]]; then
     if ! subnet=$(choose_text_keep_default_if_empty "DB subnet group" "DB subnet group:" "$subnet"); then cancelled; fi
     if [[ -n "$cpg" && "$cpg" != "null" ]]; then
@@ -868,10 +1396,26 @@ else
       if ! ogroup=$(choose_text_keep_default_if_empty "Option group" "Option group:" "$ogroup"); then cancelled; fi
     fi
     if ! inst_class=$(choose_text_keep_default_if_empty "Writer class" "Writer instance class:" "$inst_class"); then cancelled; fi
+  fi
+
+  require_target_db_subnet_group "$subnet"
+  require_target_db_cluster_parameter_group "$cpg"
+  require_target_option_group "$ogroup"
+
+  sgs=()
+  if [[ -n "$VPC_SG_IDS" ]]; then
+    split_to_array "$VPC_SG_IDS" sgs
+  elif ((${#source_sgs[@]})); then
+    mapfile -t sgs < <(map_sg_ids_to_target_by_name "$source_region" "$subnet" "${source_sgs[@]}")
+  fi
+
+  if [[ "$INTERACTIVE" == "1" ]]; then
     sgs_def_csv=$(IFS=','; echo "${sgs[*]}")
-    if ! sgs_in=$(choose_text_keep_default_if_empty "Security groups" "VPC security groups (comma-separated):" "$sgs_def_csv"); then cancelled; fi
+    if ! sgs_in=$(choose_text_keep_default_if_empty "Security groups" "VPC security groups (comma-separated target-region SG IDs):" "$sgs_def_csv"); then cancelled; fi
     split_to_array "$sgs_in" sgs
   fi
+
+  validate_sg_ids_in_target_subnet_vpc "$subnet" "${sgs[@]}"
 
   if [[ -n "$SNAPSHOT_ID" ]]; then
     cmd_restore=( "${aws_prefix[@]}" rds restore-db-cluster-from-snapshot
@@ -880,10 +1424,14 @@ else
       --engine "$engine"
     )
   else
-    cmd_restore=( "${aws_prefix[@]}" rds restore-db-cluster-to-point-in-time
-      --source-db-cluster-identifier "$SOURCE"
-      --db-cluster-identifier "$TARGET"
-    )
+    cmd_restore=( "${aws_prefix[@]}" rds restore-db-cluster-to-point-in-time )
+    if [[ -n "$SOURCE_CLUSTER_RESOURCE_ID" ]]; then
+      cmd_restore+=(--source-db-cluster-resource-id "$SOURCE_CLUSTER_RESOURCE_ID")
+    else
+      cmd_restore+=(--source-db-cluster-identifier "$SOURCE")
+    fi
+    cmd_restore+=(--db-cluster-identifier "$TARGET")
+
     if [[ -n "$RESTORE_TIME_SPEC" ]]; then
       cmd_restore+=(--restore-to-time "${RESTORE_TIME_ISO:-$RESTORE_TIME_SPEC}")
     else
@@ -909,19 +1457,25 @@ fi
 # Final plan + commands
 echo
 echo "================ EXECUTION PLAN ======================"
-echo "Source:   $SOURCE"
-echo "Type:     $source_type"
-echo "Target:   $TARGET"
-[[ "$source_type" == "cluster" ]] && echo "Writer:   $AURORA_WRITER_INSTANCE"
+echo "Target region: $(target_region_label)"
+echo "Source: $SOURCE"
+[[ -n "$SOURCE_ARG" && "$SOURCE_ARG" != "$SOURCE" ]] && echo "Source selector: $SOURCE_ARG"
+[[ -n "$SOURCE_KIND" ]] && echo "Source kind: $SOURCE_KIND"
+echo "Source metadata region: $(region_label "$(source_metadata_region)")"
+echo "Type: $source_type"
+echo "Target: $TARGET"
+[[ "$source_type" == "cluster" ]] && echo "Writer: $AURORA_WRITER_INSTANCE"
 echo "Earliest: $EARLIEST_DISPLAY"
-echo "Latest:   $LATEST_DISPLAY"
+echo "Latest: $LATEST_DISPLAY"
+
 if [[ -n "$SNAPSHOT_ID" ]]; then
-  echo "Restore:  snapshot -> $SNAPSHOT_ID"
+  echo "Restore: snapshot -> $SNAPSHOT_ID"
 elif [[ -n "$RESTORE_TIME_SPEC" ]]; then
-  echo "Restore:  time -> $RESTORE_TIME_SPEC (resolved: ${RESTORE_TIME_ISO:-same})"
+  echo "Restore: time -> $RESTORE_TIME_SPEC (resolved: ${RESTORE_TIME_ISO:-same})"
 else
-  echo "Restore:  latest available state"
+  echo "Restore: latest available state"
 fi
+
 echo "------------------------------------------------------"
 echo "Commands that will be executed:"
 echo
@@ -942,13 +1496,17 @@ fi
 
 echo "======================================================"
 mapfile -t rerun_minimal < <(build_rerun_cmd minimal)
-mapfile -t rerun_full    < <(build_rerun_cmd full)
+mapfile -t rerun_full < <(build_rerun_cmd full)
+
 echo "Re-run this exact restore non-interactively (with defaults):"
 print_cmd "" "${rerun_minimal[@]}"
+
 echo "Re-run this exact restore non-interactively (hardcoded arguments):"
 print_cmd "" "${rerun_full[@]}"
+
 echo "Single-line (copy/paste):"
-echo -n " "; print_shell_cmd "${rerun_minimal[@]}"
+echo -n "  "
+print_shell_cmd "${rerun_minimal[@]}"
 echo
 echo "======================================================"
 echo
@@ -965,17 +1523,21 @@ echo
 if [[ "$source_type" == "instance" ]]; then
   "${cmd_restore[@]}" >/dev/null
   echo "Restore started."
+
   if [[ "$NO_WAIT" == "1" ]]; then
     echo "Exiting due to --no-wait."
     exit 0
   fi
+
   echo "Waiting until available..."
   "${cmd_wait[@]}"
+
   aws_json rds describe-db-instances --db-instance-identifier "$TARGET" \
     | jq -r '.DBInstances[0] | "Endpoint: \(.Endpoint.Address):\(.Endpoint.Port)\nStatus: \(.DBInstanceStatus)\nEngine: \(.Engine) \(.EngineVersion)"'
 else
   "${cmd_restore[@]}" >/dev/null
   echo "Cluster restore started."
+
   if [[ "$NO_WAIT" == "1" ]]; then
     echo "Exiting due to --no-wait."
     echo "When ready, run (in order):"
@@ -984,12 +1546,16 @@ else
     echo "  ${cmd_wait_writer[*]}"
     exit 0
   fi
+
   echo "Waiting until cluster available..."
   "${cmd_wait_cluster[@]}"
+
   echo "Creating writer instance..."
   "${cmd_create_writer[@]}" >/dev/null
+
   echo "Waiting until writer instance available..."
   "${cmd_wait_writer[@]}"
+
   aws_json rds describe-db-clusters --db-cluster-identifier "$TARGET" \
-    | jq -r '.DBClusters[0] | "Cluster endpoint: \(.Endpoint)\nReader endpoint:  \(.ReaderEndpoint)\nStatus: \(.Status)\nEngine: \(.Engine) \(.EngineVersion)"'
+    | jq -r '.DBClusters[0] | "Cluster endpoint: \(.Endpoint)\nReader endpoint: \(.ReaderEndpoint)\nStatus: \(.Status)\nEngine: \(.Engine) \(.EngineVersion)"'
 fi
