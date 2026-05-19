@@ -1407,14 +1407,34 @@ if [[ -z "$SOURCE_ARG" ]]; then
   ((${#rows[@]})) || die "No RDS instances, clusters, automated backups, or manual snapshots found in $(target_region_label)."
 
   items=()
+  declare -A source_key_map=()
   for r in "${rows[@]}"; do
     IFS=$'\t' read -r key t id engine status <<<"$r"
-    items+=("$key" "$id - $t $engine $status")
+
+    display_key="$key"
+    case "$key" in
+      instance-backup:*) display_key="instance-backup:$id" ;;
+      cluster-backup:*) display_key="cluster-backup:$id" ;;
+    esac
+
+    if [[ -n "${source_key_map[$display_key]+x}" ]]; then
+      n=2
+      base_display_key="$display_key"
+      while [[ -n "${source_key_map[$display_key]+x}" ]]; do
+        display_key="${base_display_key}:$n"
+        n=$((n + 1))
+      done
+    fi
+
+    source_key_map["$display_key"]="$key"
+    items+=("$display_key" "$id - $t $engine $status")
   done
 
   if ! SOURCE_ARG=$(choose_one "Sources" "Choose a restore source in $(target_region_label):" "${items[@]}"); then
     cancelled
   fi
+
+  SOURCE_ARG="${source_key_map[$SOURCE_ARG]}"
 fi
 
 detect_source_type "$SOURCE_ARG"
