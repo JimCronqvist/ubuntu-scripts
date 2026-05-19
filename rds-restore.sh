@@ -99,6 +99,11 @@ DB_PARAMETER_GROUP=""
 DB_CLUSTER_PARAMETER_GROUP=""
 OPTION_GROUP=""
 
+# Validation is intentionally delayed until after the execution plan is printed.
+# That way a missing target-region resource still shows the command shape that
+# needs to be fixed.
+VALIDATION_ERRORS=()
+
 usage() {
   cat <<'EOF_USAGE'
 Usage:
@@ -523,6 +528,46 @@ reset_source_metadata() {
 }
 
 # -------------------- Target resource validation --------------------
+add_validation_error() {
+  VALIDATION_ERRORS+=("$*")
+}
+
+print_validation_errors_and_exit_if_any() {
+  ((${#VALIDATION_ERRORS[@]})) || return 0
+
+  echo "Validation failed. The command plan above was not executed."
+  echo "Fix the following target-region resources and re-run:"
+  echo
+
+  local err
+  for err in "${VALIDATION_ERRORS[@]}"; do
+    echo "  - $err"
+  done
+
+  echo
+  echo "Placeholders such as '<error>' or '<empty>' in the command plan show values the script could not resolve yet."
+  exit 1
+}
+
+value_or_placeholder() {
+  local value="${1:-}"
+  local placeholder="${2:-<empty>}"
+
+  if [[ -z "$value" || "$value" == "null" ]]; then
+    echo "$placeholder"
+  else
+    echo "$value"
+  fi
+}
+
+target_db_subnet_group_vpc_id_or_empty() {
+  local name="$1"
+  [[ -n "$name" && "$name" != "null" && "$name" != "<empty>" && "$name" != "<error>" ]] || return 1
+
+  aws_json rds describe-db-subnet-groups --db-subnet-group-name "$name" 2>/dev/null \
+    | jq -r '.DBSubnetGroups[0].VpcId // empty'
+}
+
 require_target_db_subnet_group() {
   local name="$1"
   [[ -n "$name" && "$name" != "null" ]] || die "DB subnet group is required. Create a same-named DB subnet group in $(target_region_label), or pass --db-subnet-group <name>."
@@ -557,8 +602,56 @@ require_target_option_group() {
 
 db_subnet_group_vpc_id() {
   local name="$1"
+  local vpc_id
+
   require_target_db_subnet_group "$name"
-  aws_json rds describe-db-subnet-groups --db-subnet-group-name "$name" | jq -r '.DBSubnetGroups[0].VpcId // empty'
+  vpc_id=$(target_db_subnet_group_vpc_id_or_empty "$name")
+  [[ -n "$vpc_id" ]] || die "Could not determine VPC for DB subnet group '$name' in $(target_region_label)."
+  echo "$vpc_id"
+}
+
+validate_target_db_subnet_group() {
+  local name="$1"
+
+  if [[ -z "$name" || "$name" == "null" || "$name" == "<empty>" ]]; then
+    add_validation_error "DB subnet group is required. Create a same-named DB subnet group in $(target_region_label), or pass --db-subnet-group <name>."
+    return 1
+  fi
+
+  aws_json rds describe-db-subnet-groups --db-subnet-group-name "$name" >/dev/null 2>&1 || {
+    add_validation_error "DB subnet group '$name' does not exist in $(target_region_label). Create it in the target region/VPC, or pass --db-subnet-group <name>."
+    return 1
+  }
+}
+
+validate_target_db_parameter_group() {
+  local name="$1"
+  [[ -n "$name" && "$name" != "null" && "$name" != "<empty>" && "$name" != "<error>" ]] || return 0
+
+  aws_json rds describe-db-parameter-groups --db-parameter-group-name "$name" >/dev/null 2>&1 || {
+    add_validation_error "DB parameter group '$name' does not exist in $(target_region_label). Create a same-named parameter group in the target region, or pass --db-parameter-group <name>."
+    return 1
+  }
+}
+
+validate_target_db_cluster_parameter_group() {
+  local name="$1"
+  [[ -n "$name" && "$name" != "null" && "$name" != "<empty>" && "$name" != "<error>" ]] || return 0
+
+  aws_json rds describe-db-cluster-parameter-groups --db-cluster-parameter-group-name "$name" >/dev/null 2>&1 || {
+    add_validation_error "DB cluster parameter group '$name' does not exist in $(target_region_label). Create a same-named cluster parameter group in the target region, or pass --db-cluster-parameter-group <name>."
+    return 1
+  }
+}
+
+validate_target_option_group() {
+  local name="$1"
+  [[ -n "$name" && "$name" != "null" && "$name" != "<empty>" && "$name" != "<error>" ]] || return 0
+
+  aws_json rds describe-option-groups --option-group-name "$name" >/dev/null 2>&1 || {
+    add_validation_error "Option group '$name' does not exist in $(target_region_label). Create a same-named option group in the target region, or pass --option-group <name>."
+    return 1
+  }
 }
 
 source_sg_name_for_id() {
@@ -567,23 +660,35 @@ source_sg_name_for_id() {
   aws_json_in_region "$source_region" ec2 describe-security-groups --group-ids "$sg_id" | jq -r '.SecurityGroups[0].GroupName // empty'
 }
 
-target_sg_id_for_name() {
+target_sg_id_for_name_or_error() {
   local name="$1"
   local vpc_id="$2"
   local ids=()
 
   mapfile -t ids < <(aws_json ec2 describe-security-groups \
-    --filters "Name=vpc-id,Values=$vpc_id" "Name=group-name,Values=$name" \
+    --filters "Name=vpc-id,Values=$vpc_id" "Name=group-name,Values=$name" 2>/dev/null \
     | jq -r '.SecurityGroups[].GroupId')
 
   if ((${#ids[@]} == 0)); then
-    die "Could not find security group named '$name' in target VPC '$vpc_id' ($(target_region_label)). Create a same-named security group there, or pass --vpc-sg-ids with target-region SG IDs."
+    echo "<error>"
+    return 0
   fi
   if ((${#ids[@]} > 1)); then
-    die "Found multiple security groups named '$name' in target VPC '$vpc_id' ($(target_region_label)). Pass --vpc-sg-ids explicitly."
+    echo "<error>"
+    return 0
   fi
 
   echo "${ids[0]}"
+}
+
+target_sg_id_for_name() {
+  local name="$1"
+  local vpc_id="$2"
+  local id
+
+  id=$(target_sg_id_for_name_or_error "$name" "$vpc_id")
+  [[ "$id" != "<error>" ]] || die "Could not resolve target security group named '$name' in target VPC '$vpc_id' ($(target_region_label))."
+  echo "$id"
 }
 
 map_sg_ids_to_target_by_name() {
@@ -596,7 +701,6 @@ map_sg_ids_to_target_by_name() {
 
   local vpc_id
   vpc_id=$(db_subnet_group_vpc_id "$subnet_group")
-  [[ -n "$vpc_id" ]] || die "Could not determine VPC for DB subnet group '$subnet_group' in $(target_region_label)."
 
   local source_sg_id source_sg_name target_sg_id
   local out=()
@@ -616,24 +720,77 @@ map_sg_ids_to_target_by_name() {
   printf '%s\n' "${out[@]}"
 }
 
+map_sg_ids_to_target_by_name_for_plan() {
+  local source_region="$1"
+  local subnet_group="$2"
+  shift 2
+
+  local source_region_name
+  source_region_name=$(region_label "$source_region")
+
+  local vpc_id
+  if ! vpc_id=$(target_db_subnet_group_vpc_id_or_empty "$subnet_group") || [[ -z "$vpc_id" ]]; then
+    if [[ -z "$subnet_group" || "$subnet_group" == "null" ]]; then
+      add_validation_error "Cannot map security groups because DB subnet group is empty. Pass --db-subnet-group <name>."
+    else
+      add_validation_error "Cannot map security groups because DB subnet group '$subnet_group' does not exist in $(target_region_label). Create it first, or pass --db-subnet-group <name>."
+    fi
+    echo "<error>"
+    return 0
+  fi
+
+  local source_sg_id source_sg_name target_sg_id
+  local out=()
+
+  for source_sg_id in "$@"; do
+    [[ -n "$source_sg_id" && "$source_sg_id" != "null" ]] || continue
+
+    if ! source_sg_name=$(source_sg_name_for_id "$source_region" "$source_sg_id" 2>/dev/null); then
+      add_validation_error "Could not read source security group '$source_sg_id' in $source_region_name. Pass --vpc-sg-ids with target-region SG IDs."
+      out+=("<error>")
+      continue
+    fi
+    if [[ -z "$source_sg_name" ]]; then
+      add_validation_error "Could not resolve source security group '$source_sg_id' to a name in $source_region_name. Pass --vpc-sg-ids with target-region SG IDs."
+      out+=("<error>")
+      continue
+    fi
+
+    target_sg_id=$(target_sg_id_for_name_or_error "$source_sg_name" "$vpc_id")
+    out+=("$target_sg_id")
+  done
+
+  printf '%s\n' "${out[@]}"
+}
+
 validate_sg_ids_in_target_subnet_vpc() {
   local subnet_group="$1"
   shift
   ((${#@} == 0)) && return 0
 
   local vpc_id
-  vpc_id=$(db_subnet_group_vpc_id "$subnet_group")
-  [[ -n "$vpc_id" ]] || die "Could not determine VPC for DB subnet group '$subnet_group' in $(target_region_label)."
+  if ! vpc_id=$(target_db_subnet_group_vpc_id_or_empty "$subnet_group") || [[ -z "$vpc_id" ]]; then
+    # The DB subnet group validation reports this already. Avoid duplicating it here.
+    return 1
+  fi
 
   local sg_id sg_vpc_id
   for sg_id in "$@"; do
     [[ -n "$sg_id" && "$sg_id" != "null" ]] || continue
 
-    if ! sg_vpc_id=$(aws_json ec2 describe-security-groups --group-ids "$sg_id" | jq -r '.SecurityGroups[0].VpcId // empty'); then
-      die "Security group '$sg_id' does not exist in $(target_region_label). Pass --vpc-sg-ids with target-region SG IDs."
+    if [[ "$sg_id" == "<error>" || "$sg_id" == "<empty>" ]]; then
+      add_validation_error "Security group IDs could not be resolved. Create same-named security groups in the target VPC, or pass --vpc-sg-ids with target-region SG IDs."
+      continue
     fi
 
-    [[ "$sg_vpc_id" == "$vpc_id" ]] || die "Security group '$sg_id' is in VPC '$sg_vpc_id', but DB subnet group '$subnet_group' is in VPC '$vpc_id'. Pass SG IDs from the target VPC."
+    if ! sg_vpc_id=$(aws_json ec2 describe-security-groups --group-ids "$sg_id" 2>/dev/null | jq -r '.SecurityGroups[0].VpcId // empty'); then
+      add_validation_error "Security group '$sg_id' does not exist in $(target_region_label). Pass --vpc-sg-ids with target-region SG IDs."
+      continue
+    fi
+
+    if [[ "$sg_vpc_id" != "$vpc_id" ]]; then
+      add_validation_error "Security group '$sg_id' is in VPC '$sg_vpc_id', but DB subnet group '$subnet_group' is in VPC '$vpc_id'. Pass SG IDs from the target VPC."
+    fi
   done
 }
 
@@ -923,22 +1080,97 @@ cluster_defaults_json() {
 }
 
 # -------------------- Pretty-print commands --------------------
+shell_quote() {
+  local s="$1"
+
+  if [[ -z "$s" ]]; then
+    printf "''"
+  elif [[ "$s" =~ ^[A-Za-z0-9_./:=@%+,~-]+$ ]]; then
+    printf '%s' "$s"
+  else
+    s=${s//\'/\'\\\'\'}
+    printf "'%s'" "$s"
+  fi
+}
+
 print_shell_cmd() {
   local q
+  local first=1
+
   for q in "$@"; do
-    printf '%q ' "$q"
+    if [[ "$first" == "1" ]]; then
+      first=0
+    else
+      printf ' '
+    fi
+    shell_quote "$q"
   done
   echo
+}
+
+print_cmd_line() {
+  local -a args=("$@")
+  local i
+
+  for ((i=0; i<${#args[@]}; i++)); do
+    (( i > 0 )) && printf ' '
+    shell_quote "${args[$i]}"
+  done
 }
 
 print_cmd() {
   local prefix="$1"
   shift
 
+  local -a parts=("$@")
+  ((${#parts[@]})) || return 0
+
+  local first_indent continuation_indent
   if [[ -n "$prefix" ]]; then
-    printf '%s ' "$prefix"
+    first_indent="$prefix "
+    continuation_indent=$(printf '%*s' "${#first_indent}" '')
+  else
+    first_indent="  "
+    continuation_indent="  "
   fi
-  print_shell_cmd "$@"
+
+  local base_end=0
+  while (( base_end < ${#parts[@]} )) && [[ "${parts[$base_end]}" != --* ]]; do
+    base_end=$((base_end + 1))
+  done
+  (( base_end == 0 )) && base_end=1
+
+  printf '%s' "$first_indent"
+  print_cmd_line "${parts[@]:0:base_end}"
+
+  if (( base_end < ${#parts[@]} )); then
+    printf ' \\\n'
+  else
+    printf '\n'
+    return 0
+  fi
+
+  local i=$base_end
+  local -a group=()
+
+  while (( i < ${#parts[@]} )); do
+    group=("${parts[$i]}")
+    i=$((i + 1))
+
+    while (( i < ${#parts[@]} )) && [[ "${parts[$i]}" != --* ]]; do
+      group+=("${parts[$i]}")
+      i=$((i + 1))
+    done
+
+    printf '%s' "$continuation_indent"
+    print_cmd_line "${group[@]}"
+
+    if (( i < ${#parts[@]} )); then
+      printf ' \\\n'
+    else
+      printf '\n'
+    fi
+  done
 }
 
 build_rerun_cmd() {
@@ -1319,15 +1551,11 @@ if [[ "$source_type" == "instance" ]]; then
     fi
   fi
 
-  require_target_db_subnet_group "$subnet"
-  require_target_db_parameter_group "$pgroup"
-  require_target_option_group "$ogroup"
-
   sgs=()
   if [[ -n "$VPC_SG_IDS" ]]; then
     split_to_array "$VPC_SG_IDS" sgs
   elif ((${#source_sgs[@]})); then
-    mapfile -t sgs < <(map_sg_ids_to_target_by_name "$source_region" "$subnet" "${source_sgs[@]}")
+    mapfile -t sgs < <(map_sg_ids_to_target_by_name_for_plan "$source_region" "$subnet" "${source_sgs[@]}")
   fi
 
   if [[ "$INTERACTIVE" == "1" ]]; then
@@ -1336,14 +1564,15 @@ if [[ "$source_type" == "instance" ]]; then
     split_to_array "$sgs_in" sgs
   fi
 
-  validate_sg_ids_in_target_subnet_vpc "$subnet" "${sgs[@]}"
+  cmd_cls=$(value_or_placeholder "$cls")
+  cmd_subnet=$(value_or_placeholder "$subnet")
 
   if [[ -n "$SNAPSHOT_ID" ]]; then
     cmd_restore=( "${aws_prefix[@]}" rds restore-db-instance-from-db-snapshot
       --db-instance-identifier "$TARGET"
       --db-snapshot-identifier "$SNAPSHOT_ID"
-      --db-instance-class "$cls"
-      --db-subnet-group-name "$subnet"
+      --db-instance-class "$cmd_cls"
+      --db-subnet-group-name "$cmd_subnet"
     )
   else
     cmd_restore=( "${aws_prefix[@]}" rds restore-db-instance-to-point-in-time )
@@ -1352,7 +1581,7 @@ if [[ "$source_type" == "instance" ]]; then
     else
       cmd_restore+=(--source-db-instance-identifier "$SOURCE")
     fi
-    cmd_restore+=(--target-db-instance-identifier "$TARGET" --db-instance-class "$cls" --db-subnet-group-name "$subnet")
+    cmd_restore+=(--target-db-instance-identifier "$TARGET" --db-instance-class "$cmd_cls" --db-subnet-group-name "$cmd_subnet")
 
     if [[ -n "$RESTORE_TIME_SPEC" ]]; then
       cmd_restore+=(--restore-time "${RESTORE_TIME_ISO:-$RESTORE_TIME_SPEC}")
@@ -1398,15 +1627,11 @@ else
     if ! inst_class=$(choose_text_keep_default_if_empty "Writer class" "Writer instance class:" "$inst_class"); then cancelled; fi
   fi
 
-  require_target_db_subnet_group "$subnet"
-  require_target_db_cluster_parameter_group "$cpg"
-  require_target_option_group "$ogroup"
-
   sgs=()
   if [[ -n "$VPC_SG_IDS" ]]; then
     split_to_array "$VPC_SG_IDS" sgs
   elif ((${#source_sgs[@]})); then
-    mapfile -t sgs < <(map_sg_ids_to_target_by_name "$source_region" "$subnet" "${source_sgs[@]}")
+    mapfile -t sgs < <(map_sg_ids_to_target_by_name_for_plan "$source_region" "$subnet" "${source_sgs[@]}")
   fi
 
   if [[ "$INTERACTIVE" == "1" ]]; then
@@ -1415,13 +1640,15 @@ else
     split_to_array "$sgs_in" sgs
   fi
 
-  validate_sg_ids_in_target_subnet_vpc "$subnet" "${sgs[@]}"
+  cmd_subnet=$(value_or_placeholder "$subnet")
+  cmd_engine=$(value_or_placeholder "$engine")
+  cmd_inst_class=$(value_or_placeholder "$inst_class")
 
   if [[ -n "$SNAPSHOT_ID" ]]; then
     cmd_restore=( "${aws_prefix[@]}" rds restore-db-cluster-from-snapshot
       --db-cluster-identifier "$TARGET"
       --snapshot-identifier "$SNAPSHOT_ID"
-      --engine "$engine"
+      --engine "$cmd_engine"
     )
   else
     cmd_restore=( "${aws_prefix[@]}" rds restore-db-cluster-to-point-in-time )
@@ -1439,7 +1666,7 @@ else
     fi
   fi
 
-  [[ -n "$subnet" && "$subnet" != "null" ]] && cmd_restore+=(--db-subnet-group-name "$subnet")
+  cmd_restore+=(--db-subnet-group-name "$cmd_subnet")
   ((${#sgs[@]})) && cmd_restore+=(--vpc-security-group-ids "${sgs[@]}")
   [[ -n "$cpg" && "$cpg" != "null" ]] && cmd_restore+=(--db-cluster-parameter-group-name "$cpg")
   [[ -n "$ogroup" && "$ogroup" != "null" ]] && cmd_restore+=(--option-group-name "$ogroup")
@@ -1447,8 +1674,8 @@ else
   cmd_wait_cluster=( "${aws_prefix[@]}" rds wait db-cluster-available --db-cluster-identifier "$TARGET" )
   cmd_create_writer=( "${aws_prefix[@]}" rds create-db-instance
     --db-instance-identifier "$AURORA_WRITER_INSTANCE"
-    --db-instance-class "$inst_class"
-    --engine "$engine"
+    --db-instance-class "$cmd_inst_class"
+    --engine "$cmd_engine"
     --db-cluster-identifier "$TARGET"
   )
   cmd_wait_writer=( "${aws_prefix[@]}" rds wait db-instance-available --db-instance-identifier "$AURORA_WRITER_INSTANCE" )
@@ -1510,6 +1737,20 @@ print_shell_cmd "${rerun_minimal[@]}"
 echo
 echo "======================================================"
 echo
+
+VALIDATION_ERRORS=()
+if [[ "$source_type" == "instance" ]]; then
+  validate_target_db_subnet_group "$subnet" || true
+  validate_target_db_parameter_group "$pgroup" || true
+  validate_target_option_group "$ogroup" || true
+  validate_sg_ids_in_target_subnet_vpc "$subnet" "${sgs[@]}" || true
+else
+  validate_target_db_subnet_group "$subnet" || true
+  validate_target_db_cluster_parameter_group "$cpg" || true
+  validate_target_option_group "$ogroup" || true
+  validate_sg_ids_in_target_subnet_vpc "$subnet" "${sgs[@]}" || true
+fi
+print_validation_errors_and_exit_if_any
 
 if [[ "$DRY_RUN" == "1" ]]; then
   echo "Dry-run: no commands executed."
