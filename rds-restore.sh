@@ -1130,7 +1130,7 @@ print_cmd() {
     first_indent="$prefix "
     continuation_indent=$(printf '%*s' "${#first_indent}" '')
   else
-    first_indent="  "
+    first_indent=""
     continuation_indent="  "
   fi
 
@@ -1707,6 +1707,7 @@ echo "------------------------------------------------------"
 echo "Commands that will be executed:"
 echo
 print_cmd "1)" "${cmd_restore[@]}"
+echo
 
 if [[ "$NO_WAIT" == "1" ]]; then
   echo "2) (not executed due to --no-wait) wait commands"
@@ -1714,25 +1715,29 @@ if [[ "$NO_WAIT" == "1" ]]; then
 else
   if [[ "$source_type" == "instance" ]]; then
     print_cmd "2)" "${cmd_wait[@]}"
+    echo
   else
     print_cmd "2)" "${cmd_wait_cluster[@]}"
+    echo
     print_cmd "3)" "${cmd_create_writer[@]}"
+    echo
     print_cmd "4)" "${cmd_wait_writer[@]}"
+    echo
   fi
 fi
 
 echo "======================================================"
+echo
 mapfile -t rerun_minimal < <(build_rerun_cmd minimal)
 mapfile -t rerun_full < <(build_rerun_cmd full)
 
-echo "Re-run this exact restore non-interactively (with defaults):"
+echo "# Re-run this exact restore non-interactively (with defaults):"
 print_cmd "" "${rerun_minimal[@]}"
-
-echo "Re-run this exact restore non-interactively (hardcoded arguments):"
+echo
+echo "# Re-run this exact restore non-interactively (hardcoded arguments):"
 print_cmd "" "${rerun_full[@]}"
-
-echo "Single-line (copy/paste):"
-echo -n "  "
+echo
+echo "# Single-line (copy/paste):"
 print_shell_cmd "${rerun_minimal[@]}"
 echo
 echo "======================================================"
