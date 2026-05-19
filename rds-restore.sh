@@ -922,7 +922,7 @@ list_sources() {
   inst=$(aws_json rds describe-db-instances 2>/dev/null || true)
   if [[ -n "$inst" ]]; then
     live_instance_ids_json=$(echo "$inst" | jq -c '[.DBInstances[].DBInstanceIdentifier]')
-    echo "$inst" | jq -r '.DBInstances[] | ["instance:" + .DBInstanceIdentifier, "live instance", .DBInstanceIdentifier, .Engine, .DBInstanceStatus] | @tsv'
+    echo "$inst" | jq -r '.DBInstances[] | select((.Engine // "") | startswith("aurora") | not) | ["instance:" + .DBInstanceIdentifier, "live instance", .DBInstanceIdentifier, .Engine, .DBInstanceStatus] | @tsv'
   fi
 
   local cl live_cluster_ids_json
