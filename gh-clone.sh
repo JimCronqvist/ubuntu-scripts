@@ -260,7 +260,7 @@ print_missing_command_message() {
     if [[ "$command_name" == "gh" ]]; then
         echo >&2
         echo "After installing GitHub CLI, authenticate with:" >&2
-        echo "  gh auth login" >&2
+        echo "  gh auth login -h github.com -p ssh --skip-ssh-key" >&2
     fi
 }
 
@@ -288,7 +288,7 @@ require_command() {
                 if [[ "$command_name" == "gh" ]]; then
                     echo
                     echo "GitHub CLI is installed. You may still need to authenticate:"
-                    echo "  gh auth login"
+                    echo "  gh auth login -h github.com -p ssh --skip-ssh-key"
                 fi
 
                 return 0
@@ -312,8 +312,8 @@ require_gh_auth() {
     echo >&2
     error "GitHub CLI is installed, but you are not authenticated."
 
-    if is_interactive_terminal && ask_yes_no "Do you want to run 'gh auth login' now?"; then
-        gh auth login
+    if is_interactive_terminal && ask_yes_no "Do you want to run 'gh auth login -h github.com -p ssh --skip-ssh-key' now?"; then
+        gh auth login -h github.com -p ssh --skip-ssh-key
 
         if gh auth status >/dev/null 2>&1; then
             return 0
@@ -322,7 +322,7 @@ require_gh_auth() {
 
     echo >&2
     echo "Please authenticate with:" >&2
-    echo "  gh auth login" >&2
+    echo "  gh auth login -h github.com -p ssh --skip-ssh-key" >&2
     exit 1
 }
 
