@@ -452,7 +452,7 @@ declare -A PARAMS=(
     ["verbose"]=3
     ["compress-protocol"]="ZSTD"
     ["compress"]="ZSTD"
-    ["skip-ddl-locks"]=false # Will be set to true automatically if it is a RDS hostname - otherwise "LOCK INSTANCE FOR BACKUP" will be issued on RDS, which fails.
+    ["skip-ddl-locks"]=false
     ["long-query-guard"]=1800
     ["skip-definer"]=false
     ["build-empty-files"]=true
@@ -640,8 +640,14 @@ PARAMS["outputdir"]="${PARAMS["outputdir"]%/}/${CONFIG}/${TIMESTAMP}"
 
 # When AWS RDS, set some values
 if [[ "$MYSQL_HOST" == *".rds.amazonaws.com" ]]; then
-  PARAMS["skip-ddl-locks"]=true # Disable ddl locks, as we are not able to provide the BACKUP_ADMIN privilege there.
-  PARAMS["source-control-command"]="AWS"
+  if [[ -v INTERNAL_PARAMS["source-control-command"] ]]; then
+    # Disabled for now, as the "detect_replica" in server_detect.c in mydumper does not set the "SHOW_BINARY_LOG_STATUS"
+    # correctly on RDS 8.4, so it will fail with "Couldn't get master position" because it executes "SHOW MASTER STATUS"
+    # instead of "SHOW BINARY LOG STATUS" on RDS 8.4. This is a bug in mydumper that needs to be fixed before this can
+    # be activated again.
+    #PARAMS["source-control-command"]="AWS"
+  fi
+
 fi
 
 # Build the command using the parameters in the array
