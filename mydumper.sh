@@ -645,9 +645,9 @@ if [[ "$MYSQL_HOST" == *".rds.amazonaws.com" ]]; then
     # correctly on RDS 8.4, so it will fail with "Couldn't get master position" because it executes "SHOW MASTER STATUS"
     # instead of "SHOW BINARY LOG STATUS" on RDS 8.4. This is a bug in mydumper that needs to be fixed before this can
     # be activated again.
+    echo "Not forcing the setting source-control-command to AWS due to a bug in mydumper that does not support RDS 8.4 properly."
     #PARAMS["source-control-command"]="AWS"
   fi
-
 fi
 
 # Build the command using the parameters in the array
