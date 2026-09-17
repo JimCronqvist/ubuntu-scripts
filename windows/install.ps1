@@ -156,6 +156,7 @@ wsl --version
 # Install Docker Desktop
 choco install -y docker-desktop
 #net localgroup "docker-users" "<your username>" /add # Run this to avoid a reboot?
+winget install -e --id Docker.sbx --source winget --accept-package-agreements --accept-source-agreements
 
 # Set up Ubuntu
 #wsl --cd ~ -e bash -c "sudo install -o 1000 -g 1000 -m 777 -d /var/www"
