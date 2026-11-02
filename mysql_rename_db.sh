@@ -128,8 +128,8 @@ validate_db_name() {
         error "$label database name '$value' is too long. Maximum length is 64 characters."
     fi
 
-    if [[ ! "$value" =~ ^[a-zA-Z0-9_]+$ ]]; then
-        error "Invalid $label database name '$value'. Only letters, numbers, and underscores are allowed."
+    if [[ ! "$value" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        error "Invalid $label database name '$value'. Only letters, numbers, dashes, and underscores are allowed."
     fi
 
     case "$lower_value" in
