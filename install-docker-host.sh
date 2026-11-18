@@ -462,11 +462,12 @@ EOF
             
         "12") # Install Node
             
-            # Install Node 22 LTS
-            curl -sL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+            # Install Node 26 LTS
+            curl -sL https://deb.nodesource.com/setup_26.x | sudo -E bash -
             sudo apt install nodejs -y
             sudo npm install npm@latest -g
-            sudo npm install yarn@latest -g
+			sudo npm install yarn@latest -g --allow-scripts=yarn
+			sudo npm config set allow-scripts=yarn --location=global
             
             # Correct permissions after install
             sudo chown ubuntu:ubuntu /home/ubuntu/ -R
