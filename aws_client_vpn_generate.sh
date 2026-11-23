@@ -26,7 +26,7 @@ prompt_editable() {
 }
 
 CA_CN=$(prompt_editable "CA Common Name" "client-vpn-ca")
-SERVER_CN=$(prompt_editable "Server Common Name" "server")
+SERVER_CN=$(prompt_editable "Server Common Name" "vpn.server")
 CLIENT_CN=$(prompt_editable "Client Common Name" "vpn." "vpn.jim.cronqvist")
 PKI_DIR=$(prompt_editable "Output directory" "${PWD}/pki")
 
