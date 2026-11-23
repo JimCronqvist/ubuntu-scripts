@@ -26,8 +26,8 @@ prompt_editable() {
 }
 
 CA_CN=$(prompt_editable "CA Common Name" "client-vpn-ca")
-SERVER_CN=$(prompt_editable "Server Common Name" "vpn.server")
-CLIENT_CN=$(prompt_editable "Client Common Name" "vpn." "vpn.jim.cronqvist")
+SERVER_CN=$(prompt_editable "Server Common Name" "vpn.server." "vpn.server.jim.cronqvist or vpn.server.company")
+CLIENT_CN=$(prompt_editable "Client Common Name" "vpn.client." "vpn.client.jim.cronqvist")
 PKI_DIR=$(prompt_editable "Output directory" "${PWD}/pki")
 
 # Guard against accidentally pressing Enter on "vpn." without typing a username
@@ -66,10 +66,28 @@ docker run --rm \
     cp -rp /tmp/pki/. /work/output/
   '
 
+# Pre-build the <cert> and <key> snippet for easy appending to AWS's downloaded-client-config.ovpn
+OVPN_PART="${PKI_DIR}/${CLIENT_CN}.ovpn.part"
+{
+  echo ""
+  echo "<cert>"
+  sed -n '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p' "${PKI_DIR}/issued/${CLIENT_CN}.crt"
+  echo "</cert>"
+  echo ""
+  echo "<key>"
+  cat "${PKI_DIR}/private/${CLIENT_CN}.key"
+  echo "</key>"
+} > "$OVPN_PART"
+
 echo ""
 echo "Done! Generated files:"
 echo "  ACM Certificate body:        ${PKI_DIR}/issued/${SERVER_CN}.crt"
 echo "  ACM Certificate private key: ${PKI_DIR}/private/${SERVER_CN}.key"
 echo "  ACM Certificate chain:       ${PKI_DIR}/ca.crt"
-echo "  Client .ovpn <cert>:         ${PKI_DIR}/issued/${CLIENT_CN}.crt"
-echo "  Client .ovpn <key>:          ${PKI_DIR}/private/${CLIENT_CN}.key"
+echo "  Client .ovpn auth part:      ${OVPN_PART}"
+echo "  "
+echo "  Import the above three files into AWS ACM and use them to create a Client VPN endpoint."
+echo "  Note: Select this certificate as both Server Certificate ARN and Client Certificate ARN in AWS Client VPN (use mutual authentication)."
+echo "  "
+echo "Once you download downloaded-client-config.ovpn from AWS, merge them with:"
+echo "  cat ~/Downloads/downloaded-client-config.ovpn \"${OVPN_PART}\" > \"${PKI_DIR}/${CLIENT_CN}.ovpn\""
