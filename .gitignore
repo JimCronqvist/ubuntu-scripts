@@ -3,3 +3,4 @@ mydumper.yaml
 mydumper.*.cnf
 myloader.*.cnf
 myloader.*.log
+pki/
