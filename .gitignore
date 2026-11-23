@@ -4,3 +4,4 @@ mydumper.*.cnf
 myloader.*.cnf
 myloader.*.log
 pki/
+downloaded-client-config.ovpn
