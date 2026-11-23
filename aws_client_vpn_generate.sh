@@ -53,16 +53,17 @@ mkdir -p "$PKI_DIR"
 
 docker run --rm \
   --user "$(id -u):$(id -g)" \
-  -v "${PKI_DIR}:/work/pki" \
-  -e EASYRSA_PKI="/work/pki" \
+  -v "${PKI_DIR}:/work/output" \
+  -e EASYRSA_PKI="/tmp/pki" \
   -e CA_CN="$CA_CN" \
   -e SERVER_CN="$SERVER_CN" \
   -e CLIENT_CN="$CLIENT_CN" \
   kylemanna/openvpn bash -c '
     easyrsa --batch init-pki && \
     easyrsa --batch --req-cn="$CA_CN" build-ca nopass && \
-    easyrsa --batch build-server-full "$SERVER_CN" nopass && \  # --san="DNS:$SERVER_CN"
-    easyrsa --batch build-client-full "$CLIENT_CN" nopass
+    easyrsa --batch build-server-full "$SERVER_CN" nopass && \
+    easyrsa --batch build-client-full "$CLIENT_CN" nopass && \
+    cp -rp /tmp/pki/. /work/output/
   '
 
 echo ""
