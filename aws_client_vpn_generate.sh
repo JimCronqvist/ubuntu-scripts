@@ -48,15 +48,17 @@ echo "  Server CN: $SERVER_CN"
 echo "  Client CN: $CLIENT_CN"
 echo ""
 
+mkdir -p "$PKI_DIR"
 docker run --rm \
-  -v "${PKI_DIR}:/etc/openvpn/pki" \
+  --user "$(id -u):$(id -g)" \
+  -v "${PKI_DIR}:/etc/openvpn" \
   -e CA_CN="$CA_CN" \
   -e SERVER_CN="$SERVER_CN" \
   -e CLIENT_CN="$CLIENT_CN" \
   kylemanna/openvpn bash -c '
     easyrsa --batch init-pki && \
     easyrsa --batch --req-cn="$CA_CN" build-ca nopass && \
-    easyrsa --batch --san="DNS:$SERVER_CN" build-server-full "$SERVER_CN" nopass && \
+    easyrsa --batch build-server-full "$SERVER_CN" nopass && \  # --san="DNS:$SERVER_CN"
     easyrsa --batch build-client-full "$CLIENT_CN" nopass
   '
 
