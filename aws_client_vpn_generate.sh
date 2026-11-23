@@ -39,6 +39,7 @@ fi
 if [[ -d "$PKI_DIR" ]]; then
   read -rp "Directory '$PKI_DIR' already exists and will be overwritten. Continue? (y/N): " CONFIRM
   [[ "$CONFIRM" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 1; }
+  rm -rf "$PKI_DIR"
 fi
 
 echo ""
@@ -49,9 +50,11 @@ echo "  Client CN: $CLIENT_CN"
 echo ""
 
 mkdir -p "$PKI_DIR"
+
 docker run --rm \
   --user "$(id -u):$(id -g)" \
-  -v "${PKI_DIR}:/etc/openvpn" \
+  -v "${PKI_DIR}:/work/pki" \
+  -e EASYRSA_PKI="/work/pki" \
   -e CA_CN="$CA_CN" \
   -e SERVER_CN="$SERVER_CN" \
   -e CLIENT_CN="$CLIENT_CN" \
