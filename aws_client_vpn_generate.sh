@@ -49,7 +49,7 @@ echo "  Server CN: $SERVER_CN"
 echo "  Client CN: $CLIENT_CN"
 echo ""
 
-mkdir -p "$PKI_DIR"
+mkdir -p "$PKI_DIR/acm"
 
 docker run --rm \
   --user "$(id -u):$(id -g)" \
@@ -63,28 +63,32 @@ docker run --rm \
     easyrsa --batch --req-cn="$CA_CN" build-ca nopass && \
     easyrsa --batch build-server-full "$SERVER_CN" nopass && \
     easyrsa --batch build-client-full "$CLIENT_CN" nopass && \
-    cp -rp /tmp/pki/. /work/output/
+    cp "/tmp/pki/issued/${SERVER_CN}.crt" "/work/output/acm/${SERVER_CN}.crt" && \
+    cp "/tmp/pki/private/${SERVER_CN}.key" "/work/output/acm/${SERVER_CN}.key" && \
+    cp "/tmp/pki/ca.crt" "/work/output/acm/ca.crt" && \
+    cp "/tmp/pki/private/ca.key" "/work/output/acm/ca.key" && \
+    chmod 600 "/work/output/acm/ca.key" "/work/output/acm/${SERVER_CN}.key" && \
+    {
+      echo ""
+      echo "<cert>"
+      sed -n "/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p" "/tmp/pki/issued/${CLIENT_CN}.crt"
+      echo "</cert>"
+      echo ""
+      echo "<key>"
+      cat "/tmp/pki/private/${CLIENT_CN}.key"
+      echo "</key>"
+    } > "/work/output/${CLIENT_CN}.ovpn.part"
   '
 
-# Pre-build the <cert> and <key> snippet for easy appending to AWS's downloaded-client-config.ovpn
 OVPN_PART="${PKI_DIR}/${CLIENT_CN}.ovpn.part"
-{
-  echo ""
-  echo "<cert>"
-  sed -n '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p' "${PKI_DIR}/issued/${CLIENT_CN}.crt"
-  echo "</cert>"
-  echo ""
-  echo "<key>"
-  cat "${PKI_DIR}/private/${CLIENT_CN}.key"
-  echo "</key>"
-} > "$OVPN_PART"
 
 echo ""
 echo "Done! Generated files:"
-echo "  ACM Certificate body:        ${PKI_DIR}/issued/${SERVER_CN}.crt"
-echo "  ACM Certificate private key: ${PKI_DIR}/private/${SERVER_CN}.key"
-echo "  ACM Certificate chain:       ${PKI_DIR}/ca.crt"
-echo "  Client .ovpn auth part:      ${OVPN_PART}"
+echo "  ACM Certificate body:        ${PKI_DIR}/acm/${SERVER_CN}.crt"
+echo "  ACM Certificate private key: ${PKI_DIR}/acm/${SERVER_CN}.key"
+echo "  ACM Certificate chain:       ${PKI_DIR}/acm/ca.crt"
+echo "  CA Private Key (keep safe):  ${PKI_DIR}/acm/ca.key"
+echo "  Client .ovpn auth snippet:   ${OVPN_PART}"
 echo ""
 echo "1) Import the above three files into AWS ACM and use them to create a Client VPN endpoint."
 echo "   Note: Select this certificate as both Server Certificate ARN and Client Certificate ARN in AWS Client VPN (use mutual authentication)."
