@@ -82,6 +82,13 @@ docker run --rm \
 
 OVPN_PART="${PKI_DIR}/${CLIENT_CN}.ovpn.part"
 
+tee -a "$OVPN_PART" >/dev/null <<EOF
+
+# Prevent AWS Client VPN from hijacking the default gateway (enforce split-tunnel)
+pull-filter ignore redirect-gateway
+
+EOF
+
 echo ""
 echo "Done! Generated files:"
 echo "  ACM Certificate body:        ${PKI_DIR}/acm/${SERVER_CN}.crt"
